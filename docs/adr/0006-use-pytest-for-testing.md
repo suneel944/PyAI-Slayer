@@ -33,9 +33,10 @@ We will use pytest as our testing framework.
 ## Implementation
 Tests are organized in `tests/` directory:
 - `tests/unit/` - Framework unit tests
-- `tests/ui/` - UI tests
-- `tests/ai_responses/` - AI validation tests
-- `tests/security/` - Security tests
+- `tests/e2e/ui/` - UI end-to-end tests
+- `tests/e2e/ai/` - AI validation end-to-end tests
+- `tests/e2e/security/` - Security end-to-end tests
+- `tests/integration/` - Integration tests
 
 ### Test Execution Targets
 The framework provides separate Makefile targets for different test types:

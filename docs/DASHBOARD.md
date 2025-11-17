@@ -62,7 +62,7 @@ Dependencies are already included in `pyproject.toml`.
 
 ```bash
 # Check if dashboard module is available
-python -c "from dashboard import create_app; print('✓ Dashboard installed')"
+python -c "from dashboard.api import create_app; print('✓ Dashboard installed')"
 ```
 
 ## Usage
@@ -224,6 +224,9 @@ The dashboard will automatically:
 ### Statistics
 - `GET /api/statistics` - Overall test statistics
 
+### Trends
+- `GET /api/trends?hours=168` - Trend data for charts (default: 168 hours / 7 days)
+
 ### Artifacts
 - `GET /api/artifacts/{artifact_type}/{test_id}` - Serve test artifacts
 
@@ -247,9 +250,9 @@ The dashboard will automatically:
 
 ### Automatic Data Collection
 
-Data is collected automatically via `conftest.py` hooks:
+Data is collected automatically via `tests/conftest.py` hooks:
 - Test results captured on completion
-- Validation data from AIResponseValidator
+- Validation data from `core.ai.ai_validator.AIResponseValidator`
 - Artifacts discovered and linked
 - Failure analysis generated for failed tests
 
@@ -267,11 +270,13 @@ PROMETHEUS_PORT=8000
 
 ### Dashboard Settings
 
-Modify in `scripts/run_dashboard.py`:
-```python
-# Default host and port
-HOST = "0.0.0.0"
-PORT = 8080
+Default settings are configured in `scripts/run_dashboard.py`:
+- Default host: `0.0.0.0`
+- Default port: `8080`
+
+To use custom settings, use command-line arguments:
+```bash
+python scripts/run_dashboard.py --host 127.0.0.1 --port 8888
 ```
 
 ## Failure Analysis
@@ -371,7 +376,7 @@ ls -lh reports/dashboard.db
 ### Failed Tests Not Showing Details
 
 - Ensure tests have validation data
-- Check `conftest.py` integration
+- Check `tests/conftest.py` integration
 - Verify SQLite database permissions
 - Look for error logs in terminal
 

@@ -12,7 +12,7 @@ Core Components
 Browser Manager
 ---------------
 
-.. automodule:: core.browser_manager
+.. automodule:: core.browser.browser_manager
    :members:
    :undoc-members:
    :show-inheritance:
@@ -20,7 +20,7 @@ Browser Manager
 AI Response Validator
 ---------------------
 
-.. automodule:: core.ai_validator
+.. automodule:: core.ai.ai_validator
    :members:
    :undoc-members:
    :show-inheritance:
@@ -28,7 +28,7 @@ AI Response Validator
 Security Tester
 ---------------
 
-.. automodule:: core.security_tester
+.. automodule:: core.security.security_tester
    :members:
    :undoc-members:
    :show-inheritance:
@@ -36,7 +36,7 @@ Security Tester
 Retry Mechanisms
 ---------------
 
-.. automodule:: core.retry
+.. automodule:: core.infrastructure.retry
    :members:
    :undoc-members:
    :show-inheritance:
@@ -44,7 +44,7 @@ Retry Mechanisms
 Circuit Breaker
 --------------
 
-.. automodule:: core.circuit_breaker
+.. automodule:: core.infrastructure.circuit_breaker
    :members:
    :undoc-members:
    :show-inheritance:
@@ -52,7 +52,7 @@ Circuit Breaker
 Health Checks
 -------------
 
-.. automodule:: core.health
+.. automodule:: core.infrastructure.health
    :members:
    :undoc-members:
    :show-inheritance:
@@ -60,7 +60,7 @@ Health Checks
 Resource Management
 -------------------
 
-.. automodule:: core.resource_manager
+.. automodule:: core.infrastructure.resource_manager
    :members:
    :undoc-members:
    :show-inheritance:
@@ -68,7 +68,7 @@ Resource Management
 Exceptions
 ----------
 
-.. automodule:: core.exceptions
+.. automodule:: core.infrastructure.exceptions
    :members:
    :undoc-members:
    :show-inheritance:

@@ -19,6 +19,7 @@ A comprehensive Python automation framework specifically designed for AI/ML chat
 
    DASHBOARD
    DOCKER
+   PLUGINS
 
 .. toctree::
    :maxdepth: 2

@@ -1,7 +1,7 @@
 Contributing
 ============
 
-We welcome contributions! Please see our :doc:`architecture` guide for framework design details.
+We welcome contributions! Please see our :doc:`FRAMEWORK_ARCHITECTURE` guide for framework design details.
 
 Code Style
 ----------

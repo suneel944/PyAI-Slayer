@@ -195,38 +195,49 @@ Tests are grouped by how and when they should run:
 
 ```
 tests/
-├── functional/          # Business functionality tests
-│   ├── user_flows/      # Complete user workflows
-│   ├── features/        # Feature-specific tests
-│   └── business_rules/  # Business logic validation
+├── e2e/                 # End-to-end tests
+│   ├── ai/            # AI validation tests
+│   │   ├── test_gpt_english.py
+│   │   ├── test_gpt_arabic.py
+│   │   ├── test_rag_metrics.py
+│   │   ├── test_hallucination_detection.py
+│   │   └── ...
+│   ├── security/      # Security tests
+│   │   ├── test_input_sanitization.py
+│   │   ├── test_prompt_injection.py
+│   │   └── test_security_resilience.py
+│   └── ui/            # UI tests
+│       ├── test_chat_ui_desktop.py
+│       ├── test_chat_ui_mobile.py
+│       └── test_accessibility.py
 │
-├── integration/         # Integration tests
-│   ├── api/            # API integration tests
-│   ├── services/       # Service integration tests
-│   └── e2e/            # End-to-end tests
+├── integration/        # Integration tests
+│   └── ui/            # UI integration tests
 │
-├── security/            # Security tests
-│   ├── input_validation/
-│   ├── authentication/
-│   └── authorization/
+├── unit/               # Unit tests
+│   ├── test_ai_validator.py
+│   ├── test_browser_manager.py
+│   ├── test_security_tester.py
+│   └── ...
 │
-├── performance/         # Performance tests
-│   ├── response_time/
-│   ├── load/
-│   └── stress/
+├── pages/              # Page Object Model
+│   ├── base_page.py
+│   ├── chat_page.py
+│   ├── login_page.py
+│   └── locators.py
 │
-└── ui/                  # UI-specific tests
-    ├── accessibility/
-    ├── responsive/
-    └── cross_browser/
+└── test_data/          # Test data
+    ├── prompts/        # Test prompts (EN/AR)
+    └── expected/      # Expected response schemas
 ```
 
 ### Test Segregation Benefits
 
 1. **Selective Execution:** Run specific test categories based on need
    ```bash
-   pytest tests/functional/        # Run only functional tests
-   pytest tests/security/          # Run only security tests
+   pytest tests/e2e/ai/            # Run only AI validation tests
+   pytest tests/e2e/security/      # Run only security tests
+   pytest tests/e2e/ui/            # Run only UI tests
    pytest -m smoke                  # Run smoke tests
    ```
 
@@ -291,7 +302,7 @@ This ensures:
 ### 1. **Test Initialization**
 
 ```python
-# When you run: pytest tests/ui/test_chat_ui_desktop.py
+# When you run: pytest tests/e2e/ui/test_chat_ui_desktop.py
 
 Step 1: Pytest loads conftest.py
   ├─ Creates fixtures (browser_manager, page, chat_page, etc.)
@@ -308,7 +319,7 @@ Step 2: For each test function
 ### 2. **Example: UI Test Execution**
 
 ```python
-# tests/ui/test_chat_ui_desktop.py
+# tests/e2e/ui/test_chat_ui_desktop.py
 def test_chat_widget_loads(self, chat_page, page):
     # 1. Fixture injection: chat_page and page are provided by conftest.py
     #    - page: Playwright Page object (browser page)
@@ -369,7 +380,7 @@ timeout = settings.test_timeout
 - `.env` file: `BASE_URL=https://example.com`
 - Pydantic automatically converts to: `settings.base_url`
 
-### 2. **Browser Manager** (`src/core/browser_manager.py`)
+### 2. **Browser Manager** (`src/core/browser/browser_manager.py`)
 
 **Purpose:** Manages browser lifecycle and provides abstraction over browser automation tools.
 
@@ -463,7 +474,7 @@ class SpecificPage(BasePage):
 - **Readability:** Tests read like documentation: `page.perform_action("data")`
 - **Test Layer:** Page objects are part of the test layer, not core framework
 
-### 4. **Response Validator** (`src/core/response_validator.py`)
+### 4. **Response Validator** (`src/core/ai/ai_validator.py`)
 
 **Purpose:** Validates application responses using various validation strategies
 
@@ -513,7 +524,7 @@ is_relevant, score = validator.validate_relevance(query, response)
 - **Content Validation:** Checks for required information, completeness, and accuracy
 - **Cross-language Validation:** Validates responses in different languages are semantically equivalent
 
-### 5. **Security Tester** (`src/core/security_tester.py`)
+### 5. **Security Tester** (`src/core/security/security_tester.py`)
 
 **Purpose:** Automated security testing and vulnerability detection
 
@@ -589,7 +600,7 @@ def test_xss_injection_sanitized(self, page, security_tester):
 Let's trace a complete test execution:
 
 ```python
-# Test: tests/ai_responses/test_gpt_english.py::test_basic_query_response
+# Test: tests/e2e/ai/test_gpt_english.py::test_basic_query_response
 
 1. Pytest starts
    └─> Loads conftest.py
@@ -701,7 +712,7 @@ timeout = settings.test_timeout
 ### 1. **Write a Simple UI Test**
 
 ```python
-# tests/ui/test_my_feature.py
+# tests/e2e/ui/test_my_feature.py
 import pytest
 from tests.pages.chat_page import ChatPage
 from config.settings import settings
@@ -730,10 +741,10 @@ class TestMyFeature:
 ### 2. **Write an AI Validation Test**
 
 ```python
-# tests/ai_responses/test_my_ai.py
+# tests/e2e/ai/test_my_ai.py
 import pytest
 from tests.pages.chat_page import ChatPage
-from core.ai_validator import AIResponseValidator
+from core.ai.ai_validator import AIResponseValidator
 
 @pytest.mark.ai
 class TestMyAI:
@@ -757,10 +768,10 @@ class TestMyAI:
 ### 3. **Write a Security Test**
 
 ```python
-# tests/security/test_my_security.py
+# tests/e2e/security/test_my_security.py
 import pytest
 from tests.pages.chat_page import ChatPage
-from core.security_tester import SecurityTester
+from core.security.security_tester import SecurityTester
 
 @pytest.mark.security
 class TestMySecurity:
@@ -788,7 +799,7 @@ class TestMySecurity:
 The framework provides several test targets:
 
 - **`make test`** - Runs integration/UI/security tests (excludes unit tests)
-  - Executes: `pytest tests/ai_responses/ tests/security/ tests/ui/`
+  - Executes: `pytest tests/e2e/ai/ tests/e2e/security/ tests/e2e/ui/`
 - **`make test-unit`** - Runs unit tests only
   - Executes: `pytest tests/unit/`
 - **`make test-all`** - Runs all tests (unit + integration + UI + security)
@@ -803,7 +814,7 @@ The framework provides several test targets:
 make test
   │
   ├─> Makefile: test target
-  │   └─> $(VENV_BIN)/pytest tests/ai_responses/ tests/security/ tests/ui/ -n 5 -vv -s
+  │   └─> $(VENV_BIN)/pytest tests/e2e/ai/ tests/e2e/security/ tests/e2e/ui/ -n 5 -vv -s
   │
   ├─> Pytest starts
   │   ├─> Reads pyproject.toml for config
@@ -824,25 +835,60 @@ make test
 ## 📁 File Organization
 
 ```
-ICT/
+PyAI-Slayer/
 ├── src/                      # Framework source code (core layer)
 │   ├── config/
 │   │   ├── settings.py          # Pydantic settings (reads .env)
-│   │   └── environments.yaml    # Multi-env configs
+│   │   ├── environments.yaml    # Multi-env configs
+│   │   └── feature_flags.py     # Feature flags
 │   │
 │   ├── core/                     # Core framework logic
-│   │   ├── browser_manager.py   # Playwright wrapper
-│   │   ├── ai_validator.py      # AI response validation
-│   │   ├── security_tester.py   # Security testing
-│   │   └── localization_helper.py # RTL/LTR handling
+│   │   ├── ai/                   # AI validation
+│   │   │   ├── ai_validator.py      # AI response validation
+│   │   │   ├── rag_tester.py        # RAG testing
+│   │   │   ├── hallucination_detector.py
+│   │   │   └── conversation_tester.py
+│   │   ├── browser/              # Browser automation
+│   │   │   ├── browser_manager.py   # Playwright wrapper
+│   │   │   └── browser_pool.py     # Browser pool management
+│   │   ├── infrastructure/         # Infrastructure components
+│   │   │   ├── cache.py
+│   │   │   ├── circuit_breaker.py
+│   │   │   ├── retry.py
+│   │   │   └── ...
+│   │   ├── observability/         # Observability features
+│   │   │   ├── prometheus_metrics.py
+│   │   │   └── playwright_tracing.py
+│   │   ├── security/             # Security testing
+│   │   │   ├── security_tester.py
+│   │   │   └── prompt_injection_tester.py
+│   │   └── validation/          # Validation strategies
+│   │       ├── localization_helper.py # RTL/LTR handling
+│   │       └── validation_strategy.py
+│   │
+│   ├── dashboard/               # Dashboard application
+│   │   ├── api.py
+│   │   ├── collectors.py
+│   │   ├── metrics_calculator.py
+│   │   └── ...
 │   │
 │   └── utils/                    # Utilities
 │       ├── logger.py            # Logging setup
 │       ├── helpers.py           # Helper functions
-│       └── screenshot_manager.py # Screenshot handling
+│       ├── screenshot_manager.py # Screenshot handling
+│       └── report_generator.py
 │
 └── tests/                    # Test layer (AI chatbot tests)
     ├── conftest.py          # Pytest fixtures
+    │
+    ├── e2e/                  # End-to-end tests
+    │   ├── ai/               # AI validation test suites
+    │   ├── security/         # Security test suites
+    │   └── ui/               # UI test suites
+    │
+    ├── integration/         # Integration tests
+    │
+    ├── unit/                 # Unit tests
     │
     ├── pages/                # Page Object Model (part of test layer)
     │   ├── base_page.py         # Base class
@@ -851,13 +897,9 @@ ICT/
     │   ├── locators.py          # Selector definitions
     │   └── mixins.py            # Reusable mixins
     │
-    ├── test_data/            # Test data (part of test layer)
-    │   ├── prompts/              # Test prompts (EN/AR)
-    │   └── expected/             # Expected response schemas
-    │
-    ├── ui/                   # UI test suites
-    ├── ai_responses/         # AI validation test suites
-    └── security/             # Security test suites
+    └── test_data/            # Test data (part of test layer)
+        ├── prompts/              # Test prompts (EN/AR)
+        └── expected/             # Expected response schemas
 ```
 
 ## 🎓 Key Concepts Summary

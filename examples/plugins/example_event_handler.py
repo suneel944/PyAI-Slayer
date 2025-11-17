@@ -1,4 +1,5 @@
 """Example event handler plugin."""
+
 from core.infrastructure.events import Event, EventEmitter, EventType
 from core.validation.plugins import EventPlugin
 
@@ -25,18 +26,17 @@ class ExampleEventHandlerPlugin(EventPlugin):
 
     def _on_test_started(self, event: Event) -> None:
         """Handle test started event."""
-        test_name = event.data.get('test_name', 'unknown')
+        test_name = event.data.get("test_name", "unknown")
         print(f"[Event Handler] Test started: {test_name}")
 
     def _on_test_completed(self, event: Event) -> None:
         """Handle test completed event."""
-        test_name = event.data.get('test_name', 'unknown')
-        duration = event.data.get('duration', 0)
+        test_name = event.data.get("test_name", "unknown")
+        duration = event.data.get("duration", 0)
         print(f"[Event Handler] Test completed: {test_name} (duration: {duration:.2f}s)")
 
     def _on_test_failed(self, event: Event) -> None:
         """Handle test failed event."""
-        test_name = event.data.get('test_name', 'unknown')
-        error = event.data.get('error', 'unknown error')
+        test_name = event.data.get("test_name", "unknown")
+        error = event.data.get("error", "unknown error")
         print(f"[Event Handler] Test failed: {test_name} - {error}")
-

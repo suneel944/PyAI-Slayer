@@ -382,7 +382,6 @@ class AIResponseValidator:
             return False, []
 
         try:
-
             model = self._get_model_for_text(response)
             response_embedding = model.encode(response, convert_to_numpy=True)
             conflicting_facts = []
@@ -451,7 +450,6 @@ class AIResponseValidator:
             return 1.0
 
         try:
-
             model = self._get_model_for_text(responses[0]) if responses else self.semantic_model
             embeddings = [model.encode(r, convert_to_numpy=True) for r in responses]
 
@@ -520,7 +518,6 @@ class AIResponseValidator:
             return False, 0.0
 
         try:
-
             ar_translated = self.translator.translate(ar_response, src="ar", dest="en")
 
             if not ar_translated or len(ar_translated.strip()) == 0:

@@ -54,4 +54,3 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 # Default command
 CMD ["pytest", "--version"]
-

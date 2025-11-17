@@ -34,4 +34,3 @@ Circuit breaker is implemented in `src/core/circuit_breaker.py` with three state
 - CLOSED: Normal operation
 - OPEN: Failing, reject requests
 - HALF_OPEN: Testing recovery
-

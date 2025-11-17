@@ -1,5 +1,5 @@
 """Sphinx configuration for PyAI-Slayer documentation."""
-import os
+
 import sys
 from pathlib import Path
 
@@ -106,4 +106,3 @@ todo_include_todos = True
 
 # Exclude patterns
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-

@@ -378,7 +378,7 @@ Use the PR template provided in `.github/pull_request_template.md`. Include:
 
 1. **Automated Checks**: All PRs must pass CI checks (linting, type checking, tests)
 2. **Code Review**: PRs require at least one approval from a maintainer before merging
-3. **Addressing Feedback**: 
+3. **Addressing Feedback**:
    - Address review comments promptly and professionally
    - Ask for clarification if feedback is unclear
    - Mark conversations as resolved when addressed
@@ -547,4 +547,3 @@ Thank you for contributing to PyAI-Slayer! 🗡️⚡
 - [Architecture Documentation](docs/FRAMEWORK_ARCHITECTURE.md) - Framework design details
 - [API Reference](docs/api_reference.rst) - Complete API documentation
 - [Architecture Decision Records](docs/adr/) - Design decisions and rationale
-

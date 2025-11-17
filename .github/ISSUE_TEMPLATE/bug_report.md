@@ -15,9 +15,9 @@ A clear and concise description of what the bug is.
 - [ ] Test with the latest version to confirm it's still present
 
 ## Steps to Reproduce
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ## Expected Behavior
 What you expected to happen.
@@ -48,4 +48,3 @@ Add any other context about the problem here, such as:
 - Screenshots (if applicable)
 - Related configuration files
 - Workarounds you've tried
-

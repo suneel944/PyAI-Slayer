@@ -48,4 +48,3 @@ repos:
         args: ['-c', 'pyproject.toml']
         additional_dependencies: ['bandit[toml]']
         files: ^src/
-

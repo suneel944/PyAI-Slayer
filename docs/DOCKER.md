@@ -257,4 +257,3 @@ docker-compose config
 
 - [Getting Started](getting_started.rst)
 - [Testing Guide](contributing.rst)
-

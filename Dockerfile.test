@@ -56,4 +56,3 @@ ENV HEADLESS=true
 
 # Run unit tests only
 CMD ["pytest", "tests/unit/", "-v", "--tb=short"]
-

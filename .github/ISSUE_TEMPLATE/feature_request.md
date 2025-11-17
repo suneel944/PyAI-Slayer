@@ -39,4 +39,3 @@ Add any other context, examples, or screenshots about the feature request here.
 - Related issues or discussions
 - Mockups or diagrams (if applicable)
 - Implementation hints or references
-

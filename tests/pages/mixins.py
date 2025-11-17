@@ -70,11 +70,9 @@ class PollingMixin:
 
                     if current_text and len(current_text.strip()) > 0:
                         if current_text != last_text:
-
                             last_text = current_text
                             last_stable_time = None
                         else:
-
                             if last_stable_time is None:
                                 last_stable_time = time.time()
 
@@ -82,7 +80,6 @@ class PollingMixin:
                             if stable_duration >= stability_duration:
                                 return True, current_text
                     else:
-
                         last_stable_time = None
             except Exception:
                 pass
@@ -187,7 +184,6 @@ class FormInteractionMixin:
             True if successful
         """
         try:
-
             if self.click(submit_selector, timeout=timeout):
                 return True
 
@@ -224,7 +220,6 @@ class NavigationMixin:
         """
         try:
             if exclude_pattern:
-
                 import time
 
                 start_time = time.time()
@@ -234,7 +229,6 @@ class NavigationMixin:
                     time.sleep(0.1)
                 return False
             else:
-
                 self.page.wait_for_load_state("networkidle", timeout=timeout)
             return True
         except Exception:

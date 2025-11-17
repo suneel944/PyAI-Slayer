@@ -321,6 +321,7 @@ pre-commit: venv
 		echo "$(YELLOW)Pre-commit not found, installing...$(NC)"; \
 		$(VENV_BIN)/pip install pre-commit; \
 	fi
+	@$(VENV_BIN)/pre-commit clean || true
 	@$(VENV_BIN)/pre-commit run --all-files
 
 # Validate version

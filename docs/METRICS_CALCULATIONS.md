@@ -990,9 +990,9 @@ is_relevant = similarity >= threshold
 from bert_score import score
 
 P, R, F1 = score(
-    [candidate], 
-    [reference], 
-    lang=lang, 
+    [candidate],
+    [reference],
+    lang=lang,
     rescale_with_baseline=True
 )
 
@@ -1078,7 +1078,7 @@ similarity = cosine_similarity(en_response, ar_translated)
 
 # Method 2: Direct semantic comparison (fallback)
 similarity = cosine_similarity(
-    encode(en_response), 
+    encode(en_response),
     encode(ar_response)
 )
 ```
@@ -1382,7 +1382,7 @@ All thresholds and parameters are configurable via:
 
 ---
 
-**Last Updated:** 2025-11-17  
+**Last Updated:** 2025-11-17
 **Maintainer:** PyAI-Slayer Team
 
 **Note:** This documentation is critical for maintaining and correcting metric calculations. Please keep it updated when making changes to calculation logic.

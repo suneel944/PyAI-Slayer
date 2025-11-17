@@ -90,7 +90,6 @@ class TestGPTArabic:
 
         if not is_rtl:
             try:
-
                 message_direction = page.evaluate(
                     """
                     () => {

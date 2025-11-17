@@ -71,7 +71,7 @@ def validate_test_data_file(file_path: Path, schema: dict[str, Any]) -> list[str
                 errors.append(f"{category}[{idx}].prompt must be a string in {file_path}")
 
             if "min_response_length" in item and (
-                not isinstance(item["min_response_length"], (int, float))
+                not isinstance(item["min_response_length"], int | float)
                 or item["min_response_length"] < 0
             ):
                 errors.append(

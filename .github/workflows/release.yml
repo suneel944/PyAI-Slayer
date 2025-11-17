@@ -16,27 +16,26 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    
+
     steps:
       - uses: actions/checkout@v5
-      
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y make
-      
+
       - name: Install dependencies
         run: make install-dev
-      
+
       - name: Validate version
         run: make validate-version
-      
+
       - name: Check changelog
         run: |
           if [ ! -f CHANGELOG.md ]; then
@@ -44,4 +43,3 @@ jobs:
             exit 1
           fi
           echo "✓ CHANGELOG.md exists"
-

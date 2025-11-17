@@ -10,12 +10,12 @@ class ValidationStrategy(ABC):
     """Base class for validation strategies."""
 
     @abstractmethod
-    def validate(self, query: str, response: str, **kwargs: Any) -> tuple[bool, dict[str, Any]]:
+    def validate(self, query: str, response: str, **kwargs: Any) -> tuple[bool, dict[str, Any]]:  # noqa: ARG002
         """
         Validate a response.
 
         Args:
-            query: Original query
+            query: Original query (may be unused in some implementations)
             response: Response to validate
             **kwargs: Additional validation parameters
 
@@ -75,7 +75,10 @@ class QualityValidationStrategy(ValidationStrategy):
         self.validator = validator
 
     def validate(
-        self, query: str, response: str, **kwargs: Any  # noqa: ARG002
+        self,
+        query: str,  # noqa: ARG002
+        response: str,
+        **kwargs: Any,
     ) -> tuple[bool, dict[str, Any]]:
         """Validate response quality."""
         min_length = kwargs.get("min_length", 10)
@@ -106,7 +109,10 @@ class SchemaValidationStrategy(ValidationStrategy):
         self.schema = schema
 
     def validate(
-        self, query: str, response: str, **kwargs: Any  # noqa: ARG002
+        self,
+        query: str,  # noqa: ARG002
+        response: str,
+        **kwargs: Any,
     ) -> tuple[bool, dict[str, Any]]:
         """Validate response against schema."""
         import json

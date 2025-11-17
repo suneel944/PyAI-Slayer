@@ -55,9 +55,9 @@ function createSparkline(elementId, data, color) {
 function createInteractiveDonutChart(elementId, data) {
     const isDark = currentTheme === 'dark';
     // Get the global font family from CSS or use system fonts
-    const globalFont = getComputedStyle(document.documentElement).getPropertyValue('--font-family').trim() || 
+    const globalFont = getComputedStyle(document.documentElement).getPropertyValue('--font-family').trim() ||
                        'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-    
+
     const options = {
         series: data.values,
         chart: {
@@ -270,7 +270,7 @@ function createInteractiveDonutChart(elementId, data) {
 // ===== REAL-TIME LINE CHART =====
 function createRealTimeLineChart(elementId, data) {
     const isDark = currentTheme === 'dark';
-    
+
     const options = {
         series: [{
             name: 'Pass Rate',
@@ -377,7 +377,7 @@ function createRealTimeLineChart(elementId, data) {
 // ===== RADIAL BAR CHART FOR METRICS =====
 function createRadialChart(elementId, value, label, color) {
     const isDark = currentTheme === 'dark';
-    
+
     const options = {
         series: [value],
         chart: {
@@ -441,7 +441,7 @@ function createRadialChart(elementId, value, label, color) {
 // ===== BAR CHART WITH DRILL-DOWN =====
 function createInteractiveBarChart(elementId, data) {
     const isDark = currentTheme === 'dark';
-    
+
     const options = {
         series: [{
             name: 'Count',
@@ -535,7 +535,7 @@ function createInteractiveBarChart(elementId, data) {
 // ===== MULTI-LINE CHART FOR VALIDATION METRICS =====
 function createValidationMetricsChart(elementId, data) {
     const isDark = currentTheme === 'dark';
-    
+
     const options = {
         series: data.series || [],
         chart: {

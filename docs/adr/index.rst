@@ -12,4 +12,3 @@ This directory contains Architecture Decision Records (ADRs) for the PyAI-Slayer
    0004-use-sentence-transformers-for-semantic-validation
    0005-implement-circuit-breaker-pattern
    0006-use-pytest-for-testing
-

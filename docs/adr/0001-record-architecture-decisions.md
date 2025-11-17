@@ -14,4 +14,3 @@ We will use Architecture Decision Records (ADRs) as described by Michael Nygard 
 - Each ADR is numbered sequentially and monotonically
 - ADRs can be marked as "Superseded" by later ADRs
 - ADRs follow the format: `NNNN-title.md`
-

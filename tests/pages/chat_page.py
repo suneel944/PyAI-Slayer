@@ -54,7 +54,6 @@ class ChatPage(BasePage):
         """
         timeout = timeout or self.config.DEFAULT_TIMEOUT_MS
         try:
-
             if text and text.strip() == "":
                 logger.warning(
                     "Message contains only whitespace - send button will be disabled, skipping send"
@@ -93,7 +92,7 @@ class ChatPage(BasePage):
 
             if wait_for_response:
                 ai_timeout = max(timeout, self.config.DEFAULT_AI_TIMEOUT_MS)
-                logger.info(f"Waiting for AI response (timeout: {ai_timeout/1000:.0f}s)...")
+                logger.info(f"Waiting for AI response (timeout: {ai_timeout / 1000:.0f}s)...")
 
                 # Track AI response time (high-value metric)
                 import time
@@ -192,7 +191,6 @@ class ChatPage(BasePage):
                             continue
                         return False
                 else:
-
                     no_response_start = None
 
                 if current_copy_count > initial_copy_count:
@@ -454,7 +452,6 @@ class ChatPage(BasePage):
             value = self.page.input_value(self.locators.MESSAGE_INPUT)
             return value == ""
         except Exception:
-
             selector = self.locators.MESSAGE_INPUT.replace("'", "\\'").replace('"', '\\"')
             text = self.page.evaluate(
                 f"""
@@ -476,7 +473,6 @@ class ChatPage(BasePage):
     def scroll_to_latest_message(self):
         """Scroll to the latest message."""
         try:
-
             selector = self.locators.MESSAGE_ITEM.split(",")[0].strip()
             self.page.evaluate(
                 f"""

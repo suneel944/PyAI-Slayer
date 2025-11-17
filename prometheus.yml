@@ -1,0 +1,22 @@
+# Prometheus configuration for PyAI-Slayer
+# This file is OPTIONAL - only needed if using Prometheus Server
+# The prometheus-client library works standalone without this
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Scrape metrics from PyAI-Slayer test framework
+  - job_name: 'pyai-slayer'
+    static_configs:
+      # For local development (host machine)
+      - targets: ['host.docker.internal:8000']
+        labels:
+          environment: 'local'
+      
+      # For Docker containers, use service name
+      # - targets: ['pyai-slayer:8000']
+      #   labels:
+      #     environment: 'docker'
+

@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  pyai-slayer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pyai-slayer
+    volumes:
+      # Mount source code for development
+      - .:/app
+      # Mount test results
+      - ./test-results:/app/test-results
+      # Mount reports
+      - ./reports:/app/reports
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ENVIRONMENT=${ENVIRONMENT:-sandbox}
+      - HEADLESS=true
+      - USE_CUDA=${USE_CUDA:-false}
+    working_dir: /app
+    # Override default command
+    command: tail -f /dev/null  # Keep container running for development
+    networks:
+      - pyai-network
+
+  # Service for running unit tests only
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pyai-slayer-test
+    volumes:
+      - .:/app
+      - ./test-results:/app/test-results
+      - ./reports:/app/reports
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ENVIRONMENT=${ENVIRONMENT:-sandbox}
+      - HEADLESS=true
+      - USE_CUDA=${USE_CUDA:-false}
+    working_dir: /app
+    command: pytest tests/unit/ -v --tb=short
+    networks:
+      - pyai-network
+    profiles:
+      - test
+
+  # Service for running unit tests only
+  unit-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pyai-slayer-unit
+    volumes:
+      - .:/app
+      - ./test-results:/app/test-results
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HEADLESS=true
+    working_dir: /app
+    command: pytest tests/unit/ -v --cov=src --cov-report=html:test-results/coverage
+    networks:
+      - pyai-network
+    profiles:
+      - unit
+
+  # Service for linting
+  lint:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pyai-slayer-lint
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    working_dir: /app
+    command: |
+      sh -c "
+        echo 'Running ruff...' &&
+        ruff check src/ tests/ scripts/ &&
+        echo 'Checking formatting with black...' &&
+        black --check src/ tests/ scripts/ &&
+        echo 'Running mypy...' &&
+        mypy src/ scripts/ --ignore-missing-imports
+      "
+    networks:
+      - pyai-network
+    profiles:
+      - lint
+
+  # Optional: Prometheus Server (only needed for long-term storage & Grafana)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - pyai-network
+    profiles:
+      - observability
+    # Note: Requires prometheus.yml config file
+
+  # Optional: Grafana (requires Prometheus Server)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - pyai-network
+    profiles:
+      - observability
+    depends_on:
+      - prometheus
+
+networks:
+  pyai-network:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+

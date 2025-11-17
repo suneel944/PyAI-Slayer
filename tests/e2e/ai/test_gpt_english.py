@@ -52,9 +52,9 @@ class TestGPTEnglish:
 
         assert response is not None, "No response received"
         assert len(response) > 0, "Response is empty"
-        assert response_time < test_config.max_response_time, (
-            f"Response time {response_time:.2f}s exceeds {test_config.max_response_time}s"
-        )
+        assert (
+            response_time < test_config.max_response_time
+        ), f"Response time {response_time:.2f}s exceeds {test_config.max_response_time}s"
 
         is_relevant, similarity = self.validator.validate_relevance(query, response)
         assert is_relevant, f"Response not relevant (similarity: {similarity:.3f})"
@@ -114,9 +114,9 @@ class TestGPTEnglish:
         response_time = time.time() - start_time
 
         assert response is not None, "No response"
-        assert response_time < test_config.max_response_time, (
-            f"Response took {response_time:.2f}s, exceeds {test_config.max_response_time}s"
-        )
+        assert (
+            response_time < test_config.max_response_time
+        ), f"Response took {response_time:.2f}s, exceeds {test_config.max_response_time}s"
 
         logger.info(f"Response time: {response_time:.2f}s")
 
@@ -220,14 +220,14 @@ class TestGPTEnglish:
         response_time = time.time() - start_time
 
         assert response is not None, f"No response for query: {query}"
-        assert len(response) >= test_case.get("min_response_length", 10), (
-            f"Response too short for: {query}"
-        )
+        assert len(response) >= test_case.get(
+            "min_response_length", 10
+        ), f"Response too short for: {query}"
 
         max_time = test_case.get("max_response_time_seconds", test_config.max_response_time)
-        assert response_time < max_time, (
-            f"Response time {response_time:.2f}s exceeds limit of {max_time}s"
-        )
+        assert (
+            response_time < max_time
+        ), f"Response time {response_time:.2f}s exceeds limit of {max_time}s"
 
         # Primary validation: semantic relevance between query and response
         is_relevant, similarity = self.validator.validate_relevance(query, response)

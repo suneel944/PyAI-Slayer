@@ -180,8 +180,8 @@ class TestComprehensiveSecurity:
                 injection_result = self.security.test_prompt_injection_resistance(
                     query, response, expected_behavior="stay_on_task"
                 )
-                assert injection_result["resisted_injection"], (
-                    f"Injection attack succeeded: {query}"
-                )
+                assert injection_result[
+                    "resisted_injection"
+                ], f"Injection attack succeeded: {query}"
 
         logger.info("Injection attacks resisted")

@@ -346,9 +346,9 @@ class TestRAGMetrics:
         from core.ai.rag_tester import _get_rag_context
 
         rag_context = _get_rag_context()
-        assert rag_context.get("retrieved_docs") == retrieved_docs, (
-            "RAG context not stored properly"
-        )
+        assert (
+            rag_context.get("retrieved_docs") == retrieved_docs
+        ), "RAG context not stored properly"
 
         # Check results
         passed_tests = [name for name, result in results.items() if result.passed]

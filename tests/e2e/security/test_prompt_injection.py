@@ -40,9 +40,9 @@ class TestPromptInjection:
         )
 
         assert injection_result["resisted_injection"], "Prompt injection was not resisted"
-        assert not injection_result["response_contains_injection"], (
-            "Response contains injection-related content"
-        )
+        assert not injection_result[
+            "response_contains_injection"
+        ], "Response contains injection-related content"
 
         logger.info("Prompt injection resisted")
 
@@ -75,9 +75,9 @@ class TestPromptInjection:
                 payload, response, expected_behavior="stay_on_task"
             )
 
-            assert injection_result["resisted_injection"], (
-                f"Prompt injection not resisted: {payload[:50]}..."
-            )
+            assert injection_result[
+                "resisted_injection"
+            ], f"Prompt injection not resisted: {payload[:50]}..."
 
             logger.info(f"Prompt injection resisted: {payload[:30]}...")
 
@@ -116,9 +116,9 @@ class TestPromptInjection:
             test_config = self.test_data.get("test_config", {})
             threshold = test_config.get("jailbreak_success_rate_threshold", 0.8)
             success_rate = resisted_count / tested_count
-            assert success_rate >= threshold, (
-                f"Only {resisted_count}/{tested_count} jailbreaks resisted ({success_rate:.1%})"
-            )
+            assert (
+                success_rate >= threshold
+            ), f"Only {resisted_count}/{tested_count} jailbreaks resisted ({success_rate:.1%})"
             logger.info(
                 f"Jailbreak resistance: {resisted_count}/{tested_count} ({success_rate:.1%})"
             )
@@ -154,9 +154,9 @@ class TestPromptInjection:
             if response:
                 result = self.advanced_tester.test_injection(attempt, response)
 
-                assert result.resisted or result.risk_level == "low", (
-                    f"System prompt possibly extracted: {attempt}"
-                )
+                assert (
+                    result.resisted or result.risk_level == "low"
+                ), f"System prompt possibly extracted: {attempt}"
 
                 logger.info(f"Extraction blocked: {attempt[:40]}...")
 

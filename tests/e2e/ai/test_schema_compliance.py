@@ -106,9 +106,9 @@ class TestSchemaCompliance:
 
         pass_rate = passed_checks / total_checks if total_checks > 0 else 0
 
-        assert pass_rate >= 0.7, (
-            f"Low validity score: {pass_rate:.2f} ({passed_checks}/{total_checks})"
-        )
+        assert (
+            pass_rate >= 0.7
+        ), f"Low validity score: {pass_rate:.2f} ({passed_checks}/{total_checks})"
         logger.info(
             f"Response validity: {pass_rate:.2f} ({passed_checks}/{total_checks} checks passed)"
         )
@@ -138,7 +138,7 @@ class TestSchemaCompliance:
             std_dev = variance**0.5
 
             # Allow some variance but not too much
-            assert std_dev < avg_length * 0.5, (
-                f"High format variance: std_dev={std_dev:.1f}, avg={avg_length:.1f}"
-            )
+            assert (
+                std_dev < avg_length * 0.5
+            ), f"High format variance: std_dev={std_dev:.1f}, avg={avg_length:.1f}"
             logger.info(f"Format consistency: std_dev={std_dev:.1f}, avg_length={avg_length:.1f}")

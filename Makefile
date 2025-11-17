@@ -168,18 +168,24 @@ lint: venv
 	@$(VENV_BIN)/ruff check src/ tests/ scripts/
 	@echo "$(GREEN)✓ Linting complete$(NC)"
 
-# Format code (uses ruff format only - linting is handled by pre-commit)
+# Format code (uses pre-commit ruff-format to ensure consistency)
 format: venv
-	@echo "$(CYAN)Formatting code with ruff...$(NC)"
-	@$(VENV_BIN)/ruff format src/ tests/ scripts/
+	@echo "$(CYAN)Formatting code with ruff (via pre-commit)...$(NC)"
+	@if [ ! -f "$(VENV_BIN)/pre-commit" ]; then \
+		echo "$(YELLOW)Pre-commit not found, installing...$(NC)"; \
+		$(VENV_BIN)/pip install pre-commit; \
+	fi
+	@$(VENV_BIN)/pre-commit run ruff-format --all-files || true
 	@echo "$(GREEN)✓ Code formatted$(NC)"
 	@echo "$(YELLOW)Note: Run 'make pre-commit' for comprehensive checks (formatting + linting + type-check + security)$(NC)"
 
 # Check code formatting (without fixing) - for CI
+# Uses venv ruff for speed, but should match pre-commit ruff version
 format-check: venv
 	@echo "$(CYAN)Checking code formatting...$(NC)"
 	@$(VENV_BIN)/ruff format --check src/ tests/ scripts/
 	@echo "$(GREEN)✓ Formatting check complete$(NC)"
+	@echo "$(YELLOW)Note: Ensure venv ruff version matches pre-commit hook version for consistency$(NC)"
 
 # Run type checker
 type-check: venv

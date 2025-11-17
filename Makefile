@@ -317,6 +317,10 @@ install-hooks: venv
 # Run pre-commit on all files
 pre-commit: venv
 	@echo "$(CYAN)Running pre-commit hooks...$(NC)"
+	@if [ ! -f "$(VENV_BIN)/pre-commit" ]; then \
+		echo "$(YELLOW)Pre-commit not found, installing...$(NC)"; \
+		$(VENV_BIN)/pip install pre-commit; \
+	fi
 	@$(VENV_BIN)/pre-commit run --all-files
 
 # Validate version

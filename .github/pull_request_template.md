@@ -19,9 +19,9 @@
 
 <!-- Describe the specific changes in this PR -->
 
-- 
-- 
-- 
+-
+-
+-
 
 ## Testing
 
@@ -108,4 +108,3 @@ Related to #
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Any dependent changes have been merged and published
 - [ ] I have checked that my changes don't break existing functionality
-

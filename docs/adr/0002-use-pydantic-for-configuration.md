@@ -36,7 +36,7 @@ Configuration is defined in `src/config/settings.py` using Pydantic's `BaseSetti
 1. **`.env` file** - Primary configuration file (user-specific, not committed)
    - Copy from `.env.example` to create your `.env` file
    - Contains all environment variables with defaults
-   
+
 2. **`environments.yaml`** - Multi-environment configuration
    - Defines environment-specific overrides (sandbox, staging, production)
    - Located in `src/config/environments.yaml`
@@ -61,4 +61,3 @@ The Settings model includes:
 - **Observability**: Playwright tracing and Prometheus metrics
 
 See `.env.example` for the complete list of available configuration options.
-

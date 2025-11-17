@@ -130,8 +130,7 @@ class TestDistributor:
                 for tf, tn in assigned_tests
             )
             logger.info(
-                f"Worker {worker_id}: {len(assigned_tests)} tests, "
-                f"estimated {estimated_time:.2f}s"
+                f"Worker {worker_id}: {len(assigned_tests)} tests, estimated {estimated_time:.2f}s"
             )
 
         return distribution

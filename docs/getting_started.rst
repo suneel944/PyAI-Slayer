@@ -128,4 +128,3 @@ Using pytest directly:
 
    # Run with coverage
    pytest --cov=src --cov-report=html
-

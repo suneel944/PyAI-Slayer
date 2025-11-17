@@ -1,4 +1,5 @@
 """Example custom validation plugin."""
+
 from core.validation.plugins import ValidationPlugin
 from core.validation.validation_strategy import ValidationStrategy, ValidationStrategyRegistry
 
@@ -6,17 +7,17 @@ from core.validation.validation_strategy import ValidationStrategy, ValidationSt
 class LengthValidationStrategy(ValidationStrategy):
     """Custom validation strategy for response length."""
 
-    def validate(self, query: str, response: str, **kwargs):
+    def validate(self, _query: str, response: str, **kwargs):
         """Validate response length."""
-        min_length = kwargs.get('min_length', 10)
-        max_length = kwargs.get('max_length', 1000)
+        min_length = kwargs.get("min_length", 10)
+        max_length = kwargs.get("max_length", 1000)
 
         is_valid = min_length <= len(response) <= max_length
         return is_valid, {
             "strategy": "length",
             "length": len(response),
             "min_length": min_length,
-            "max_length": max_length
+            "max_length": max_length,
         }
 
     def get_name(self) -> str:
@@ -40,4 +41,3 @@ class ExampleCustomValidatorPlugin(ValidationPlugin):
         strategy = LengthValidationStrategy()
         registry.register(strategy)
         print(f"Registered custom validation strategy: {strategy.get_name()}")
-

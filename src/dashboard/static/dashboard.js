@@ -31,21 +31,21 @@ document.addEventListener('DOMContentLoaded', () => {
     initWebSocket();
     loadAllMetrics();
     setupEventListeners();
-    
+
     // Load test results to populate the badge count
     loadTestResults();
-    
+
     // Initialize tab indicator on the default active tab (Overview)
     initializeTabIndicator();
-    
+
     // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
-    
+
     // Initialize smooth scrolling with Zenscroll
     initSmoothScrolling();
-    
+
     // After everything is initialized, restore the saved tab if different from default
     setTimeout(() => {
         let savedTab = 'overview'; // Default to overview
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.warn('Could not restore tab from localStorage:', e);
         }
-        
+
         // If saved tab is different from overview, switch to it
         if (savedTab !== 'overview') {
             switchTab(savedTab);
@@ -73,7 +73,7 @@ function initSmoothScrolling() {
         // Duration: 800ms for smooth but not too slow scrolling
         // Edge offset: 20px to account for any fixed headers
         zenscroll.setup(800, 20);
-        
+
         // Enhance all anchor link scrolling
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
@@ -87,7 +87,7 @@ function initSmoothScrolling() {
                 }
             });
         });
-        
+
         console.log('Smooth scrolling initialized with Zenscroll');
     } else {
         // Fallback: Use native CSS smooth scrolling
@@ -98,7 +98,7 @@ function initSmoothScrolling() {
 function setupEventListeners() {
     // Initialize custom dropdown
     initCustomDropdown();
-    
+
     // Update indicator position on window resize
     let resizeTimeout;
     window.addEventListener('resize', () => {
@@ -121,54 +121,54 @@ function initCustomDropdown() {
     const menu = document.getElementById('timeRangeMenu');
     const selected = document.getElementById('timeRangeSelected');
     const items = menu.querySelectorAll('.dropdown-item');
-    
+
     if (!dropdown || !trigger || !menu || !selected) return;
-    
+
     // Toggle dropdown
     trigger.addEventListener('click', (e) => {
         e.stopPropagation();
         const isOpen = trigger.getAttribute('aria-expanded') === 'true';
         trigger.setAttribute('aria-expanded', !isOpen);
         menu.classList.toggle('show', !isOpen);
-        
+
         // Update icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
     });
-    
+
     // Handle item selection
     items.forEach(item => {
         item.addEventListener('click', (e) => {
             e.stopPropagation();
             const value = item.getAttribute('data-value');
             const text = item.querySelector('span').textContent;
-            
+
             // Update selected text
             selected.textContent = text;
-            
+
             // Update active state
             items.forEach(i => i.classList.remove('active'));
             item.classList.add('active');
-            
+
             // Close dropdown
             trigger.setAttribute('aria-expanded', 'false');
             menu.classList.remove('show');
-            
+
             // Trigger change event
             const event = new CustomEvent('timeRangeChange', { detail: { value, text } });
             document.dispatchEvent(event);
-            
+
             // Reload metrics
             loadAllMetrics();
-            
+
             // Update icons
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
         });
     });
-    
+
     // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
         if (!dropdown.contains(e.target)) {
@@ -176,7 +176,7 @@ function initCustomDropdown() {
             menu.classList.remove('show');
         }
     });
-    
+
     // Keyboard navigation
     trigger.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -191,7 +191,7 @@ function initCustomDropdown() {
             if (firstItem) firstItem.focus();
         }
     });
-    
+
     items.forEach((item, index) => {
         item.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -220,15 +220,15 @@ function initCustomDropdown() {
                 trigger.focus();
             }
         });
-        
+
         // Make items focusable
         item.setAttribute('tabindex', '0');
     });
-    
+
     // Set initial value (24h is default and already has active class in HTML)
     // Store current value for easy access
     window.currentTimeRange = getTimeRangeValue();
-    
+
     // Listen for timeRange changes to update stored value
     document.addEventListener('timeRangeChange', (e) => {
         window.currentTimeRange = e.detail.value;
@@ -240,14 +240,14 @@ function initializeTabIndicator() {
     const indicator = document.getElementById('navTabIndicator');
     const activeTab = document.querySelector('.nav-tab.active');
     const nav = document.querySelector('.dashboard-nav');
-    
+
     if (indicator && activeTab && nav) {
         const navRect = nav.getBoundingClientRect();
         const tabRect = activeTab.getBoundingClientRect();
-        
+
         const left = tabRect.left - navRect.left;
         const width = tabRect.width;
-        
+
         indicator.style.left = `${left}px`;
         indicator.style.width = `${width}px`;
     }
@@ -258,37 +258,37 @@ function switchTab(tabName) {
     const contents = document.querySelectorAll('.tab-content');
     const indicator = document.getElementById('navTabIndicator');
     const nav = document.querySelector('.dashboard-nav');
-    
+
     tabs.forEach(t => t.classList.remove('active'));
     contents.forEach(c => c.classList.remove('active'));
-    
+
     const activeTab = Array.from(tabs).find(t => t.getAttribute('data-tab') === tabName);
     const activeContent = document.getElementById(tabName);
-    
+
     if (activeTab) activeTab.classList.add('active');
     if (activeContent) activeContent.classList.add('active');
-    
+
     // Animate the sliding indicator
     if (indicator && activeTab && nav) {
         const navRect = nav.getBoundingClientRect();
         const tabRect = activeTab.getBoundingClientRect();
-        
+
         const left = tabRect.left - navRect.left;
         const width = tabRect.width;
-        
+
         indicator.style.left = `${left}px`;
         indicator.style.width = `${width}px`;
     }
-    
+
     currentTab = tabName;
-    
+
     // Save the current tab to localStorage so it persists on refresh
     try {
         localStorage.setItem('dashboardActiveTab', tabName);
     } catch (e) {
         console.warn('Could not save tab to localStorage:', e);
     }
-    
+
     // Load data and render charts for the active tab
     if (tabName === 'overview') {
         renderOverviewCharts();
@@ -298,12 +298,12 @@ function switchTab(tabName) {
         renderLatencyDistributionChart();
         renderResourceUtilizationMetrics();
     }
-    
+
     // Re-initialize icons after tab switch
     if (typeof lucide !== 'undefined') {
         setTimeout(() => lucide.createIcons(), 100);
     }
-    
+
     // Smooth scroll to top when switching tabs
     if (typeof zenscroll !== 'undefined') {
         // Use requestAnimationFrame to ensure DOM is updated
@@ -323,21 +323,21 @@ function initWebSocket() {
     if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
         return;
     }
-    
+
     if (wsReconnectTimeout) {
         clearTimeout(wsReconnectTimeout);
         wsReconnectTimeout = null;
     }
-    
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
-    
+
     ws = new WebSocket(wsUrl);
-    
+
     ws.onopen = () => {
         // WebSocket connected
     };
-    
+
     ws.onmessage = (event) => {
         try {
             const data = JSON.parse(event.data);
@@ -348,13 +348,13 @@ function initWebSocket() {
             console.error('Error parsing WebSocket message:', e);
         }
     };
-    
+
     ws.onclose = () => {
         wsReconnectTimeout = setTimeout(() => {
             initWebSocket();
         }, 5000);
     };
-    
+
     ws.onerror = (error) => {
         console.error('WebSocket error:', error);
     };
@@ -366,10 +366,10 @@ async function loadAllMetrics() {
         // Load statistics
         const statsResponse = await fetch(`/api/statistics?_t=${Date.now()}`);
         const stats = await statsResponse.json();
-        
+
         // Calculate and populate metrics
         calculateMetricsFromStats(stats);
-        
+
         // Update UI
         updateOverviewKPIs(stats);
         updateCriticalMetrics(stats);
@@ -381,12 +381,12 @@ async function loadAllMetrics() {
         updateAgentMetrics();
         updateSecurityMetrics(stats);
         updateFooterStats(stats);
-        
+
         // Render charts
         if (currentTab === 'overview') {
             setTimeout(() => renderOverviewCharts(), 100);
         }
-        
+
     } catch (error) {
         console.error('Failed to load metrics:', error);
     }
@@ -397,16 +397,16 @@ function calculateMetricsFromStats(stats) {
     const totalTests = stats.total_tests || 0;
     const passed = stats.passed || 0;
     const passRate = totalTests > 0 ? (passed / totalTests * 100) : 0;
-    
+
     // Helper function to get metric value or return null (no mock data)
     const getMetric = (metrics, key, defaultValue = null) => {
         const value = metrics[key];
         return value !== undefined && value !== null ? value : defaultValue;
     };
-    
+
     // Base Model Metrics (derived from validation metrics)
     const validationMetrics = stats.validation_metrics || {};
-    
+
     // Helper to convert 0-1 range to percentage if needed
     // Note: Backend converts 0-1 metrics to 0-100 in data_store.py, but we handle both cases
     const convertToPercentage = (value) => {
@@ -418,7 +418,7 @@ function calculateMetricsFromStats(stats) {
         // If value is already a percentage (0-100), return as-is
         return value;
     };
-    
+
     // Helper to convert decimal scores (0-1) to percentage for display
     // BLEU, ROUGE-L, BERTScore are typically 0-1 range and should be shown as percentages
     const convertDecimalToPercentage = (value) => {
@@ -430,7 +430,7 @@ function calculateMetricsFromStats(stats) {
         // If already a percentage, return as-is
         return value;
     };
-    
+
     metricsData.baseModel = {
         accuracy: convertToPercentage(getMetric(validationMetrics, 'accuracy')),
         topKAccuracy: convertToPercentage(getMetric(validationMetrics, 'top_k_accuracy')),
@@ -448,7 +448,7 @@ function calculateMetricsFromStats(stats) {
         citationAccuracy: getMetric(validationMetrics, 'citation_accuracy'), // Already in percentage
         sourceGrounding: getMetric(validationMetrics, 'source_grounding') // Already in percentage
     };
-    
+
     // RAG Metrics
     metricsData.rag = {
         retrievalRecall5: getMetric(validationMetrics, 'retrieval_recall_5'),
@@ -459,7 +459,7 @@ function calculateMetricsFromStats(stats) {
         goldContextMatch: getMetric(validationMetrics, 'gold_context_match'),
         rerankerScore: getMetric(validationMetrics, 'reranker_score')
     };
-    
+
     // Safety Metrics
     // Note: 0 is a VALID value (meaning no toxicity/bias detected), not missing data
     // The metrics calculator returns 0 when no issues are detected, which is correct
@@ -475,11 +475,11 @@ function calculateMetricsFromStats(stats) {
         ethicalViolation: getMetric(validationMetrics, 'ethical_violation'),
         piiLeakage: getMetric(validationMetrics, 'pii_leakage')
     };
-    
+
     // Performance Metrics - use calculated metrics
     const avgDuration = stats.avg_duration || null;
     const systemMetrics = stats.system_metrics || {};
-    
+
     metricsData.performance = {
         tokenLatency: getMetric(validationMetrics, 'token_latency'),
         e2eLatency: avgDuration ? Math.round(avgDuration * 1000) : getMetric(validationMetrics, 'e2e_latency'),
@@ -490,7 +490,7 @@ function calculateMetricsFromStats(stats) {
         cpuUtil: systemMetrics.cpu_util !== undefined ? systemMetrics.cpu_util : (systemMetrics.cpuUtil !== undefined ? systemMetrics.cpuUtil : null),
         timeoutRate: stats.timeout_rate || null
     };
-    
+
     // Reliability Metrics - use calculated metrics
     metricsData.reliability = {
         determinismScore: getMetric(validationMetrics, 'determinism_score'),
@@ -503,7 +503,7 @@ function calculateMetricsFromStats(stats) {
         jsonValidity: getMetric(validationMetrics, 'json_validity'), // Try to get from metrics
         typeCorrectness: getMetric(validationMetrics, 'type_correctness') // Try to get from metrics
     };
-    
+
     // Agent Metrics - use calculated metrics
     metricsData.agent = {
         taskCompletion: getMetric(validationMetrics, 'task_completion'),
@@ -514,7 +514,7 @@ function calculateMetricsFromStats(stats) {
         actionHallucination: getMetric(validationMetrics, 'action_hallucination'),
         goalDrift: getMetric(validationMetrics, 'goal_drift')
     };
-    
+
     // Security Metrics - use calculated metrics
     metricsData.security = {
         injectionAttackSuccess: getMetric(validationMetrics, 'injection_attack_success'),
@@ -542,9 +542,9 @@ function calculateSafetyScore(roundToInteger = false) {
         // Attack Resistance (prompt injection is safety-related, not security)
         metricsData.safety.promptInjection !== null ? 100 - metricsData.safety.promptInjection : null
     ].filter(v => v !== null && v !== undefined);
-    
+
     if (safetyMetrics.length === 0) return null;
-    
+
     const score = safetyMetrics.reduce((a, b) => a + b, 0) / safetyMetrics.length;
     return roundToInteger ? Math.round(score) : parseFloat(score.toFixed(1));
 }
@@ -555,7 +555,7 @@ function updateOverviewKPIs(stats) {
     const passRate = totalTests > 0 ? (passed / totalTests * 100) : 0;
     const avgDuration = stats.avg_duration || null;
     const trends = stats.trends || {};
-    
+
     // Overall Health Score - calculate from available metrics
     const healthComponents = [];
     if (passRate > 0) healthComponents.push(passRate);
@@ -569,30 +569,30 @@ function updateOverviewKPIs(stats) {
         ? (healthComponents.reduce((a, b) => a + b, 0) / healthComponents.length).toFixed(1)
         : null;
     updateElement('overallHealth', healthScore, 'percentage');
-    
+
     // Update health trend
     const healthTrend = trends.health_trend || 0;
     updateTrend('overallHealth', healthTrend);
-    
+
     // Avg Response Time
     updateElement('avgResponseTime', avgDuration ? `${avgDuration.toFixed(2)}s` : null);
-    
+
     // Update duration trend (inverse - higher duration is worse)
     const durationTrend = trends.duration_trend || 0;
     updateTrend('avgResponseTime', -durationTrend); // Negative because higher duration is worse
-    
+
     // Safety Score - use shared calculation function
     const safetyScore = calculateSafetyScore(false); // false = use one decimal place
     updateElement('safetyScore', safetyScore !== null ? safetyScore.toFixed(1) : null, 'percentage');
-    
+
     // Update safety trend
     const safetyTrend = trends.safety_trend || 0;
     updateTrend('safetyScore', safetyTrend);
-    
+
     // User Satisfaction (derived from pass rate)
     const satisfaction = passRate > 0 ? (3.5 + (passRate / 100) * 1.5).toFixed(1) : null;
     updateElement('userSatisfaction', satisfaction ? `${satisfaction}/5` : null);
-    
+
     // Update satisfaction trend
     const satisfactionTrend = trends.satisfaction_trend || 0;
     updateTrend('userSatisfaction', satisfactionTrend);
@@ -602,16 +602,16 @@ function updateTrend(elementId, trendValue) {
     // Find the trend element for this KPI card
     const kpiCard = document.getElementById(elementId)?.closest('.kpi-card');
     if (!kpiCard) return;
-    
+
     const trendElement = kpiCard.querySelector('.kpi-trend');
     if (!trendElement) return;
-    
+
     // Determine if positive or negative based on context
     // For health, safety, satisfaction: positive trend is good (up arrow)
     // For response time: positive trend is bad (down arrow)
     const isPositive = elementId === 'avgResponseTime' ? trendValue < 0 : trendValue > 0;
     const absValue = Math.abs(trendValue);
-    
+
     // Update class and content
     trendElement.className = `kpi-trend ${isPositive ? 'positive' : 'negative'}`;
     trendElement.textContent = `${isPositive ? '↑' : '↓'} ${absValue.toFixed(1)}%`;
@@ -619,7 +619,7 @@ function updateTrend(elementId, trendValue) {
 
 function updateCriticalMetrics(stats = null) {
     const trends = stats?.trends || {};
-    
+
     const criticalMetrics = [
         { name: 'Hallucination Rate', value: metricsData.baseModel.hallucinationRate, target: 5, unit: '%', inverse: true },
         { name: 'Source Grounding', value: metricsData.baseModel.sourceGrounding, target: 85, unit: '%' },
@@ -637,16 +637,16 @@ function updateCriticalMetrics(stats = null) {
         { name: 'Safety Violations', value: metricsData.safety.harmfulnessScore, target: 2, unit: '%', inverse: true },
         { name: 'Injection Vulnerability', value: metricsData.security.injectionAttackSuccess, target: 2, unit: '%', inverse: true }
     ];
-    
+
     const grid = document.getElementById('criticalMetricsGrid');
     if (!grid) return;
-    
+
     let excellentCount = 0;
     let goodCount = 0;
     let watchCount = 0;
     let totalValue = 0;
     let validMetricsCount = 0;
-    
+
     grid.innerHTML = criticalMetrics.map((metric, idx) => {
         // Handle metrics with no data
         if (metric.value === null || metric.value === undefined) {
@@ -678,7 +678,7 @@ function updateCriticalMetrics(stats = null) {
                 </div>
             `;
         }
-        
+
         // Calculate status based on ratio
         let ratio;
         if (metric.inverse) {
@@ -697,11 +697,11 @@ function updateCriticalMetrics(stats = null) {
             // Cap ratio at 2.0 (200%) to prevent extremely high values
             ratio = Math.min(ratio, 2.0);
         }
-        
+
         let status = '';
         let statusIcon = '';
         let statusText = '';
-        
+
         if (ratio >= 1) {
             status = 'excellent';
             statusIcon = '✓';
@@ -718,15 +718,15 @@ function updateCriticalMetrics(stats = null) {
             statusText = `${(ratio * 100).toFixed(0)}%`;
             watchCount++;
         }
-        
+
         // Calculate progress for display (capped at 100%)
         const progressWidth = Math.min(ratio * 100, 100);
-        
+
         // Add to system health calculation (cap at 100% for health score)
         const healthContribution = Math.min(ratio * 100, 100);
         totalValue += healthContribution;
         validMetricsCount++;
-        
+
         return `
             <div class="critical-metric-card ${status}">
                 <div class="critical-metric-header">
@@ -756,27 +756,27 @@ function updateCriticalMetrics(stats = null) {
             </div>
         `;
     }).join('');
-    
+
     // Update summary stats
     updateElement('criticalMetricsExcellent', excellentCount);
     updateElement('criticalMetricsGood', goodCount);
     updateElement('criticalMetricsWatch', watchCount);
-    
+
     // Calculate and update system health
     const systemHealth = validMetricsCount > 0 ? (totalValue / validMetricsCount).toFixed(1) : null;
     updateElement('criticalMetricsSystemHealth', systemHealth ? `${systemHealth}%` : 'N/A');
-    
+
     // Update metrics count
     const totalMetrics = criticalMetrics.length;
     const validCount = validMetricsCount;
     updateElement('criticalMetricsCount', `${validCount}/${totalMetrics}`);
-    
+
     // Calculate trend (use health trend if available, otherwise 0)
     // Use the health_trend from stats if available, which compares current vs previous period
     const trendValue = trends.health_trend !== undefined ? trends.health_trend : 0;
     const trendDisplay = trendValue >= 0 ? `+${trendValue.toFixed(1)}` : trendValue.toFixed(1);
     updateElement('criticalMetricsTrend', `${trendDisplay}%`);
-    
+
     // Re-initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -811,7 +811,7 @@ function updateRAGMetrics() {
     updateElement('ragGoldMatch', metricsData.rag.goldContextMatch, 'percentage');
     updateElement('ragIntrusion', metricsData.rag.contextIntrusion, 'percentage');
     updateElement('ragReranker', metricsData.rag.rerankerScore, 'decimal');
-    
+
     // Update progress bars with animations
     if (metricsData.rag.retrievalRecall5 !== null) {
         updateProgressBarWidth('ragRecallProgress', metricsData.rag.retrievalRecall5);
@@ -828,7 +828,7 @@ function updateRAGMetrics() {
     if (metricsData.rag.goldContextMatch !== null) {
         updateProgressBarWidth('ragGoldMatchProgress', metricsData.rag.goldContextMatch);
     }
-    
+
     // Update context intrusion status
     if (metricsData.rag.contextIntrusion !== null) {
         const intrusionEl = document.getElementById('ragIntrusionStatus');
@@ -847,7 +847,7 @@ function updateRAGMetrics() {
             }
         }
     }
-    
+
     // Update reranker status
     if (metricsData.rag.rerankerScore !== null) {
         const rerankerEl = document.getElementById('ragRerankerStatus');
@@ -866,7 +866,7 @@ function updateRAGMetrics() {
             }
         }
     }
-    
+
     // Calculate overall RAG health if we have data
     const ragMetrics = [
         metricsData.rag.retrievalRecall5,
@@ -874,11 +874,11 @@ function updateRAGMetrics() {
         metricsData.rag.contextCoverage,
         metricsData.rag.goldContextMatch
     ].filter(v => v !== null);
-    const ragHealth = ragMetrics.length > 0 
+    const ragHealth = ragMetrics.length > 0
         ? (ragMetrics.reduce((a, b) => a + b, 0) / ragMetrics.length).toFixed(1)
         : null;
     updateElement('ragHealth', ragHealth, 'percentage');
-    
+
     // Update health breakdown
     if (ragMetrics.length >= 2) {
         const retrievalAvg = metricsData.rag.retrievalRecall5 || 0;
@@ -887,14 +887,14 @@ function updateRAGMetrics() {
             metricsData.rag.contextCoverage,
             metricsData.rag.goldContextMatch
         ].filter(v => v !== null);
-        const qualityScore = qualityAvg.length > 0 
+        const qualityScore = qualityAvg.length > 0
             ? (qualityAvg.reduce((a, b) => a + b, 0) / qualityAvg.length).toFixed(1)
             : 0;
-        
+
         updateElement('ragHealthRetrieval', retrievalAvg, 'percentage');
         updateElement('ragHealthQuality', qualityScore, 'percentage');
     }
-    
+
     // Re-initialize Lucide icons after DOM updates
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -904,7 +904,7 @@ function updateRAGMetrics() {
 function updateRAGBadge(elementId, value, threshold) {
     const badgeEl = document.getElementById(elementId);
     if (!badgeEl) return;
-    
+
     if (value >= threshold * 1.2) {
         badgeEl.textContent = 'Excellent';
         badgeEl.style.background = 'rgba(16, 185, 129, 0.2)';
@@ -938,7 +938,7 @@ function updateSafetyMetrics() {
     updateElement('safetyCompliance', metricsData.safety.complianceScore, 'percentage');
     updateElement('safetyInjection', metricsData.safety.promptInjection, 'percentage');
     updateElement('safetyRefusal', metricsData.safety.refusalRate, 'percentage');
-    
+
     // Use shared Safety Score calculation function for consistency
     const safetyScore = calculateSafetyScore(false); // false = use one decimal place
     updateElement('overallSafetyScore', safetyScore !== null ? safetyScore.toFixed(1) : null, 'percentage');
@@ -947,28 +947,28 @@ function updateSafetyMetrics() {
 function updatePerformanceMetrics() {
     // Format token latency (round to 2 decimals if > 1, otherwise show more precision)
     const tokenLatency = metricsData.performance.tokenLatency;
-    const tokenLatencyFormatted = tokenLatency !== null 
+    const tokenLatencyFormatted = tokenLatency !== null
         ? (tokenLatency > 1 ? tokenLatency.toFixed(2) : tokenLatency.toFixed(4))
         : null;
     updateElement('perfTokenLatency', tokenLatencyFormatted);
-    
+
     // Format TTFT (round to nearest integer for ms)
     const ttft = metricsData.performance.ttft;
     const ttftFormatted = ttft !== null ? Math.round(ttft) : null;
     updateElement('perfTTFT', ttftFormatted);
-    
+
     // Format E2E latency (round to nearest integer for ms)
     const e2eLatency = metricsData.performance.e2eLatency;
     const e2eLatencyFormatted = e2eLatency !== null ? Math.round(e2eLatency) : null;
     updateElement('perfE2E', e2eLatencyFormatted);
-    
+
     // Format throughput (round to nearest integer for tokens/sec)
     const throughput = metricsData.performance.throughput;
-    const throughputFormatted = throughput !== null 
-        ? Math.round(throughput).toLocaleString() 
+    const throughputFormatted = throughput !== null
+        ? Math.round(throughput).toLocaleString()
         : null;
     updateElement('perfThroughput', throughputFormatted);
-    
+
     // Render resource utilization metrics
     renderResourceUtilizationMetrics();
 }
@@ -976,7 +976,7 @@ function updatePerformanceMetrics() {
 function renderResourceUtilizationMetrics() {
     const container = document.getElementById('resourceUtilizationChart');
     if (!container) return;
-    
+
     try {
         // Get resource utilization data
         const safeParse = (val) => {
@@ -984,21 +984,21 @@ function renderResourceUtilizationMetrics() {
             const parsed = parseFloat(val);
             return isNaN(parsed) ? null : parsed;
         };
-        
+
         const gpuUtil = safeParse(metricsData.performance.gpuUtil);
         const cpuUtil = safeParse(metricsData.performance.cpuUtil);
         const memFootprint = safeParse(metricsData.performance.memFootprint);
         const timeoutRate = safeParse(metricsData.performance.timeoutRate);
-        
+
         // Convert values to percentages
         const maxMemoryGB = 100;
         const gpuValue = gpuUtil !== null ? Math.min(Math.max(gpuUtil, 0), 100) : 0;
         const cpuValue = cpuUtil !== null ? Math.min(Math.max(cpuUtil, 0), 100) : 0;
-        const memValue = memFootprint !== null 
-            ? Math.min(Math.max((memFootprint / maxMemoryGB) * 100, 0), 100) 
+        const memValue = memFootprint !== null
+            ? Math.min(Math.max((memFootprint / maxMemoryGB) * 100, 0), 100)
             : 0;
         const timeoutValue = timeoutRate !== null ? Math.min(Math.max(timeoutRate, 0), 100) : 0;
-        
+
         // Metrics array matching the React component structure
         const metrics = [
             { label: 'GPU', value: gpuValue, color: '#3b82f6', rawValue: gpuUtil, formatted: gpuUtil !== null ? `${gpuUtil.toFixed(1)}%` : 'N/A' },
@@ -1006,13 +1006,13 @@ function renderResourceUtilizationMetrics() {
             { label: 'Memory', value: memValue, color: '#8b5cf6', rawValue: memFootprint, formatted: memFootprint !== null ? `${memFootprint.toFixed(1)} GB` : 'N/A' },
             { label: 'Timeout Rate', value: timeoutValue, color: '#06b6d4', rawValue: timeoutRate, formatted: timeoutRate !== null ? `${timeoutRate.toFixed(1)}%` : 'N/A' }
         ];
-        
+
         // If chart exists, update it instead of recreating
         if (charts.resourceUtilization && charts.resourceUtilization.update) {
             charts.resourceUtilization.update(metrics);
             return;
         }
-        
+
         // Clear container
         container.innerHTML = '';
         container.style.cssText = `
@@ -1022,7 +1022,7 @@ function renderResourceUtilizationMetrics() {
             align-items: center;
             gap: 0.5rem;
         `;
-        
+
         // SVG Radial Tubes
         const svgContainer = document.createElement('div');
         svgContainer.style.cssText = `
@@ -1030,16 +1030,16 @@ function renderResourceUtilizationMetrics() {
             justify-content: center;
             align-items: center;
         `;
-        
+
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('width', '600');
         svg.setAttribute('height', '410');
         svg.setAttribute('viewBox', '0 0 600 600');
         svg.style.cssText = 'transform: rotate(-90deg);';
-        
+
         // SVG Definitions
         const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        
+
         metrics.forEach((metric, idx) => {
             // Linear Gradient
             const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
@@ -1048,35 +1048,35 @@ function renderResourceUtilizationMetrics() {
             gradient.setAttribute('y1', '0%');
             gradient.setAttribute('x2', '0%');
             gradient.setAttribute('y2', '100%');
-            
+
             const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
             stop1.setAttribute('offset', '0%');
             stop1.setAttribute('stop-color', metric.color);
             stop1.setAttribute('stop-opacity', '0.3');
-            
+
             const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
             stop2.setAttribute('offset', '50%');
             stop2.setAttribute('stop-color', metric.color);
             stop2.setAttribute('stop-opacity', '1');
-            
+
             const stop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
             stop3.setAttribute('offset', '100%');
             stop3.setAttribute('stop-color', metric.color);
             stop3.setAttribute('stop-opacity', '0.4');
-            
+
             gradient.appendChild(stop1);
             gradient.appendChild(stop2);
             gradient.appendChild(stop3);
             defs.appendChild(gradient);
-            
+
             // Glow Filter
             const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
             filter.setAttribute('id', `glow-${idx}`);
-            
+
             const feGaussianBlur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
             feGaussianBlur.setAttribute('stdDeviation', '5');
             feGaussianBlur.setAttribute('result', 'coloredBlur');
-            
+
             const feMerge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
             for (let i = 0; i < 3; i++) {
                 const feMergeNode = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
@@ -1087,21 +1087,21 @@ function renderResourceUtilizationMetrics() {
                 }
                 feMerge.appendChild(feMergeNode);
             }
-            
+
             filter.appendChild(feGaussianBlur);
             filter.appendChild(feMerge);
             defs.appendChild(filter);
         });
-        
+
         svg.appendChild(defs);
-        
+
         // Chart parameters
         const centerX = 300;
         const centerY = 300;
         const baseRadius = 70;
         const tubeWidth = 35;
         const gap = 10;
-        
+
         // Create circles for each metric
         metrics.forEach((metric, idx) => {
             const radius = baseRadius + (idx * (tubeWidth + gap));
@@ -1109,9 +1109,9 @@ function renderResourceUtilizationMetrics() {
             // Start at 0% (full offset) for animation
             const initialOffset = circumference;
             const finalOffset = circumference - (metric.value / 100) * circumference;
-            
+
             const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            
+
             // Background track - dark
             const bgTrack = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             bgTrack.setAttribute('cx', centerX);
@@ -1122,7 +1122,7 @@ function renderResourceUtilizationMetrics() {
             bgTrack.setAttribute('stroke-width', tubeWidth);
             bgTrack.setAttribute('opacity', '0.6');
             g.appendChild(bgTrack);
-            
+
             // Inner shadow for depth
             const innerShadow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             innerShadow.setAttribute('cx', centerX);
@@ -1133,7 +1133,7 @@ function renderResourceUtilizationMetrics() {
             innerShadow.setAttribute('stroke-width', tubeWidth);
             innerShadow.setAttribute('opacity', '0.3');
             g.appendChild(innerShadow);
-            
+
             // Main progress tube with gradient
             const progressTube = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             progressTube.setAttribute('cx', centerX);
@@ -1149,7 +1149,7 @@ function renderResourceUtilizationMetrics() {
             progressTube.style.transition = 'stroke-dashoffset 2s cubic-bezier(0.4, 0.0, 0.2, 1)';
             progressTube.style.willChange = 'stroke-dashoffset';
             g.appendChild(progressTube);
-            
+
             // Top highlight for 3D effect
             const highlight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             highlight.setAttribute('cx', centerX);
@@ -1167,7 +1167,7 @@ function renderResourceUtilizationMetrics() {
             highlight.style.transition = 'stroke-dashoffset 2s cubic-bezier(0.4, 0.0, 0.2, 1)';
             highlight.style.willChange = 'stroke-dashoffset';
             g.appendChild(highlight);
-            
+
             // Outer glow effect
             const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             glow.setAttribute('cx', centerX);
@@ -1185,13 +1185,13 @@ function renderResourceUtilizationMetrics() {
             glow.style.transition = 'stroke-dashoffset 2s cubic-bezier(0.4, 0.0, 0.2, 1)';
             glow.style.willChange = 'stroke-dashoffset';
             g.appendChild(glow);
-            
+
             svg.appendChild(g);
         });
-        
+
         svgContainer.appendChild(svg);
         container.appendChild(svgContainer);
-        
+
         // Legend Grid - horizontal layout at bottom
         const legendGrid = document.createElement('div');
         legendGrid.style.cssText = `
@@ -1202,7 +1202,7 @@ function renderResourceUtilizationMetrics() {
             gap: 0.75rem;
             flex-wrap: wrap;
         `;
-        
+
         metrics.forEach((metric, idx) => {
             const legendCard = document.createElement('div');
             legendCard.style.cssText = `
@@ -1215,7 +1215,7 @@ function renderResourceUtilizationMetrics() {
                 border: 1px solid rgba(71, 85, 105, 0.3);
                 backdrop-filter: blur(4px);
             `;
-            
+
             const dot = document.createElement('div');
             dot.style.cssText = `
                 width: 10px;
@@ -1225,14 +1225,14 @@ function renderResourceUtilizationMetrics() {
                 box-shadow: 0 0 10px ${metric.color}80;
                 flex-shrink: 0;
             `;
-            
+
             const textContainer = document.createElement('div');
             textContainer.style.cssText = `
                 display: flex;
                 flex-direction: column;
                 gap: 0.125rem;
             `;
-            
+
             const label = document.createElement('div');
             label.style.cssText = `
                 font-size: 0.625rem;
@@ -1242,7 +1242,7 @@ function renderResourceUtilizationMetrics() {
                 letter-spacing: 0.025em;
             `;
             label.textContent = metric.label || '';
-            
+
             const value = document.createElement('div');
             value.style.cssText = `
                 font-size: 1rem;
@@ -1251,38 +1251,38 @@ function renderResourceUtilizationMetrics() {
                 font-family: Inter, sans-serif;
                 line-height: 1.2;
             `;
-            value.textContent = metric.rawValue !== null && metric.rawValue !== undefined 
+            value.textContent = metric.rawValue !== null && metric.rawValue !== undefined
                 ? (idx === 2 ? `${metric.rawValue.toFixed(1)} GB` : `${metric.rawValue.toFixed(1)}%`)
                 : 'N/A';
-            
+
             textContainer.appendChild(label);
             textContainer.appendChild(value);
             legendCard.appendChild(dot);
             legendCard.appendChild(textContainer);
             legendGrid.appendChild(legendCard);
         });
-        
+
         container.appendChild(legendGrid);
-        
+
         // Animate the circles with staggered delay
         metrics.forEach((metric, idx) => {
             setTimeout(() => {
                 const radius = baseRadius + (idx * (tubeWidth + gap));
                 const circumference = 2 * Math.PI * radius;
                 const finalOffset = circumference - (metric.value / 100) * circumference;
-                
+
                 // Update progress tube
                 const progressTube = svg.querySelector(`circle[data-metric-idx="${idx}"][stroke*="gradient"]`);
                 if (progressTube) {
                     progressTube.setAttribute('stroke-dashoffset', finalOffset);
                 }
-                
+
                 // Update highlight (first circle with matching color and data attribute)
                 const highlight = svg.querySelector(`circle[data-metric-idx="${idx}"][data-color="${metric.color}"]`);
                 if (highlight) {
                     highlight.setAttribute('stroke-dashoffset', finalOffset);
                 }
-                
+
                 // Update glow
                 const glow = svg.querySelector(`circle[data-metric-idx="${idx}"][filter*="glow"]`);
                 if (glow) {
@@ -1290,7 +1290,7 @@ function renderResourceUtilizationMetrics() {
                 }
             }, idx * 150);
         });
-        
+
         // Store references for updates
         charts.resourceUtilization = {
             svg: svg,
@@ -1306,38 +1306,38 @@ function renderResourceUtilizationMetrics() {
                     const radius = this.baseRadius + (idx * (this.tubeWidth + this.gap));
                     const circumference = 2 * Math.PI * radius;
                     const finalOffset = circumference - (metric.value / 100) * circumference;
-                    
+
                     // Update progress tube
                     const progressTube = this.svg.querySelector(`circle[data-metric-idx="${idx}"][stroke*="gradient"]`);
                     if (progressTube) {
                         progressTube.setAttribute('stroke-dashoffset', finalOffset);
                     }
-                    
+
                     // Update highlight
                     const highlight = this.svg.querySelector(`circle[data-metric-idx="${idx}"][data-color="${metric.color}"]`);
                     if (highlight) {
                         highlight.setAttribute('stroke-dashoffset', finalOffset);
                     }
-                    
+
                     // Update glow
                     const glow = this.svg.querySelector(`circle[data-metric-idx="${idx}"][filter*="glow"]`);
                     if (glow) {
                         glow.setAttribute('stroke-dashoffset', finalOffset);
                     }
-                    
+
                     // Update legend label and value
                     if (this.legendGrid && this.legendGrid.children[idx]) {
                         const textContainer = this.legendGrid.children[idx].querySelector('div:last-child');
                         if (textContainer) {
                             const legendLabel = textContainer.querySelector('div:first-child');
                             const legendValue = textContainer.querySelector('div:last-child');
-                            
+
                             if (legendLabel && metric.label) {
                                 legendLabel.textContent = metric.label;
                             }
-                            
+
                             if (legendValue) {
-                                legendValue.textContent = metric.rawValue !== null && metric.rawValue !== undefined 
+                                legendValue.textContent = metric.rawValue !== null && metric.rawValue !== undefined
                                     ? (idx === 2 ? `${metric.rawValue.toFixed(1)} GB` : `${metric.rawValue.toFixed(1)}%`)
                                     : 'N/A';
                             }
@@ -1347,7 +1347,7 @@ function renderResourceUtilizationMetrics() {
                 this.metrics = newMetrics;
             }
         };
-        
+
     } catch (error) {
         console.error('Failed to render resource utilization metrics:', error);
     }
@@ -1364,7 +1364,7 @@ function updateReliabilityMetrics() {
     updateElement('relSchema', metricsData.reliability.schemaCompliance, 'percentage');
     updateElement('relJSON', metricsData.reliability.jsonValidity, 'percentage');
     updateElement('relType', metricsData.reliability.typeCorrectness, 'percentage');
-    
+
     // Calculate overall reliability score if we have data
     const reliabilityMetrics = [
         metricsData.reliability.completionSuccess,
@@ -1386,7 +1386,7 @@ function updateAgentMetrics() {
     updateElement('agentPlanning', metricsData.agent.planningCoherence, 'percentage');
     updateElement('agentActionHall', metricsData.agent.actionHallucination, 'percentage');
     updateElement('agentGoalDrift', metricsData.agent.goalDrift, 'percentage');
-    
+
     // Calculate overall agent performance if we have data
     const agentMetrics = [
         metricsData.agent.taskCompletion,
@@ -1399,7 +1399,7 @@ function updateAgentMetrics() {
         ? (agentMetrics.reduce((a, b) => a + b, 0) / agentMetrics.length).toFixed(1)
         : null;
     updateElement('overallAgent', agentScore, 'percentage');
-    
+
     // Update progress bars only if we have data
     if (metricsData.agent.taskCompletion !== null) {
         updateProgressBarWidth('agentTaskCompletion', metricsData.agent.taskCompletion);
@@ -1418,26 +1418,26 @@ function updateSecurityMetrics(stats) {
     updateElement('secExfiltration', metricsData.security.dataExfiltration, 'percentage');
     updateElement('secEvasion', metricsData.security.modelEvasion, 'percentage');
     updateElement('secExtraction', metricsData.security.extractionRisk, 'percentage');
-    
+
     // Attack counts - get from statistics
     const securityTestCounts = stats?.security_test_counts || {};
     updateElement('attackInjection', securityTestCounts.injection || 0);
     updateElement('attackAdversarial', securityTestCounts.adversarial || 0);
     updateElement('attackExfiltration', securityTestCounts.exfiltration || 0);
     updateElement('attackExtraction', securityTestCounts.extraction || 0);
-    
+
     // Calculate overall security score if we have data
     // Note: 0.0 is a valid value (no vulnerability), so check for null/undefined explicitly
     const securityMetrics = [
-        metricsData.security.injectionAttackSuccess !== null && metricsData.security.injectionAttackSuccess !== undefined 
+        metricsData.security.injectionAttackSuccess !== null && metricsData.security.injectionAttackSuccess !== undefined
             ? 100 - metricsData.security.injectionAttackSuccess : null,
-        metricsData.security.adversarialVulnerability !== null && metricsData.security.adversarialVulnerability !== undefined 
+        metricsData.security.adversarialVulnerability !== null && metricsData.security.adversarialVulnerability !== undefined
             ? 100 - metricsData.security.adversarialVulnerability : null,
-        metricsData.security.dataExfiltration !== null && metricsData.security.dataExfiltration !== undefined 
+        metricsData.security.dataExfiltration !== null && metricsData.security.dataExfiltration !== undefined
             ? 100 - metricsData.security.dataExfiltration : null,
-        metricsData.security.modelEvasion !== null && metricsData.security.modelEvasion !== undefined 
+        metricsData.security.modelEvasion !== null && metricsData.security.modelEvasion !== undefined
             ? 100 - metricsData.security.modelEvasion : null,
-        metricsData.security.extractionRisk !== null && metricsData.security.extractionRisk !== undefined 
+        metricsData.security.extractionRisk !== null && metricsData.security.extractionRisk !== undefined
             ? 100 - metricsData.security.extractionRisk : null
     ].filter(v => v !== null && v !== undefined);
     const securityScore = securityMetrics.length > 0
@@ -1448,11 +1448,11 @@ function updateSecurityMetrics(stats) {
 
 function updateFooterStats(stats) {
     updateElement('footerTotalTests', (stats.total_tests || 0).toLocaleString());
-    
+
     // Metrics tracked - count unique metric names from database
     const metricsTracked = stats.metrics_tracked || 0;
     updateElement('footerMetrics', metricsTracked > 0 ? metricsTracked.toString() : null);
-    
+
     // Data points - total records across all metric tables
     const dataPoints = stats.data_points || 0;
     let dataPointsDisplay = null;
@@ -1471,7 +1471,7 @@ function updateFooterStats(stats) {
 function updateElement(id, value, format = null) {
     const element = document.getElementById(id);
     if (!element) return;
-    
+
     if (value === null || value === undefined) {
         element.textContent = 'N/A';
         element.style.opacity = '0.5';
@@ -1527,12 +1527,12 @@ async function renderPerformanceTrendChart() {
     const container = document.getElementById('performanceTrendChart');
     const footerContainer = document.getElementById('performanceTrendsFooter');
     if (!container || typeof ApexCharts === 'undefined') return;
-    
+
     try {
         // Fetch real trend data
         const response = await fetch('/api/trends?hours=24');
         const trends = await response.json();
-        
+
         let data = [];
         let peakAccuracy = 0;
         let avgAccuracy = 0;
@@ -1542,7 +1542,7 @@ async function renderPerformanceTrendChart() {
         let trendValue = 0;
         let latencyTrend = 0;
         let dataPoints = 0;
-        
+
         if (trends.test_results && trends.test_results.length > 0) {
             // Use more data points for better visualization (last 12 points or all if less)
             const results = trends.test_results.slice(-12);
@@ -1551,7 +1551,7 @@ async function renderPerformanceTrendChart() {
                 const d = new Date(date);
                 return d.toDateString() === now.toDateString();
             };
-            
+
             data = results.map(result => {
                 const date = new Date(result.timestamp);
                 // Format time: show date if not today, otherwise just time
@@ -1561,25 +1561,25 @@ async function renderPerformanceTrendChart() {
                 } else {
                     timeLabel = `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
                 }
-                
+
                 const accuracy = result.pass_rate !== null && result.pass_rate !== undefined ? result.pass_rate : null;
                 // Calculate latency from duration (convert to ms)
-                const latency = result.avg_duration !== null && result.avg_duration !== undefined 
-                    ? Math.round(result.avg_duration * 1000) 
+                const latency = result.avg_duration !== null && result.avg_duration !== undefined
+                    ? Math.round(result.avg_duration * 1000)
                     : null;
-                
+
                 if (accuracy !== null) {
                     peakAccuracy = Math.max(peakAccuracy, accuracy);
                     avgAccuracy += accuracy;
                     dataPoints++;
                 }
-                
+
                 if (latency !== null) {
                     minLatency = Math.min(minLatency, latency);
                     maxLatency = Math.max(maxLatency, latency);
                     avgLatency += latency;
                 }
-                
+
                 return {
                     time: timeLabel,
                     timestamp: date.getTime(),
@@ -1587,7 +1587,7 @@ async function renderPerformanceTrendChart() {
                     latency: latency
                 };
             }).filter(d => d.accuracy !== null || d.latency !== null);
-            
+
             // Calculate averages
             if (dataPoints > 0) {
                 avgAccuracy = avgAccuracy / dataPoints;
@@ -1596,61 +1596,61 @@ async function renderPerformanceTrendChart() {
             if (latencyPoints > 0) {
                 avgLatency = avgLatency / latencyPoints;
             }
-            
+
             // Calculate trends (compare first and last)
             if (data.length >= 2) {
                 const firstAccuracy = data.find(d => d.accuracy !== null)?.accuracy;
                 const lastAccuracy = data.slice().reverse().find(d => d.accuracy !== null)?.accuracy;
-                if (firstAccuracy !== null && firstAccuracy !== undefined && firstAccuracy > 0 && 
+                if (firstAccuracy !== null && firstAccuracy !== undefined && firstAccuracy > 0 &&
                     lastAccuracy !== null && lastAccuracy !== undefined) {
                     trendValue = parseFloat(((lastAccuracy - firstAccuracy) / firstAccuracy * 100).toFixed(1));
                 }
-                
+
                 const firstLatency = data.find(d => d.latency !== null)?.latency;
                 const lastLatency = data.slice().reverse().find(d => d.latency !== null)?.latency;
-                if (firstLatency !== null && firstLatency !== undefined && firstLatency > 0 && 
+                if (firstLatency !== null && firstLatency !== undefined && firstLatency > 0 &&
                     lastLatency !== null && lastLatency !== undefined) {
                     latencyTrend = parseFloat(((firstLatency - lastLatency) / firstLatency * 100).toFixed(1)); // Inverted: lower is better
                 }
             }
         }
-        
+
         // If no data, show empty chart with message
         if (data.length === 0) {
             container.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-secondary);">No trend data available yet. Run tests to see performance trends.</div>';
             if (footerContainer) footerContainer.innerHTML = '';
             return;
         }
-        
+
         if (charts.performanceTrend) {
             charts.performanceTrend.destroy();
         }
-        
+
         // Prepare data for dual y-axis chart
         // Ensure data arrays match categories exactly - use null for missing values to maintain alignment
         const accuracyData = data.map(d => d.accuracy !== null && d.accuracy !== undefined ? d.accuracy : null);
         const latencyData = data.map(d => d.latency !== null && d.latency !== undefined ? d.latency : null);
         const categories = data.map(d => d.time);
-        
+
         // Only animate on first render
         const shouldAnimate = !chartAnimationsPlayed.performanceTrend;
         if (shouldAnimate) {
             chartAnimationsPlayed.performanceTrend = true;
         }
-        
+
         // Use a fixed, balanced height that matches the health radar chart
         // This ensures both charts look proportional and balanced
         const calculatedHeight = 450;
-        
+
         charts.performanceTrend = new ApexCharts(container, {
             series: [
-                { 
-                    name: 'Accuracy', 
+                {
+                    name: 'Accuracy',
                     type: 'area',
                     data: accuracyData
                 },
-                { 
-                    name: 'Latency', 
+                {
+                    name: 'Latency',
                     type: 'area',
                     data: latencyData
                 }
@@ -1680,7 +1680,7 @@ async function renderPerformanceTrendChart() {
                     left: 0
                 }
             },
-            xaxis: { 
+            xaxis: {
                 categories: categories,
                 type: 'category',
                 labels: {
@@ -1773,8 +1773,8 @@ async function renderPerformanceTrendChart() {
                 }
             ],
             colors: ['#60a5fa', '#f59e0b'],
-            stroke: { 
-                width: [4, 4], 
+            stroke: {
+                width: [4, 4],
                 curve: 'smooth',
                 lineCap: 'round',
                 colors: ['#3b82f6', '#f59e0b']
@@ -1803,8 +1803,8 @@ async function renderPerformanceTrendChart() {
             dataLabels: {
                 enabled: false
             },
-            legend: { 
-                show: true, 
+            legend: {
+                show: true,
                 position: 'top',
                 offsetY: 0,
                 horizontalAlign: 'right',
@@ -1828,7 +1828,7 @@ async function renderPerformanceTrendChart() {
                     vertical: 8
                 }
             },
-            grid: { 
+            grid: {
                 borderColor: 'rgba(71, 85, 105, 0.15)',
                 strokeDashArray: 4,
                 xaxis: {
@@ -1879,17 +1879,17 @@ async function renderPerformanceTrendChart() {
                     fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
                 }
             },
-            theme: { 
+            theme: {
                 mode: 'dark',
                 palette: 'palette1'
             }
         });
-        
+
         charts.performanceTrend.render();
-        
+
         // Chart height is now fixed, so no need for dynamic resize handler
         // The CSS will handle responsive sizing with max-height
-        
+
         // Render footer with enhanced stats
         if (footerContainer) {
             const footerHtml = `
@@ -1946,7 +1946,7 @@ function renderHealthRadarChart() {
     const footerContainer = document.getElementById('healthRadarFooter');
     const scoreBadge = document.getElementById('healthScoreBadge');
     if (!container || typeof ApexCharts === 'undefined') return;
-    
+
     // Calculate values from real metrics (convert to 0-100 scale)
     // Use explicit null checks to avoid falsy 0 values
     let accuracy = metricsData.baseModel.accuracy;
@@ -1959,7 +1959,7 @@ function renderHealthRadarChart() {
             accuracy = null;
         }
     }
-    
+
     // IMPORTANT: Include injection attack success (inverted) as it's a critical safety metric
     const safetyComponents = [];
     if (metricsData.safety.complianceScore !== null) {
@@ -1982,48 +1982,48 @@ function renderHealthRadarChart() {
     const safety = safetyComponents.length > 0
         ? (safetyComponents.reduce((a, b) => a + b, 0) / safetyComponents.length)
         : null;
-    
+
     // Gold Context Match (RAG metric - NOT displayed elsewhere in overview)
     const goldContextMatch = metricsData.rag.goldContextMatch !== null && metricsData.rag.goldContextMatch !== undefined
         ? metricsData.rag.goldContextMatch
         : null;
-    
+
     // Reranker Score (RAG metric - NOT displayed elsewhere in overview)
     // Note: rerankerScore comes as 0-1 decimal from backend, convert to 0-100 percentage
     let rerankerScore = null;
     if (metricsData.rag.rerankerScore !== null && metricsData.rag.rerankerScore !== undefined) {
         // If value is <= 1, assume it's a decimal (0-1) and convert to percentage (0-100)
         // If value is > 1, assume it's already a percentage
-        rerankerScore = metricsData.rag.rerankerScore <= 1 
-            ? metricsData.rag.rerankerScore * 100 
+        rerankerScore = metricsData.rag.rerankerScore <= 1
+            ? metricsData.rag.rerankerScore * 100
             : metricsData.rag.rerankerScore;
     }
-    
+
     // Refusal Rate (Safety metric - NOT displayed elsewhere in overview, inverted for health)
     const refusalRate = metricsData.safety.refusalRate !== null && metricsData.safety.refusalRate !== undefined
         ? Math.max(0, 100 - metricsData.safety.refusalRate) // Invert: lower refusal = higher health
         : null;
-    
+
     // Bias Score (Safety metric - NOT displayed elsewhere in overview, inverted for health)
     const biasScore = metricsData.safety.biasScore !== null && metricsData.safety.biasScore !== undefined
         ? Math.max(0, 100 - metricsData.safety.biasScore) // Invert: lower bias = higher health
         : null;
-    
+
     // Determinism Score (Reliability metric - NOT displayed elsewhere in overview)
     const determinismScore = metricsData.reliability.determinismScore !== null && metricsData.reliability.determinismScore !== undefined
         ? metricsData.reliability.determinismScore
         : null;
-    
+
     // Task Completion (Agent metric - NOT displayed elsewhere in overview)
     const taskCompletion = metricsData.agent.taskCompletion !== null && metricsData.agent.taskCompletion !== undefined
         ? metricsData.agent.taskCompletion
         : null;
-    
+
     // Step Efficiency (Agent metric - NOT displayed elsewhere in overview)
     const stepEfficiency = metricsData.agent.stepEfficiency !== null && metricsData.agent.stepEfficiency !== undefined
         ? metricsData.agent.stepEfficiency
         : null;
-    
+
     const data = [
         { metric: 'Gold Match', value: goldContextMatch },
         { metric: 'Reranker', value: rerankerScore },
@@ -2033,48 +2033,48 @@ function renderHealthRadarChart() {
         { metric: 'Efficiency', value: stepEfficiency }
     ].filter(d => {
         // More robust filtering - ensure value is a valid number
-        const isValid = d.value !== null && 
-                       d.value !== undefined && 
-                       !isNaN(d.value) && 
+        const isValid = d.value !== null &&
+                       d.value !== undefined &&
+                       !isNaN(d.value) &&
                        isFinite(d.value);
         return isValid;
     });
-    
+
     // Calculate overall health score
     const validValues = data.map(d => d.value).filter(v => v !== null && v !== undefined);
-    const overallScore = validValues.length > 0 
+    const overallScore = validValues.length > 0
         ? (validValues.reduce((a, b) => a + b, 0) / validValues.length).toFixed(1)
         : null;
-    
+
     // Update score badge
     if (scoreBadge && overallScore) {
         scoreBadge.innerHTML = `<p class="health-score-text">${overallScore}/100</p>`;
     }
-    
+
     // If no data available, show message
     if (data.length === 0) {
         container.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-secondary);">No health data available yet. Run tests to see multi-dimensional health metrics.</div>';
         if (footerContainer) footerContainer.innerHTML = '';
         return;
     }
-    
+
     if (charts.healthRadar) {
         charts.healthRadar.destroy();
     }
-    
+
     // Find highest, average, and lowest
     const values = data.map(d => d.value);
     const highest = Math.max(...values);
     const lowest = Math.min(...values);
     const highestMetric = data.find(d => d.value === highest);
     const lowestMetric = data.find(d => d.value === lowest);
-    
+
     // Only animate on first render
     const shouldAnimate = !chartAnimationsPlayed.healthRadar;
     if (shouldAnimate) {
         chartAnimationsPlayed.healthRadar = true;
     }
-    
+
     charts.healthRadar = new ApexCharts(container, {
         series: [{
             name: 'System Health',
@@ -2091,7 +2091,7 @@ function renderHealthRadarChart() {
                 speed: shouldAnimate ? 1000 : 0
             }
         },
-        xaxis: { 
+        xaxis: {
             categories: data.map(d => d.metric),
             labels: {
                 style: {
@@ -2101,8 +2101,8 @@ function renderHealthRadarChart() {
                 }
             }
         },
-        yaxis: { 
-            min: 0, 
+        yaxis: {
+            min: 0,
             max: 100,
             labels: {
                 style: {
@@ -2112,7 +2112,7 @@ function renderHealthRadarChart() {
             }
         },
         colors: ['#8b5cf6'],
-        fill: { 
+        fill: {
             opacity: 0.6,
             type: 'gradient',
             gradient: {
@@ -2126,11 +2126,11 @@ function renderHealthRadarChart() {
                 stops: [0, 50, 100]
             }
         },
-        stroke: { 
+        stroke: {
             width: 3,
             colors: ['#8b5cf6']
         },
-        markers: { 
+        markers: {
             size: 5,
             strokeWidth: 3,
             strokeColors: ['#5b21b6'],
@@ -2157,21 +2157,21 @@ function renderHealthRadarChart() {
             custom: function({ series, seriesIndex, dataPointIndex, w }) {
                 const value = series[seriesIndex][dataPointIndex];
                 const metric = w.globals.categoryLabels[dataPointIndex] || 'Unknown';
-                
+
                 // Safety check for invalid values
                 if (value === null || value === undefined || isNaN(value) || !isFinite(value)) {
                     return '';
                 }
-                
+
                 const getStatus = (val) => {
                     if (val >= 90) return { text: 'Excellent', color: '#10b981', icon: '🌟' };
                     if (val >= 80) return { text: 'Good', color: '#3b82f6', icon: '✓' };
                     if (val >= 70) return { text: 'Fair', color: '#f59e0b', icon: '⚠' };
                     return { text: 'Needs Attention', color: '#ef4444', icon: '⚠' };
                 };
-                
+
                 const status = getStatus(value);
-                
+
                 return `
                     <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 20px rgba(139, 92, 246, 0.3); backdrop-filter: blur(20px); padding: 12px 16px;">
                         <div style="color: #8b5cf6; font-weight: 700; font-size: 16px; margin-bottom: 4px;">
@@ -2192,9 +2192,9 @@ function renderHealthRadarChart() {
         },
         theme: { mode: 'dark' }
     });
-    
+
     charts.healthRadar.render();
-    
+
     // Render footer with stats
     if (footerContainer && highestMetric && lowestMetric && overallScore) {
         const footerHtml = `
@@ -2222,18 +2222,18 @@ function renderCategoryBreakdown() {
     const summaryContainer = document.getElementById('categoryBreakdownSummary');
     const avgScoreElement = document.getElementById('categoryAvgScore');
     if (!container) return;
-    
+
     // Calculate category scores from real metrics
     const baseModelMetrics = [
         metricsData.baseModel.accuracy,
         metricsData.baseModel.bertScore ? metricsData.baseModel.bertScore * 100 : null,
         metricsData.baseModel.rougeL ? metricsData.baseModel.rougeL * 100 : null
     ].filter(v => v !== null && v !== undefined);
-    const baseModelScore = baseModelMetrics.length > 0 
+    const baseModelScore = baseModelMetrics.length > 0
         ? Math.round(baseModelMetrics.reduce((a, b) => a + b, 0) / baseModelMetrics.length)
         : null;
     const baseModelMetricsCount = baseModelMetrics.length;
-    
+
     const ragMetrics = [
         metricsData.rag.retrievalRecall5,
         metricsData.rag.contextRelevance,
@@ -2243,7 +2243,7 @@ function renderCategoryBreakdown() {
         ? Math.round(ragMetrics.reduce((a, b) => a + b, 0) / ragMetrics.length)
         : null;
     const ragMetricsCount = ragMetrics.length;
-    
+
     // Use shared Safety Score calculation function (round to integer for category breakdown)
     const safetyScore = calculateSafetyScore(true); // true = round to integer
     // Count only actual safety metrics (not security metrics)
@@ -2257,39 +2257,39 @@ function renderCategoryBreakdown() {
         metricsData.safety.piiLeakage,
         metricsData.safety.promptInjection
     ].filter(v => v !== null && v !== undefined).length;
-    
+
     // Calculate performance score from multiple metrics
     const performanceMetrics = [];
-    
+
     // E2E Latency score (inverse: lower is better, target: 2000ms = 100%, 4000ms = 0%)
     if (metricsData.performance.e2eLatency !== null && metricsData.performance.e2eLatency !== undefined) {
         const e2eScore = Math.max(0, Math.min(100, 100 - ((metricsData.performance.e2eLatency - 2000) / 20)));
         performanceMetrics.push(e2eScore);
     }
-    
+
     // TTFT score (inverse: lower is better, target: 300ms = 100%, 800ms = 0%)
     if (metricsData.performance.ttft !== null && metricsData.performance.ttft !== undefined) {
         const ttftScore = Math.max(0, Math.min(100, 100 - ((metricsData.performance.ttft - 300) / 5)));
         performanceMetrics.push(ttftScore);
     }
-    
+
     // Throughput score (higher is better, target: 50 tokens/sec = 100%, 10 tokens/sec = 0%)
     if (metricsData.performance.throughput !== null && metricsData.performance.throughput !== undefined) {
         const throughputScore = Math.max(0, Math.min(100, ((metricsData.performance.throughput - 10) / 40) * 100));
         performanceMetrics.push(throughputScore);
     }
-    
+
     // Token Latency score (inverse: lower is better, target: 50ms = 100%, 200ms = 0%)
     if (metricsData.performance.tokenLatency !== null && metricsData.performance.tokenLatency !== undefined) {
         const tokenLatencyScore = Math.max(0, Math.min(100, 100 - ((metricsData.performance.tokenLatency - 50) / 1.5)));
         performanceMetrics.push(tokenLatencyScore);
     }
-    
+
     const performanceScore = performanceMetrics.length > 0
         ? Math.round(performanceMetrics.reduce((a, b) => a + b, 0) / performanceMetrics.length)
         : null;
     const performanceMetricsCount = performanceMetrics.length;
-    
+
     const reliabilityMetrics = [
         metricsData.reliability.completionSuccess,
         metricsData.reliability.outputStability,
@@ -2299,7 +2299,7 @@ function renderCategoryBreakdown() {
         ? Math.round(reliabilityMetrics.reduce((a, b) => a + b, 0) / reliabilityMetrics.length)
         : null;
     const reliabilityMetricsCount = reliabilityMetrics.length;
-    
+
     const agentMetrics = [
         metricsData.agent.taskCompletion,
         metricsData.agent.stepEfficiency,
@@ -2309,7 +2309,7 @@ function renderCategoryBreakdown() {
         ? Math.round(agentMetrics.reduce((a, b) => a + b, 0) / agentMetrics.length)
         : null;
     const agentMetricsCount = agentMetrics.length;
-    
+
     const categories = [
         { name: 'Base Model', value: baseModelScore, color: '#3b82f6', metricsCount: baseModelMetricsCount },
         { name: 'RAG', value: ragScore, color: '#8b5cf6', metricsCount: ragMetricsCount },
@@ -2318,20 +2318,20 @@ function renderCategoryBreakdown() {
         { name: 'Reliability', value: reliabilityScore, color: '#06b6d4', metricsCount: reliabilityMetricsCount },
         { name: 'Agent', value: agentScore, color: '#ec4899', metricsCount: agentMetricsCount }
     ];
-    
+
     // Calculate total metrics count (include all categories)
     const totalMetricsCount = categories.reduce((sum, cat) => sum + cat.metricsCount, 0);
-    
+
     // Calculate average score (only from categories with actual values)
     const categoriesWithValues = categories.filter(cat => cat.value !== null && cat.value !== undefined);
     const avgScore = categoriesWithValues.length > 0
         ? Math.round(categoriesWithValues.reduce((sum, cat) => sum + cat.value, 0) / categoriesWithValues.length)
         : null;
-    
+
     if (avgScoreElement) {
         avgScoreElement.textContent = avgScore !== null ? `${avgScore}%` : 'N/A';
     }
-    
+
     // Render categories (show all, even with 0 or N/A)
     container.innerHTML = categories.map((cat, idx) => {
         const circumference = 2 * Math.PI * 50;
@@ -2342,7 +2342,7 @@ function renderCategoryBreakdown() {
         const status = !hasValue ? 'N/A' : value >= 90 ? 'Excellent' : value >= 80 ? 'Good' : 'Fair';
         const statusColor = !hasValue ? 'amber' : value >= 90 ? 'emerald' : value >= 80 ? 'blue' : 'amber';
         const statusIcon = !hasValue ? '!' : value >= 90 ? '★' : value >= 80 ? '✓' : '!';
-        
+
         // Convert hex to RGB for gradient
         const rgb = hexToRgb(cat.color);
         const darkerRgb = {
@@ -2350,11 +2350,11 @@ function renderCategoryBreakdown() {
             g: Math.max(0, Math.floor(rgb.g * 0.6)),
             b: Math.max(0, Math.floor(rgb.b * 0.6))
         };
-        
+
         return `
             <div class="category-breakdown-item">
                 <div class="category-breakdown-item-overlay"></div>
-                
+
                 <!-- Circular Progress -->
                 <div class="category-breakdown-chart">
                     <svg class="category-breakdown-svg" viewBox="0 0 120 120">
@@ -2374,25 +2374,25 @@ function renderCategoryBreakdown() {
                                 <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="${cat.color}" flood-opacity="0.4"/>
                             </filter>
                         </defs>
-                        
+
                         <!-- Background Circle -->
-                        <circle 
-                            cx="60" 
-                            cy="60" 
-                            r="50" 
-                            stroke="#334155" 
-                            stroke-width="10" 
+                        <circle
+                            cx="60"
+                            cy="60"
+                            r="50"
+                            stroke="#334155"
+                            stroke-width="10"
                             fill="none"
                             opacity="0.3"
                         />
-                        
+
                         <!-- Progress Circle -->
-                        <circle 
-                            cx="60" 
-                            cy="60" 
-                            r="50" 
+                        <circle
+                            cx="60"
+                            cy="60"
+                            r="50"
                             stroke="url(#category-gradient-${idx})"
-                            stroke-width="10" 
+                            stroke-width="10"
                             fill="none"
                             stroke-dasharray="${dashArray}"
                             stroke-linecap="round"
@@ -2400,14 +2400,14 @@ function renderCategoryBreakdown() {
                             class="category-progress-circle"
                             transform="rotate(-90 60 60)"
                         />
-                        
+
                         <!-- Animated Shimmer -->
-                        <circle 
-                            cx="60" 
-                            cy="60" 
-                            r="50" 
+                        <circle
+                            cx="60"
+                            cy="60"
+                            r="50"
                             stroke="${cat.color}"
-                            stroke-width="2" 
+                            stroke-width="2"
                             fill="none"
                             stroke-dasharray="${dashArray}"
                             stroke-linecap="round"
@@ -2417,46 +2417,46 @@ function renderCategoryBreakdown() {
                             transform="rotate(-90 60 60)"
                         />
                     </svg>
-                    
+
                     <!-- Center Content -->
                     <div class="category-breakdown-center">
                         <span class="category-breakdown-value" style="color: ${hasValue ? cat.color : '#94a3b8'}">${displayValue}</span>
                         ${hasValue ? '<span class="category-breakdown-max">/ 100</span>' : ''}
                     </div>
-                    
+
                     <!-- Status Indicator -->
                     <div class="category-breakdown-status-badge category-status-${statusColor}">
                         <span class="category-status-icon">${statusIcon}</span>
                     </div>
                 </div>
-                
+
                 <!-- Category Info -->
                 <div class="category-breakdown-info">
                     <p class="category-breakdown-name">${cat.name}</p>
-                    
+
                     <!-- Performance Bar -->
                     <div class="category-breakdown-bar-bg">
                         ${hasValue ? `<div class="category-breakdown-bar-fill" style="width: ${value}%; background: linear-gradient(90deg, ${cat.color}, ${cat.color}dd); box-shadow: 0 0 10px ${cat.color}40;"></div>` : '<div class="category-breakdown-bar-fill" style="width: 0%; background: linear-gradient(90deg, #64748b, #64748bdd);"></div>'}
                     </div>
-                    
+
                     <!-- Status Label -->
                     <div class="category-breakdown-status-label category-status-label-${statusColor}">
                         <div class="category-status-dot category-status-dot-${statusColor}"></div>
                         ${status}
                     </div>
-                    
+
                     <!-- Metrics Count -->
                     <p class="category-breakdown-metrics-count">${cat.metricsCount} metrics</p>
                 </div>
             </div>
         `;
     }).join('');
-    
+
     // Render summary cards
     if (summaryContainer && categories.length > 0) {
         // Filter categories with actual values for summary calculations
         const categoriesWithValues = categories.filter(cat => cat.value !== null && cat.value !== undefined);
-        
+
         // Only calculate summary cards if we have actual data
         if (categoriesWithValues.length === 0) {
             // No data available - show N/A for all summary cards
@@ -2472,7 +2472,7 @@ function renderCategoryBreakdown() {
                         <p class="category-summary-title">N/A</p>
                         <p class="category-summary-subtitle">No data available</p>
                     </div>
-                    
+
                     <div class="category-summary-card category-summary-blue">
                         <div class="category-summary-header">
                             <p class="category-summary-label">Most Improved</p>
@@ -2483,7 +2483,7 @@ function renderCategoryBreakdown() {
                         <p class="category-summary-title">N/A</p>
                         <p class="category-summary-subtitle">No data available</p>
                     </div>
-                    
+
                     <div class="category-summary-card category-summary-amber">
                         <div class="category-summary-header">
                             <p class="category-summary-label">Needs Focus</p>
@@ -2494,7 +2494,7 @@ function renderCategoryBreakdown() {
                         <p class="category-summary-title">N/A</p>
                         <p class="category-summary-subtitle">No data available</p>
                     </div>
-                    
+
                     <div class="category-summary-card category-summary-purple">
                         <div class="category-summary-header">
                             <p class="category-summary-label">Total Coverage</p>
@@ -2507,22 +2507,22 @@ function renderCategoryBreakdown() {
                     </div>
                 </div>
             `;
-            
+
             // Initialize Lucide icons
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
             return;
         }
-        
+
         const topPerformer = categoriesWithValues.reduce((max, cat) => cat.value > max.value ? cat : max, categoriesWithValues[0]);
-        
+
         const needsFocus = categoriesWithValues.reduce((min, cat) => cat.value < min.value ? cat : min, categoriesWithValues[0]);
-        
+
         // Find most improved - this would need historical data, for now show the second highest
         const sortedByValue = [...categoriesWithValues].sort((a, b) => b.value - a.value);
         const mostImproved = sortedByValue.length > 1 ? sortedByValue[1] : sortedByValue[0];
-        
+
         summaryContainer.innerHTML = `
             <div class="category-summary-content">
                 <div class="category-summary-card category-summary-emerald">
@@ -2535,7 +2535,7 @@ function renderCategoryBreakdown() {
                     <p class="category-summary-title">${topPerformer.name}</p>
                     <p class="category-summary-subtitle">${topPerformer.value !== null && topPerformer.value !== undefined ? `${topPerformer.value}% score` : 'N/A'}</p>
                 </div>
-                
+
                 <div class="category-summary-card category-summary-blue">
                     <div class="category-summary-header">
                         <p class="category-summary-label">Most Improved</p>
@@ -2546,7 +2546,7 @@ function renderCategoryBreakdown() {
                     <p class="category-summary-title">${mostImproved.name}</p>
                     <p class="category-summary-subtitle">${mostImproved.value !== null && mostImproved.value !== undefined ? `${mostImproved.value}% score` : 'N/A'}</p>
                 </div>
-                
+
                 <div class="category-summary-card category-summary-amber">
                     <div class="category-summary-header">
                         <p class="category-summary-label">Needs Focus</p>
@@ -2557,7 +2557,7 @@ function renderCategoryBreakdown() {
                     <p class="category-summary-title">${needsFocus.name}</p>
                     <p class="category-summary-subtitle">${needsFocus.value !== null && needsFocus.value !== undefined ? `${needsFocus.value}% score` : 'N/A'}</p>
                 </div>
-                
+
                 <div class="category-summary-card category-summary-purple">
                     <div class="category-summary-header">
                         <p class="category-summary-label">Total Coverage</p>
@@ -2570,7 +2570,7 @@ function renderCategoryBreakdown() {
                 </div>
             </div>
         `;
-        
+
         // Initialize Lucide icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
@@ -2582,18 +2582,18 @@ async function renderLatencyDistributionChart() {
     const container = document.getElementById('latencyDistributionChart');
     const legendContainer = document.getElementById('latencyDistributionLegend');
     if (!container || typeof ApexCharts === 'undefined') return;
-    
+
     try {
         // Fetch test results to calculate latency percentiles
         const response = await fetch('/api/tests?limit=1000');
         const tests = await response.json();
-        
+
         // Extract durations and convert to ms
         const durations = tests
             .filter(t => t.duration && t.duration > 0)
             .map(t => t.duration * 1000) // Convert to ms
             .sort((a, b) => a - b);
-        
+
         // Target values for each percentile (from dream dashboard)
         const targets = {
             P50: 1000,
@@ -2602,10 +2602,10 @@ async function renderLatencyDistributionChart() {
             P95: 1800,
             P99: 2500
         };
-        
+
         let data = [];
         let avgLatency = 0;
-        
+
         if (durations.length > 0) {
             // Calculate percentiles
             const percentile = (arr, p) => {
@@ -2613,10 +2613,10 @@ async function renderLatencyDistributionChart() {
                 const index = Math.ceil((p / 100) * arr.length) - 1;
                 return arr[Math.max(0, index)];
             };
-            
+
             // Calculate average latency
             avgLatency = durations.reduce((a, b) => a + b, 0) / durations.length;
-            
+
             // Define colors and labels for each percentile
             const percentileConfig = [
                 { name: 'P50', color: '#10b981', label: 'Fast' },
@@ -2625,7 +2625,7 @@ async function renderLatencyDistributionChart() {
                 { name: 'P95', color: '#f59e0b', label: 'Slow' },
                 { name: 'P99', color: '#ef4444', label: 'Critical' }
             ];
-            
+
             data = percentileConfig.map(config => ({
                 name: config.name,
                 value: Math.round(percentile(durations, parseInt(config.name.substring(1)))),
@@ -2633,7 +2633,7 @@ async function renderLatencyDistributionChart() {
                 label: config.label,
                 target: targets[config.name]
             }));
-            
+
             // Update average latency display
             const avgElement = document.getElementById('latencyAvgValue');
             if (avgElement) {
@@ -2649,25 +2649,25 @@ async function renderLatencyDistributionChart() {
             if (legendContainer) legendContainer.innerHTML = '';
             return;
         }
-        
+
         if (charts.latencyDistribution) {
             charts.latencyDistribution.destroy();
         }
-        
+
         // Store data for tooltip access
         window.latencyDistributionData = data;
-        
+
         // Prepare data for line chart with smooth curve
         const percentileValues = data.map(d => d.value);
         const percentileNames = data.map(d => d.name);
-        
+
         // Create a smooth gradient color for the line
         const lineColor = '#60a5fa';
         const gradientFrom = '#3b82f6';
         const gradientTo = '#8b5cf6';
-        
+
         charts.latencyDistribution = new ApexCharts(container, {
-            series: [{ 
+            series: [{
                 name: 'Latency',
                 data: percentileValues
             }],
@@ -2696,10 +2696,10 @@ async function renderLatencyDistributionChart() {
                     left: 0
                 }
             },
-            xaxis: { 
+            xaxis: {
                 categories: percentileNames,
-                labels: { 
-                    style: { 
+                labels: {
+                    style: {
                         colors: '#94a3b8',
                         fontSize: '13px',
                         fontWeight: 600,
@@ -2716,8 +2716,8 @@ async function renderLatencyDistributionChart() {
                 }
             },
             yaxis: {
-                labels: { 
-                    style: { 
+                labels: {
+                    style: {
                         colors: '#94a3b8',
                         fontSize: '12px',
                         fontWeight: 500
@@ -2730,9 +2730,9 @@ async function renderLatencyDistributionChart() {
                         return `${Math.round(val)}ms`;
                     }
                 },
-                title: { 
-                    text: 'Latency', 
-                    style: { 
+                title: {
+                    text: 'Latency',
+                    style: {
                         color: '#94a3b8',
                         fontSize: '13px',
                         fontWeight: 600
@@ -2820,7 +2820,7 @@ async function renderLatencyDistributionChart() {
                     const isGood = performance > 0;
                     const valueFormatted = value >= 1000 ? (value / 1000).toFixed(2) + 's' : Math.round(value) + 'ms';
                     const targetFormatted = target >= 1000 ? (target / 1000).toFixed(1) + 's' : target + 'ms';
-                    
+
                     return `
                         <div style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98)); border: 1px solid rgba(71, 85, 105, 0.6); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 30px ${percentileData.color}40; backdrop-filter: blur(20px); padding: 14px 18px; min-width: 200px;">
                             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -2871,9 +2871,9 @@ async function renderLatencyDistributionChart() {
             },
             theme: { mode: 'dark' }
         });
-        
+
         charts.latencyDistribution.render();
-        
+
         // Render legend - matching dream dashboard exactly
         if (legendContainer) {
             const legendHtml = `
@@ -2934,22 +2934,22 @@ async function loadTestResults() {
     try {
         const response = await fetch('/api/tests?limit=1000');
         allTestResults = await response.json();
-        
+
         // Update stats
         const passed = allTestResults.filter(t => t.status === 'passed').length;
         const failed = allTestResults.filter(t => t.status === 'failed').length;
         const skipped = allTestResults.filter(t => t.status === 'skipped').length;
-        
+
         updateElement('testResultsPassed', passed);
         updateElement('testResultsFailed', failed);
         updateElement('testResultsSkipped', skipped);
         updateElement('testResultsAll', allTestResults.length);
-        
+
         // Apply current filter without resetting page number
         applyTestFilter(false);
     } catch (error) {
         console.error('Failed to load test results:', error);
-        document.getElementById('testResultsList').innerHTML = 
+        document.getElementById('testResultsList').innerHTML =
             '<div class="no-data">Failed to load test results. Please try again later.</div>';
         document.getElementById('testResultsPagination').innerHTML = '';
     }
@@ -2961,15 +2961,15 @@ function applyTestFilter(resetPage = true) {
     } else {
         filteredTestResults = allTestResults.filter(t => t.status === currentFilter);
     }
-    
+
     // Only reset to page 1 when filter changes, not on reload
     if (resetPage) {
         currentTestPage = 1;
     }
-    
+
     // Update filter button states
     updateFilterButtons();
-    
+
     // Render filtered results
     renderTestResults();
 }
@@ -2990,7 +2990,7 @@ function updateFilterButtons() {
     const failedBtn = document.getElementById('filterFailed');
     const skippedBtn = document.getElementById('filterSkipped');
     const allBtn = document.getElementById('filterAll');
-    
+
     if (passedBtn) {
         passedBtn.classList.toggle('active', currentFilter === 'passed');
     }
@@ -3008,31 +3008,31 @@ function updateFilterButtons() {
 function renderTestResults() {
     const container = document.getElementById('testResultsList');
     if (!container) return;
-    
+
     if (filteredTestResults.length === 0) {
         container.innerHTML = `<div class="no-data">No ${currentFilter === 'all' ? '' : currentFilter} test results available</div>`;
         renderPagination();
         return;
     }
-    
+
     // Calculate pagination based on filtered results
     const totalPages = Math.ceil(filteredTestResults.length / TESTS_PER_PAGE);
     const startIndex = (currentTestPage - 1) * TESTS_PER_PAGE;
     const endIndex = startIndex + TESTS_PER_PAGE;
     const currentTests = filteredTestResults.slice(startIndex, endIndex);
-    
+
     container.innerHTML = currentTests.map(test => {
         const timestamp = new Date(test.timestamp).toLocaleString();
         const duration = test.duration ? `${test.duration.toFixed(2)}s` : 'N/A';
         const isExpanded = selectedTestId === test.test_id;
         // Map status to card class
-        const cardClass = test.status === 'failed' ? 'failed' : 
+        const cardClass = test.status === 'failed' ? 'failed' :
                          test.status === 'skipped' ? 'skipped' : 'passed';
-        
+
         // Only allow expansion for failed tests
         const canExpand = test.status === 'failed';
         const shouldShowExpanded = canExpand && isExpanded;
-        
+
         return `
             <div class="test-result-card ${cardClass}" data-test-id="${test.test_id}">
                 <div class="test-result-header" ${canExpand ? `onclick="toggleTestDetails('${test.test_id}')"` : ''} ${!canExpand ? 'style="cursor: default;"' : ''}>
@@ -3058,12 +3058,12 @@ function renderTestResults() {
             </div>
         `;
     }).join('');
-    
+
     // Re-initialize icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
-    
+
     // Load details for expanded tests (only for failed)
     if (selectedTestId) {
         const expandedTest = currentTests.find(t => t.test_id === selectedTestId);
@@ -3071,7 +3071,7 @@ function renderTestResults() {
             loadTestDetails(expandedTest);
         }
     }
-    
+
     // Render pagination
     renderPagination();
 }
@@ -3079,39 +3079,39 @@ function renderTestResults() {
 function renderPagination() {
     const paginationContainer = document.getElementById('testResultsPagination');
     if (!paginationContainer) return;
-    
+
     const totalPages = Math.ceil(filteredTestResults.length / TESTS_PER_PAGE);
-    
+
     if (totalPages <= 1) {
         paginationContainer.innerHTML = '';
         return;
     }
-    
+
     const startItem = (currentTestPage - 1) * TESTS_PER_PAGE + 1;
     const endItem = Math.min(currentTestPage * TESTS_PER_PAGE, filteredTestResults.length);
-    
+
     let paginationHTML = `
         <button class="pagination-btn" onclick="goToTestPage(${currentTestPage - 1})" ${currentTestPage === 1 ? 'disabled' : ''}>
             <i data-lucide="chevron-left"></i>
         </button>
     `;
-    
+
     // Show page numbers (max 5 visible)
     const maxVisible = 5;
     let startPage = Math.max(1, currentTestPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-    
+
     if (endPage - startPage < maxVisible - 1) {
         startPage = Math.max(1, endPage - maxVisible + 1);
     }
-    
+
     if (startPage > 1) {
         paginationHTML += `<button class="pagination-btn" onclick="goToTestPage(1)">1</button>`;
         if (startPage > 2) {
             paginationHTML += `<span class="pagination-info">...</span>`;
         }
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
         paginationHTML += `
             <button class="pagination-btn ${i === currentTestPage ? 'active' : ''}" onclick="goToTestPage(${i})">
@@ -3119,23 +3119,23 @@ function renderPagination() {
             </button>
         `;
     }
-    
+
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
             paginationHTML += `<span class="pagination-info">...</span>`;
         }
         paginationHTML += `<button class="pagination-btn" onclick="goToTestPage(${totalPages})">${totalPages}</button>`;
     }
-    
+
     paginationHTML += `
         <button class="pagination-btn" onclick="goToTestPage(${currentTestPage + 1})" ${currentTestPage === totalPages ? 'disabled' : ''}>
             <i data-lucide="chevron-right"></i>
         </button>
         <span class="pagination-info">Showing ${startItem}-${endItem} of ${filteredTestResults.length}</span>
     `;
-    
+
     paginationContainer.innerHTML = paginationHTML;
-    
+
     // Re-initialize icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -3146,10 +3146,10 @@ function renderPagination() {
 window.goToTestPage = function(page) {
     const totalPages = Math.ceil(filteredTestResults.length / TESTS_PER_PAGE);
     if (page < 1 || page > totalPages) return;
-    
+
     currentTestPage = page;
     renderTestResults();
-    
+
     // Smooth scroll to top of container
     const container = document.querySelector('.test-results-container');
     if (container) {
@@ -3161,24 +3161,24 @@ window.goToTestPage = function(page) {
 async function loadTestDetails(test) {
     const card = document.querySelector(`[data-test-id="${test.test_id}"]`);
     if (!card) return;
-    
+
     const detailsContainer = card.querySelector('.test-details-loading');
     if (!detailsContainer) return;
-    
+
     // Check test status first
     if (test.status === 'passed') {
         detailsContainer.outerHTML = renderBasicTestDetails(test);
         if (typeof lucide !== 'undefined') lucide.createIcons();
         return;
     }
-    
+
     // For skipped tests, show simple skip message
     if (test.status === 'skipped') {
         detailsContainer.outerHTML = renderSkippedTestDetails(test);
         if (typeof lucide !== 'undefined') lucide.createIcons();
         return;
     }
-    
+
     // For failed tests, try to fetch detailed failure information
     try {
         const response = await fetch(`/api/tests/failed/${test.test_id}/details`);
@@ -3188,7 +3188,7 @@ async function loadTestDetails(test) {
             if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
         }
-        
+
         const details = await response.json();
         detailsContainer.outerHTML = renderFailedTestDetails(test, details);
         if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -3203,18 +3203,18 @@ async function toggleTestDetails(testId) {
     // Find the test to check if it can be expanded
     const test = allTestResults.find(t => t.test_id === testId);
     if (!test) return;
-    
+
     // Only allow expansion for failed tests
     if (test.status !== 'failed') {
         return; // Only failed tests can expand
     }
-    
+
     if (selectedTestId === testId) {
         selectedTestId = null;
     } else {
         selectedTestId = testId;
     }
-    
+
     // Re-render current page without resetting pagination
     renderTestResults();
 }
@@ -3226,7 +3226,7 @@ function renderAssertionErrorComponent(parsedError, stackTrace = null) {
     if (!parsedError || (!parsedError.assertion && !parsedError.message)) {
         return '';
     }
-    
+
     return `
         <div class="assertion-error-component">
             <!-- Error Header -->
@@ -3250,7 +3250,7 @@ function renderAssertionErrorComponent(parsedError, stackTrace = null) {
                     </div>
                 ` : ''}
             </div>
-            
+
             <!-- Code Context - Shows the original code with variable names -->
             ${parsedError.codeSnippet ? `
                 <div class="assertion-component-code-context">
@@ -3263,7 +3263,7 @@ function renderAssertionErrorComponent(parsedError, stackTrace = null) {
                     </div>
                 </div>
             ` : ''}
-            
+
             <!-- Stack Trace (Collapsible) -->
             ${stackTrace ? `
                 <div class="assertion-component-stack-trace">
@@ -3297,11 +3297,11 @@ function parseAssertionError(errorMessage, stackTrace) {
         codeSnippet: null,
         fullTrace: stackTrace
     };
-    
+
     if (!errorMessage && !stackTrace) return parsed;
-    
+
     const fullText = stackTrace ? `${errorMessage}\n${stackTrace}` : errorMessage;
-    
+
     // Extract error type (check both start and anywhere in message)
     const errorTypeMatch = errorMessage.match(/(\w+Error):/);
     if (errorTypeMatch) {
@@ -3309,7 +3309,7 @@ function parseAssertionError(errorMessage, stackTrace) {
     } else if (errorMessage.includes('AssertionError')) {
         parsed.errorType = 'AssertionError';
     }
-    
+
     // Extract file path and line number from stack trace
     const fileMatch = fullText.match(/([^\s]+\.py):(\d+):\s+in\s+([^\s]+)/);
     if (fileMatch) {
@@ -3317,7 +3317,7 @@ function parseAssertionError(errorMessage, stackTrace) {
         parsed.lineNumber = parseInt(fileMatch[2]);
         parsed.functionName = fileMatch[3];
     }
-    
+
     // Extract assertion - just get the full assertion, don't try to parse expected/actual
     // This avoids confusion (e.g., "assert x > 0.1" doesn't mean expected is 0.1)
     const eLineMatch = fullText.match(/E\s+assert\s+([^\n]+)/);
@@ -3330,47 +3330,47 @@ function parseAssertionError(errorMessage, stackTrace) {
             parsed.assertion = assertMatch[1].trim();
         }
     }
-    
+
     // Extract assertion message from code snippet (e.g., assert x, "message")
     const messageInCode = fullText.match(/assert\s+[^,]+,\s*"([^"]+)"/);
     if (messageInCode && !parsed.message) {
         parsed.message = messageInCode[1];
     }
-    
+
     // Extract code snippet from stack trace
     const codeSnippetMatch = fullText.match(/([^\s]+\.py:\d+):\s+in\s+[^\n]+\n\s+([^\n]+)/);
     if (codeSnippetMatch) {
         parsed.codeSnippet = codeSnippetMatch[2].trim();
     }
-    
+
     // Extract error message (text after AssertionError:)
     const messageMatch = errorMessage.match(/:\s*(.+)/);
     if (messageMatch) {
         parsed.message = messageMatch[1].trim();
     }
-    
+
     return parsed;
 }
 
 function renderFailedTestDetails(test, details) {
     // Prioritize error message from test_info (pytest error), then failure_analysis
     const errorMessage = details.test_info?.error_message ||
-                        details.failure_analysis?.root_cause || 
-                        details.failure_analysis?.category || 
+                        details.failure_analysis?.root_cause ||
+                        details.failure_analysis?.category ||
                         'Test validation failed';
     const stackTrace = details.test_info?.stack_trace || null;
-    
+
     // Parse assertion error for better display
     const parsedError = parseAssertionError(errorMessage, stackTrace);
-    
+
     // Extract metrics from validation scores and all_scores
     const metrics = {};
-    
+
     // Add validation scores
     if (details.validation_scores) {
         Object.assign(metrics, details.validation_scores);
     }
-    
+
     // Add scores from all_scores (convert 0-1 to percentage if needed)
     if (details.all_scores && Array.isArray(details.all_scores)) {
         details.all_scores.forEach(score => {
@@ -3382,7 +3382,7 @@ function renderFailedTestDetails(test, details) {
             metrics[score.metric_name] = value;
         });
     }
-    
+
     // Filter and format metrics for display
     const metricEntries = Object.entries(metrics)
         .filter(([key]) => {
@@ -3408,20 +3408,20 @@ function renderFailedTestDetails(test, details) {
                 value: displayValue
             };
         });
-    
+
     // Get expected and actual responses, with better handling
     const expected = details.expected_response || null;
     const actual = details.actual_response || null;
     const prompt = details.prompt || null;
-    
+
     // Generate comparison HTML
     const comparison = highlightDifferences(expected, actual, prompt);
-    
+
     return `
         <div class="test-details">
             <!-- Generic Assertion Error Component -->
             ${renderAssertionErrorComponent(parsedError, stackTrace)}
-            
+
             ${metricEntries.length > 0 ? `
             <div class="test-metrics-section">
                 <h4 class="test-section-title">AI Quality Metrics</h4>
@@ -3435,7 +3435,7 @@ function renderFailedTestDetails(test, details) {
                 </div>
             </div>
             ` : ''}
-            
+
             <div class="test-comparison-section">
                 <h4 class="test-section-title">
                     <i data-lucide="eye"></i>
@@ -3468,7 +3468,7 @@ function renderFailedTestDetails(test, details) {
                     <div>
                         <div class="test-info-title">Difference Highlighting</div>
                         <div class="test-info-text">
-                            <span class="highlight-expected">Pink highlights</span> show expected content • 
+                            <span class="highlight-expected">Pink highlights</span> show expected content •
                             <span class="highlight-actual">Yellow highlights</span> show actual output differences
                         </div>
                     </div>
@@ -3483,7 +3483,7 @@ function renderBasicTestDetails(test) {
     if (test.status !== 'passed') {
         return renderBasicFailureDetails(test);
     }
-    
+
     // For passed tests, don't show redundant message - status is already clear from badge/indicator
     return `
         <div class="test-details">
@@ -3494,7 +3494,7 @@ function renderBasicTestDetails(test) {
 
 function renderSkippedTestDetails(test) {
     const skipReason = test.error_message || test.skip_reason || 'Test was skipped during execution.';
-    
+
     return `
         <div class="test-details">
             <div class="skipped-test-info">
@@ -3512,13 +3512,13 @@ function renderSkippedTestDetails(test) {
 
 function renderBasicFailureDetails(test) {
     // Try to get error message from test object if available
-    const errorMessage = test.error_message || 
+    const errorMessage = test.error_message ||
                         'This test failed during execution. Detailed failure information is not available.';
     const stackTrace = test.stack_trace || null;
-    
+
     // Parse assertion error for better display
     const parsedError = parseAssertionError(errorMessage, stackTrace);
-    
+
     return `
         <div class="test-details">
             <!-- Generic Assertion Error Component -->
@@ -3535,25 +3535,25 @@ function highlightDifferences(expected, actual, prompt = null) {
             actual: '<span style="color: var(--text-secondary); font-style: italic;">N/A</span>'
         };
     }
-    
+
     if (!expected) {
         return {
             expected: '<span style="color: var(--text-secondary); font-style: italic;">N/A</span>',
             actual: actual ? escapeHtml(actual) : '<span style="color: var(--text-secondary); font-style: italic;">N/A</span>'
         };
     }
-    
+
     if (!actual) {
         return {
             expected: expected ? escapeHtml(expected) : '<span style="color: var(--text-secondary); font-style: italic;">N/A</span>',
             actual: '<span style="color: var(--text-secondary); font-style: italic;">N/A</span>'
         };
     }
-    
+
     // Check if expected is a description (starts with "Expected:" or similar)
     const isDescription = expected.startsWith('Expected:') ||
                          expected.startsWith('Expected response to address:');
-    
+
     if (isDescription) {
         // For descriptions, show the description clearly and the actual output
         let descriptionText = expected;
@@ -3563,26 +3563,26 @@ function highlightDifferences(expected, actual, prompt = null) {
             // Legacy format - just show as description without extracting query
             descriptionText = expected.replace('Expected response to address:', '<strong>Expected:</strong> Response should address');
         }
-        
+
         return {
             expected: descriptionText,
             actual: escapeHtml(actual)
         };
     }
-    
+
     // For actual comparisons, use a smarter diff algorithm
     // Split into words, but preserve punctuation
     const expectedWords = expected.match(/\S+/g) || [];
     const actualWords = actual.match(/\S+/g) || [];
-    
+
     // Use longest common subsequence for better matching
     const lcs = computeLCS(expectedWords, actualWords);
     const expectedSet = new Set(lcs);
     const actualSet = new Set(lcs);
-    
+
     let expectedHtml = '';
     let actualHtml = '';
-    
+
     // Build expected HTML with highlights
     expectedWords.forEach((word, i) => {
         if (i > 0) expectedHtml += ' ';
@@ -3594,7 +3594,7 @@ function highlightDifferences(expected, actual, prompt = null) {
             expectedHtml += `<span class="diff-highlight expected">${escapeHtml(word)}</span>`;
         }
     });
-    
+
     // Build actual HTML with highlights
     actualWords.forEach((word, i) => {
         if (i > 0) actualHtml += ' ';
@@ -3606,7 +3606,7 @@ function highlightDifferences(expected, actual, prompt = null) {
             actualHtml += `<span class="diff-highlight actual">${escapeHtml(word)}</span>`;
         }
     });
-    
+
     return { expected: expectedHtml, actual: actualHtml };
 }
 
@@ -3615,7 +3615,7 @@ function computeLCS(arr1, arr2) {
     const m = arr1.length;
     const n = arr2.length;
     const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
-    
+
     // Build LCS table
     for (let i = 1; i <= m; i++) {
         for (let j = 1; j <= n; j++) {
@@ -3626,7 +3626,7 @@ function computeLCS(arr1, arr2) {
             }
         }
     }
-    
+
     // Reconstruct LCS
     const lcs = [];
     let i = m, j = n;
@@ -3641,7 +3641,7 @@ function computeLCS(arr1, arr2) {
             j--;
         }
     }
-    
+
     return lcs;
 }
 
@@ -3682,9 +3682,9 @@ function exportAllMetrics() {
         agent: metricsData.agent,
         security: metricsData.security
     };
-    
+
     const json = JSON.stringify(allMetrics, null, 2);
-    
+
     // Copy to clipboard
     if (navigator.clipboard) {
         navigator.clipboard.writeText(json).then(() => {

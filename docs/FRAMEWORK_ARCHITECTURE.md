@@ -313,18 +313,18 @@ def test_chat_widget_loads(self, chat_page, page):
     # 1. Fixture injection: chat_page and page are provided by conftest.py
     #    - page: Playwright Page object (browser page)
     #    - chat_page: ChatPage object (our page object)
-    
+
     # 2. Navigate to chatbot
     page.goto(settings.chat_url, wait_until="domcontentloaded")
     #    - settings.chat_url = "https://your-chatbot-url.example.com"
     #    - Loaded from src/config/settings.py → .env file
-    
+
     # 3. Wait for chat widget
     is_loaded = chat_page.wait_for_chat_loaded()
     #    - chat_page.wait_for_chat_loaded() uses BasePage.wait_for_element()
     #    - Looks for MESSAGE_INPUT selector
     #    - Returns True when element is visible
-    
+
     # 4. Assert
     assert is_loaded, "Chat widget failed to load"
 ```
@@ -341,12 +341,12 @@ def test_chat_widget_loads(self, chat_page, page):
 class Settings(BaseSettings):
     base_url: str = "https://example.com"
     api_url: str = "https://api.example.com"
-    
+
     # Reads from .env file automatically
     username: str = ""
     password: str = ""
     test_timeout: int = 30
-    
+
     model_config = {
         "env_file": ".env",  # Automatically loads .env
         "case_sensitive": False,  # BASE_URL = base_url
@@ -380,22 +380,22 @@ class BrowserManager:
     def start(self):
         # 1. Start browser automation framework
         self.automation = sync_automation().start()
-        
+
         # 2. Launch browser (chromium/firefox/webkit)
         self.browser = self.automation.chromium.launch(
             headless=settings.headless,
             viewport=settings.viewport
         )
-        
+
         # 3. Create context (isolated browser session)
         self.context = self.browser.new_context(
             locale=settings.locale,
             timezone_id=settings.timezone
         )
-        
+
         # 4. Create page (tab)
         self.page = self.context.new_page()
-    
+
     def stop(self):
         # Cleanup resources
         self.page.close()
@@ -431,13 +431,13 @@ def page(browser_manager):
 class BasePage:
     def __init__(self, page):
         self.page = page  # Browser page object
-    
+
     def click(self, selector: str):
         self.page.locator(selector).click()
-    
+
     def fill(self, selector: str, text: str):
         self.page.locator(selector).fill(text)
-    
+
     def wait_for_element(self, selector: str, timeout: int = 30):
         return self.page.locator(selector).wait_for(timeout=timeout)
 
@@ -445,14 +445,14 @@ class BasePage:
 class SpecificPage(BasePage):
     # Define selectors once (via locators composition)
     locators = PageLocators()
-    
+
     def perform_action(self, text: str):
         # 1. Fill input
         self.page.locator(self.locators.INPUT_FIELD).fill(text)
-        
+
         # 2. Click submit
         self.page.locator(self.locators.SUBMIT_BUTTON).click()
-        
+
         # 3. Wait for response
         self.wait_for_element(self.locators.RESPONSE_AREA)
 ```
@@ -474,24 +474,24 @@ class ResponseValidator:
         # Load pre-trained model for semantic validation
         self.semantic_model = SentenceTransformer('all-MiniLM-L6-v2')
         self.similarity_threshold = 0.7
-    
+
     def validate_relevance(self, query: str, response: str):
         # 1. Convert text to vectors (embeddings)
         query_vector = self.semantic_model.encode(query)
         response_vector = self.semantic_model.encode(response)
-        
+
         # 2. Calculate cosine similarity
         similarity = cosine_similarity(query_vector, response_vector)
         #    Returns 0.0 (unrelated) to 1.0 (identical)
-        
+
         # 3. Check against threshold
         is_relevant = similarity >= self.similarity_threshold
         return is_relevant, similarity
-    
+
     def validate_schema(self, response: dict, schema: dict):
         # Validate response structure against JSON schema
         return validate(response, schema)
-    
+
     def validate_content(self, response: str, required_keywords: list):
         # Check if response contains required information
         return all(keyword in response.lower() for keyword in required_keywords)
@@ -528,30 +528,30 @@ class SecurityTester:
             "command_injection": ["; rm -rf /", ...],
             "path_traversal": ["../../../etc/passwd", ...]
         }
-    
+
     def validate_input_sanitization(self, input_text, output_text):
         # Check if dangerous content was sanitized
         security_issues = []
-        
+
         if "<script" in output_text.lower():
             security_issues.append("contains_script_tags")
         if "javascript:" in output_text.lower():
             security_issues.append("contains_javascript_protocol")
-        
+
         return {
             "is_sanitized": len(security_issues) == 0,
             "issues": security_issues
         }
-    
+
     def test_injection_attack(self, payload_type: str, input_field):
         # Test specific injection attack type
         payloads = self.injection_payloads.get(payload_type, [])
         results = []
-        
+
         for payload in payloads:
             result = self._test_payload(payload, input_field)
             results.append(result)
-        
+
         return results
 ```
 
@@ -561,15 +561,15 @@ class SecurityTester:
 def test_xss_injection_sanitized(self, page, security_tester):
     # 1. Navigate to application
     page.goto(settings.base_url)
-    
+
     # 2. Send XSS payload
     xss_payload = "<script>alert('XSS')</script>"
     page.fill("#input-field", xss_payload)
     page.click("#submit-button")
-    
+
     # 3. Get response
     response = page.locator("#response-area").text_content()
-    
+
     # 4. Validate it was sanitized
     result = security_tester.validate_input_sanitization(
         xss_payload, response
@@ -597,7 +597,7 @@ Let's trace a complete test execution:
 
 2. Test function called
    def test_basic_query_response(self, chat_page, page, ai_validator):
-   
+
 3. Fixtures injected
    ├─> page: Playwright Page (browser tab)
    ├─> chat_page: ChatPage object (wraps page)
@@ -711,17 +711,17 @@ class TestMyFeature:
     def test_send_message(self, chat_page, page):
         # Navigate
         page.goto(settings.chat_url)
-        
+
         # Wait for chat
         chat_page.wait_for_chat_loaded()
-        
+
         # Send message (using chatbot name from settings)
         greeting = f"Hello, {settings.chatbot_name}!"
         chat_page.send_message(greeting)
-        
+
         # Get response
         response = chat_page.get_latest_response()
-        
+
         # Assert
         assert response is not None
         assert len(response) > 0
@@ -740,17 +740,17 @@ class TestMyAI:
     @pytest.fixture(autouse=True)
     def setup(self):
         self.validator = AIResponseValidator()
-    
+
     def test_response_relevance(self, chat_page, page):
         query = "What services does the government provide?"
         chat_page.send_message(query)
         response = chat_page.get_latest_response()
-        
+
         # Validate relevance
         is_relevant, score = self.validator.validate_relevance(
             query, response
         )
-        
+
         assert is_relevant, f"Response not relevant (score: {score:.2f})"
 ```
 
@@ -767,17 +767,17 @@ class TestMySecurity:
     @pytest.fixture(autouse=True)
     def setup(self):
         self.security = SecurityTester()
-    
+
     def test_xss_protection(self, chat_page, page):
         xss_payload = "<script>alert('XSS')</script>"
         chat_page.send_message(xss_payload)
         response = chat_page.get_latest_response()
-        
+
         # Check sanitization
         result = self.security.validate_input_sanitization(
             xss_payload, response
         )
-        
+
         assert result["is_sanitized"], "XSS not properly sanitized"
 ```
 
@@ -884,4 +884,3 @@ ICT/
 8. **Use Logging:** Add appropriate logging for debugging and traceability
 
 This framework provides a complete testing solution with UI automation, response validation, security testing, and proper test organization!
-

@@ -18,10 +18,9 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Generate changelog
-        uses: metcalfc/changelog-generator@v4.3.0
-      
+        uses: metcalfc/changelog-generator@v4.6.2
       - name: Commit changelog
         run: |
           git config --local user.email "action@github.com"
@@ -29,4 +28,3 @@ jobs:
           git add CHANGELOG.md
           git diff --staged --quiet || git commit -m "chore: update changelog [skip ci]"
           git push
-

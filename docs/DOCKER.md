@@ -107,7 +107,7 @@ Runs unit tests only:
 ### `lint`
 Runs code quality checks:
 - Ruff linting
-- Black formatting check
+- Ruff formatting check
 - MyPy type checking
 - Profile: `lint`
 

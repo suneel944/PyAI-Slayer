@@ -59,7 +59,7 @@ help:
 	@echo "  $(YELLOW)make test-all$(NC)          - Run all tests (unit + e2e)"
 	@echo "  $(YELLOW)make test-cov$(NC)          - Run all tests with coverage report"
 	@echo "  $(YELLOW)make lint$(NC)               - Run linter (ruff)"
-	@echo "  $(YELLOW)make format$(NC)            - Format code (black + ruff --fix)"
+	@echo "  $(YELLOW)make format$(NC)            - Format code (ruff format + ruff --fix)"
 	@echo "  $(YELLOW)make type-check$(NC)        - Run type checker (mypy)"
 	@echo "  $(YELLOW)make check$(NC)             - Run all checks (lint + type-check)"
 	@echo "  $(YELLOW)make build$(NC)             - Build distribution packages"
@@ -170,14 +170,14 @@ lint: venv
 # Format code
 format: venv
 	@echo "$(CYAN)Formatting code...$(NC)"
-	@$(VENV_BIN)/black src/ tests/ scripts/
+	@$(VENV_BIN)/ruff format src/ tests/ scripts/
 	@$(VENV_BIN)/ruff check --fix src/ tests/ scripts/
 	@echo "$(GREEN)✓ Code formatted$(NC)"
 
 # Check code formatting (without fixing)
 format-check: venv
 	@echo "$(CYAN)Checking code formatting...$(NC)"
-	@$(VENV_BIN)/black --check src/ tests/ scripts/
+	@$(VENV_BIN)/ruff format --check src/ tests/ scripts/
 	@echo "$(GREEN)✓ Formatting check complete$(NC)"
 
 # Run type checker

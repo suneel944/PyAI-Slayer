@@ -78,7 +78,6 @@ dev = [
     "hypothesis>=6.148.1",  # Property-based testing
 
     # Code Quality
-    "black>=25.11.0",
     "ruff>=0.14.5",
     "mypy>=1.18.2",
     "bandit[toml]>=1.8.6",  # Security linting
@@ -113,28 +112,6 @@ packages = ["config", "core", "utils"]
 [tool.setuptools.package-data]
 "*" = ["*.yaml", "*.json", "*.md"]
 
-# Black Configuration
-[tool.black]
-line-length = 100
-target-version = ["py311"]
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
-
 # Ruff Configuration
 [tool.ruff]
 line-length = 100
@@ -162,6 +139,12 @@ exclude = [
     ".github",
 ]
 
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
 # Bandit Security Configuration
 [tool.bandit]
 exclude_dirs = ["tests", "venv", ".venv", "build", "dist"]
@@ -187,7 +170,7 @@ select = [
     "SIM", # flake8-simplify
 ]
 ignore = [
-    "E501",  # line too long (handled by black)
+    "E501",  # line too long (handled by ruff format)
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
 ]

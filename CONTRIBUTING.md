@@ -163,15 +163,14 @@ Examples:
 - Use **type hints** for all function signatures
 - Write **docstrings** in **Google style** format
 - Maximum line length: **100 characters**
-- Use **Black** for code formatting
-- Use **Ruff** for linting
+- Use **Ruff** for code formatting and linting
 
 ### Code Formatting
 
 Before committing, always format your code:
 
 ```bash
-make format  # Runs black + ruff --fix
+make format  # Runs ruff format + ruff --fix
 ```
 
 ### Type Hints
@@ -228,7 +227,7 @@ Imports should be organized as follows:
 2. Third-party imports
 3. Local application imports
 
-Use `isort` to automatically organize imports (included in `make format`).
+Use `ruff` to automatically organize imports (included in `make format`).
 
 ### Code Quality Checks
 

@@ -180,15 +180,17 @@ format: venv
 	@echo "$(YELLOW)Note: Run 'make pre-commit' for comprehensive checks (formatting + linting + type-check + security)$(NC)"
 
 # Check code formatting (without fixing) - for CI
-# Uses pre-commit ruff-format for consistency with make format
+# Uses pre-commit ruff binary for consistency (finds it in cache)
 format-check: venv
-	@echo "$(CYAN)Checking code formatting (via pre-commit)...$(NC)"
-	@if [ ! -f "$(VENV_BIN)/pre-commit" ]; then \
-		echo "$(YELLOW)Pre-commit not found, installing...$(NC)"; \
-		$(VENV_BIN)/pip install pre-commit; \
+	@echo "$(CYAN)Checking code formatting...$(NC)"
+	@RUFF_BIN=$$(find ~/.cache/pre-commit -name ruff -type f 2>/dev/null | head -1); \
+	if [ -n "$$RUFF_BIN" ] && [ -x "$$RUFF_BIN" ]; then \
+		echo "$(YELLOW)Using pre-commit ruff for consistency...$(NC)"; \
+		$$RUFF_BIN format --check src/ tests/ scripts/; \
+	else \
+		echo "$(YELLOW)Using venv ruff (ensure version matches pre-commit)...$(NC)"; \
+		$(VENV_BIN)/ruff format --check src/ tests/ scripts/; \
 	fi
-	@$(VENV_BIN)/pre-commit run ruff-format --all-files --hook-stage manual || \
-		(echo "$(RED)Formatting check failed - some files need reformatting$(NC)" && exit 1)
 	@echo "$(GREEN)✓ Formatting check complete$(NC)"
 
 # Run type checker

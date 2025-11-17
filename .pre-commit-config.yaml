@@ -5,7 +5,7 @@
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -48,11 +48,4 @@ repos:
         args: ['-c', 'pyproject.toml']
         additional_dependencies: ['bandit[toml]']
         files: ^src/
-
-  - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.13.2
-    # Note: isort is also handled by ruff, but kept for compatibility
-    hooks:
-      - id: isort
-        args: ['--profile', 'black', '--line-length=100']
 

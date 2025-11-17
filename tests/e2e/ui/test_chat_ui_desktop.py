@@ -78,7 +78,7 @@ class TestChatUI:
     def test_auto_scroll_to_latest_message(self, chat_page):
         """UI-008: Auto-scroll to latest message."""
         for i in range(3):
-            chat_page.send_message(f"Message {i+1}", wait_for_response=True)
+            chat_page.send_message(f"Message {i + 1}", wait_for_response=True)
             chat_page.page.wait_for_timeout(1000)
 
         chat_page.scroll_to_latest_message()

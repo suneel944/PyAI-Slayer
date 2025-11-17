@@ -92,7 +92,7 @@ class ChatPage(BasePage):
 
             if wait_for_response:
                 ai_timeout = max(timeout, self.config.DEFAULT_AI_TIMEOUT_MS)
-                logger.info(f"Waiting for AI response (timeout: {ai_timeout/1000:.0f}s)...")
+                logger.info(f"Waiting for AI response (timeout: {ai_timeout / 1000:.0f}s)...")
 
                 # Track AI response time (high-value metric)
                 import time

@@ -346,9 +346,9 @@ class TestRAGMetrics:
         from core.ai.rag_tester import _get_rag_context
 
         rag_context = _get_rag_context()
-        assert (
-            rag_context.get("retrieved_docs") == retrieved_docs
-        ), "RAG context not stored properly"
+        assert rag_context.get("retrieved_docs") == retrieved_docs, (
+            "RAG context not stored properly"
+        )
 
         # Check results
         passed_tests = [name for name, result in results.items() if result.passed]
@@ -375,7 +375,7 @@ class TestRAGMetrics:
             if response:
                 # Store RAG context for each query (simulate retrieved docs)
                 simulated_docs = [
-                    f"Relevant information about query {i+1}: {query}",
+                    f"Relevant information about query {i + 1}: {query}",
                 ]
                 self._store_rag_context_for_dashboard(
                     retrieved_docs=simulated_docs,
@@ -387,4 +387,4 @@ class TestRAGMetrics:
 
                 is_relevant, similarity = self.validator.validate_relevance(query, response)
                 assert is_relevant, f"Response not relevant for: {query}"
-                logger.info(f"Query {i+1} '{query}' relevance: {similarity:.3f}")
+                logger.info(f"Query {i + 1} '{query}' relevance: {similarity:.3f}")

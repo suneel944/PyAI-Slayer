@@ -33,9 +33,9 @@ class TestPerformanceStress:
             response_times.append(response_time)
 
             assert response is not None, f"No response for: {query}"
-            assert (
-                response_time < test_config.max_response_time
-            ), f"Response time {response_time:.2f}s exceeds limit"
+            assert response_time < test_config.max_response_time, (
+                f"Response time {response_time:.2f}s exceeds limit"
+            )
 
             chat_page.page.wait_for_timeout(500)  # Small delay
 
@@ -58,9 +58,9 @@ class TestPerformanceStress:
         response_time = time.time() - start_time
 
         assert response is not None, "No response for long query"
-        assert (
-            response_time < test_config.max_response_time * 1.5
-        ), f"Long query took too long: {response_time:.2f}s"
+        assert response_time < test_config.max_response_time * 1.5, (
+            f"Long query took too long: {response_time:.2f}s"
+        )
 
         logger.info(f"Long query handled in {response_time:.2f}s")
 
@@ -88,9 +88,9 @@ class TestPerformanceStress:
             std_dev = variance**0.5
 
             # Response times should be reasonably consistent
-            assert (
-                std_dev < avg_time * 0.5
-            ), f"High response time variance: std_dev={std_dev:.2f}s, avg={avg_time:.2f}s"
+            assert std_dev < avg_time * 0.5, (
+                f"High response time variance: std_dev={std_dev:.2f}s, avg={avg_time:.2f}s"
+            )
             logger.info(f"Response time consistency: avg={avg_time:.2f}s, std_dev={std_dev:.2f}s")
 
     def test_throughput_under_load(self, chat_page, test_config):

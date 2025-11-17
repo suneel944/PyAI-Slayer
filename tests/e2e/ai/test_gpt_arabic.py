@@ -64,9 +64,9 @@ class TestGPTArabic:
 
         assert response is not None, f"No Arabic response after {response_time:.2f}s"
         assert len(response) > 0, "Arabic response is empty"
-        assert (
-            response_time < test_config.max_response_time
-        ), f"Response time {response_time:.2f}s exceeds limit"
+        assert response_time < test_config.max_response_time, (
+            f"Response time {response_time:.2f}s exceeds limit"
+        )
 
         is_relevant, similarity = self.validator.validate_relevance(query, response)
         assert is_relevant, f"Arabic response not relevant (similarity: {similarity:.3f})"

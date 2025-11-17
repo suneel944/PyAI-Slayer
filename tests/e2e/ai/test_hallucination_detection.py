@@ -53,9 +53,9 @@ class TestHallucinationDetection:
         # Use advanced detector for better accuracy
         result = self.detector.detect(response, context=query, threshold=0.7)
 
-        assert (
-            not result.has_hallucination
-        ), f"Hallucination detected with confidence: {result.confidence:.3f}"
+        assert not result.has_hallucination, (
+            f"Hallucination detected with confidence: {result.confidence:.3f}"
+        )
 
         logger.info(f"Hallucination check passed (confidence: {result.confidence:.3f})")
 
@@ -145,8 +145,8 @@ class TestHallucinationDetection:
         # Check if response is grounded in known facts
         grounding_score = self.detector.evaluate_grounding(response, known_sources)
 
-        assert (
-            grounding_score >= 0.5
-        ), f"Response poorly grounded in known facts: {grounding_score:.3f}"
+        assert grounding_score >= 0.5, (
+            f"Response poorly grounded in known facts: {grounding_score:.3f}"
+        )
 
         logger.info(f"Response grounding score: {grounding_score:.3f}")

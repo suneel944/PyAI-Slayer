@@ -38,9 +38,9 @@ class TestResponseConsistency:
 
         consistency_score = self.validator.check_consistency(responses)
 
-        assert (
-            consistency_score >= test_config.consistency_threshold
-        ), f"Responses not consistent (score: {consistency_score:.3f}, threshold: {test_config.consistency_threshold})"
+        assert consistency_score >= test_config.consistency_threshold, (
+            f"Responses not consistent (score: {consistency_score:.3f}, threshold: {test_config.consistency_threshold})"
+        )
 
         logger.info(f"Consistency score: {consistency_score:.3f}")
 
@@ -64,8 +64,8 @@ class TestResponseConsistency:
 
         is_consistent, similarity = self.validator.validate_cross_language(en_response, ar_response)
 
-        assert (
-            is_consistent
-        ), f"Cross-language responses not consistent (similarity: {similarity:.3f})"
+        assert is_consistent, (
+            f"Cross-language responses not consistent (similarity: {similarity:.3f})"
+        )
 
         logger.info(f"Cross-language consistency: {similarity:.3f}")

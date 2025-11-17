@@ -14,46 +14,46 @@ class VirtualScroller {
         this.containerHeight = 0;
         this.init();
     }
-    
+
     init() {
         this.container.style.overflowY = 'auto';
         this.container.style.position = 'relative';
         this.viewport = document.createElement('div');
         this.viewport.style.position = 'relative';
         this.container.appendChild(this.viewport);
-        
+
         this.container.addEventListener('scroll', this.onScroll.bind(this));
         this.updateContainerHeight();
     }
-    
+
     updateContainerHeight() {
         this.containerHeight = this.container.clientHeight;
     }
-    
+
     setData(data) {
         this.data = data;
         this.render();
     }
-    
+
     onScroll() {
         this.scrollTop = this.container.scrollTop;
         this.render();
     }
-    
+
     render() {
         const totalHeight = this.data.length * this.itemHeight;
         this.viewport.style.height = `${totalHeight}px`;
-        
+
         const startIndex = Math.floor(this.scrollTop / this.itemHeight);
         const endIndex = Math.ceil((this.scrollTop + this.containerHeight) / this.itemHeight);
-        
+
         // Add buffer for smoother scrolling
         const bufferSize = 5;
         const renderStart = Math.max(0, startIndex - bufferSize);
         const renderEnd = Math.min(this.data.length, endIndex + bufferSize);
-        
+
         const fragment = document.createDocumentFragment();
-        
+
         for (let i = renderStart; i < renderEnd; i++) {
             const item = this.renderItem(this.data[i], i);
             item.style.position = 'absolute';
@@ -61,7 +61,7 @@ class VirtualScroller {
             item.style.width = '100%';
             fragment.appendChild(item);
         }
-        
+
         this.viewport.innerHTML = '';
         this.viewport.appendChild(fragment);
     }
@@ -102,7 +102,7 @@ class LazyLoader {
         this.observer = null;
         this.init();
     }
-    
+
     init() {
         if ('IntersectionObserver' in window) {
             this.observer = new IntersectionObserver(
@@ -111,33 +111,33 @@ class LazyLoader {
             );
         }
     }
-    
+
     observe(elements) {
         if (!this.observer) return;
         elements.forEach(el => this.observer.observe(el));
     }
-    
+
     handleIntersection(entries) {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const target = entry.target;
-                
+
                 // Lazy load images
                 if (target.dataset.src) {
                     target.src = target.dataset.src;
                     target.removeAttribute('data-src');
                 }
-                
+
                 // Lazy load components
                 if (target.dataset.component) {
                     this.loadComponent(target);
                 }
-                
+
                 this.observer.unobserve(target);
             }
         });
     }
-    
+
     loadComponent(element) {
         const componentName = element.dataset.component;
         // Component loading logic here
@@ -152,37 +152,37 @@ class CacheManager {
         this.maxCacheSize = 100;
         this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
     }
-    
+
     set(key, value, ttl = this.cacheExpiry) {
         // Implement LRU cache
         if (this.memoryCache.size >= this.maxCacheSize) {
             const firstKey = this.memoryCache.keys().next().value;
             this.memoryCache.delete(firstKey);
         }
-        
+
         this.memoryCache.set(key, {
             value,
             expiry: Date.now() + ttl
         });
     }
-    
+
     get(key) {
         const cached = this.memoryCache.get(key);
-        
+
         if (!cached) return null;
-        
+
         if (Date.now() > cached.expiry) {
             this.memoryCache.delete(key);
             return null;
         }
-        
+
         return cached.value;
     }
-    
+
     clear() {
         this.memoryCache.clear();
     }
-    
+
     has(key) {
         return this.memoryCache.has(key) && Date.now() <= this.memoryCache.get(key).expiry;
     }
@@ -198,23 +198,23 @@ class APIOptimizer {
         this.maxConcurrent = 6;
         this.activeRequests = 0;
     }
-    
+
     async fetch(url, options = {}) {
         const cacheKey = `${url}_${JSON.stringify(options)}`;
-        
+
         // Check cache first
         if (cacheManager.has(cacheKey)) {
             return cacheManager.get(cacheKey);
         }
-        
+
         // Deduplicate concurrent identical requests
         if (this.pendingRequests.has(cacheKey)) {
             return this.pendingRequests.get(cacheKey);
         }
-        
+
         const requestPromise = this.executeRequest(url, options, cacheKey);
         this.pendingRequests.set(cacheKey, requestPromise);
-        
+
         try {
             const result = await requestPromise;
             cacheManager.set(cacheKey, result);
@@ -223,14 +223,14 @@ class APIOptimizer {
             this.pendingRequests.delete(cacheKey);
         }
     }
-    
+
     async executeRequest(url, options, cacheKey) {
         while (this.activeRequests >= this.maxConcurrent) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
-        
+
         this.activeRequests++;
-        
+
         try {
             const response = await fetch(url, options);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -250,13 +250,13 @@ class MemoryOptimizer {
         this.cleanupInterval = 60000; // 1 minute
         this.startCleanup();
     }
-    
+
     startCleanup() {
         setInterval(() => {
             this.cleanup();
         }, this.cleanupInterval);
     }
-    
+
     cleanup() {
         // Clear old cache entries
         cacheManager.memoryCache.forEach((value, key) => {
@@ -264,22 +264,22 @@ class MemoryOptimizer {
                 cacheManager.memoryCache.delete(key);
             }
         });
-        
+
         // Clear old notifications (keep last 50)
         const notifications = JSON.parse(localStorage.getItem('dashboard-notifications') || '[]');
         if (notifications.length > 50) {
             localStorage.setItem('dashboard-notifications', JSON.stringify(notifications.slice(0, 50)));
         }
-        
+
         // Clear old activity logs (keep last 100)
         const activities = JSON.parse(localStorage.getItem('dashboard-activity-log') || '[]');
         if (activities.length > 100) {
             localStorage.setItem('dashboard-activity-log', JSON.stringify(activities.slice(0, 100)));
         }
-        
+
         // Memory cleanup completed
     }
-    
+
     measureMemory() {
         if (performance.memory) {
             return {
@@ -328,12 +328,12 @@ class PerformanceMonitor {
         };
         this.init();
     }
-    
+
     init() {
         this.measurePageLoad();
         this.startMonitoring();
     }
-    
+
     measurePageLoad() {
         window.addEventListener('load', () => {
             const perfData = performance.getEntriesByType('navigation')[0];
@@ -342,7 +342,7 @@ class PerformanceMonitor {
             }
         });
     }
-    
+
     startMonitoring() {
         // Monitor long tasks
         if ('PerformanceObserver' in window) {
@@ -359,7 +359,7 @@ class PerformanceMonitor {
                 // longtask not supported
             }
         }
-        
+
         // Monitor memory periodically
         setInterval(() => {
             const memory = memoryOptimizer.measureMemory();
@@ -368,7 +368,7 @@ class PerformanceMonitor {
                     timestamp: Date.now(),
                     ...memory
                 });
-                
+
                 // Keep only last 10 measurements
                 if (this.metrics.memoryUsage.length > 10) {
                     this.metrics.memoryUsage.shift();
@@ -376,31 +376,31 @@ class PerformanceMonitor {
             }
         }, 30000); // Every 30 seconds
     }
-    
+
     measureAPICall(name, duration) {
         this.metrics.apiCalls.push({
             name,
             duration,
             timestamp: Date.now()
         });
-        
+
         if (this.metrics.apiCalls.length > 50) {
             this.metrics.apiCalls.shift();
         }
     }
-    
+
     measureRenderTime(component, duration) {
         this.metrics.renderTimes.push({
             component,
             duration,
             timestamp: Date.now()
         });
-        
+
         if (this.metrics.renderTimes.length > 50) {
             this.metrics.renderTimes.shift();
         }
     }
-    
+
     getReport() {
         return {
             pageLoad: this.metrics.pageLoad,
@@ -428,7 +428,7 @@ function optimizeImages() {
 // ===== BUNDLING & CODE SPLITTING =====
 async function loadModule(moduleName) {
     const startTime = performance.now();
-    
+
     try {
         const module = await import(`/static/${moduleName}.js`);
         const duration = performance.now() - startTime;
@@ -453,12 +453,12 @@ function prefetchResources(urls) {
 // ===== OPTIMIZED DATA LOADING =====
 const optimizedLoadTests = debounce(async function() {
     const startTime = performance.now();
-    
+
     try {
         const response = await apiOptimizer.fetch('/api/tests?hours=24');
         const duration = performance.now() - startTime;
         performanceMonitor.measureAPICall('load_tests', duration);
-        
+
         // Process data efficiently
         return response;
     } catch (error) {
@@ -471,10 +471,10 @@ const optimizedLoadTests = debounce(async function() {
 function initPerformanceOptimizations() {
     // Register service worker for PWA
     registerServiceWorker();
-    
+
     // Optimize images
     optimizeImages();
-    
+
     // Prefetch common resources
     prefetchResources([
         '/api/statistics',

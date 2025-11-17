@@ -80,8 +80,8 @@ services:
       sh -c "
         echo 'Running ruff...' &&
         ruff check src/ tests/ scripts/ &&
-        echo 'Checking formatting with black...' &&
-        black --check src/ tests/ scripts/ &&
+        echo 'Checking formatting with ruff...' &&
+        ruff format --check src/ tests/ scripts/ &&
         echo 'Running mypy...' &&
         mypy src/ scripts/ --ignore-missing-imports
       "
@@ -133,4 +133,3 @@ networks:
 volumes:
   prometheus-data:
   grafana-data:
-

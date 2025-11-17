@@ -39,7 +39,6 @@ class LoginPage(BasePage):
             True if login successful
         """
         try:
-
             email = email or (self.test_config.email if self.test_config else None)
             password = password or (self.test_config.password if self.test_config else None)
 

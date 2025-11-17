@@ -266,9 +266,7 @@ def setup_test(request, test_config):
 
     if needs_login and test_config.email and test_config.password:
         try:
-
             if is_mobile:
-
                 try:
                     test_page = request.getfixturevalue("mobile_page")
                 except Exception as e:
@@ -280,7 +278,6 @@ def setup_test(request, test_config):
 
                 test_login_page = LoginPage(test_page, test_config)
             else:
-
                 test_page = request.getfixturevalue("page")
                 test_login_page = request.getfixturevalue("login_page")
 
@@ -326,7 +323,6 @@ def setup_test(request, test_config):
 
     if hasattr(request.node, "rep_call") and request.node.rep_call.failed:
         try:
-
             if is_mobile:
                 test_page = request.getfixturevalue("mobile_page")
             else:

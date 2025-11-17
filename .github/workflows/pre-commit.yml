@@ -11,21 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y make
-      
+
       - name: Install dependencies
         run: make install-dev
-      
+
+      - name: Clear pre-commit cache
+        run: |
+          rm -rf ~/.cache/pre-commit || true
+          pre-commit clean || true
+
       - name: Run pre-commit hooks
         run: make pre-commit
-

@@ -41,8 +41,7 @@ class TestAgentMetrics:
             f"Avg score: {avg_score:.3f}, Concept scores: {concept_scores}"
         )
         logger.info(
-            f"Task completion: avg semantic score={avg_score:.3f}, "
-            f"concept scores={concept_scores}"
+            f"Task completion: avg semantic score={avg_score:.3f}, concept scores={concept_scores}"
         )
 
     def test_step_efficiency(self, chat_page, test_config):

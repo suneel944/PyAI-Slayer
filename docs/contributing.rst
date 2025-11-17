@@ -25,4 +25,3 @@ Documentation
 - Update docstrings for public APIs
 - Add examples for new features
 - Update this documentation as needed
-

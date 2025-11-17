@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Utilities for working with Prometheus metrics endpoint (without Prometheus Server)."""
+
 import json
 import re
 import sys

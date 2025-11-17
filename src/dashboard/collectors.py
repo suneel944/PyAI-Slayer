@@ -524,7 +524,7 @@ class DashboardCollector:
                     ]:
                         continue  # Skip non-metric fields
 
-                    if isinstance(value, (int, float)):
+                    if isinstance(value, int | float):
                         # Direct numeric value
                         scoring_metrics[key] = value
                     elif isinstance(value, bool):
@@ -534,7 +534,7 @@ class DashboardCollector:
                     elif isinstance(value, dict):
                         # Nested dictionary - flatten it
                         for nested_key, nested_value in value.items():
-                            if isinstance(nested_value, (int, float)):
+                            if isinstance(nested_value, int | float):
                                 # Handle different nested structures
                                 if key == "bertscore":
                                     # BERTScore: {"precision": 0.9, "recall": 0.85, "f1": 0.87}
@@ -556,7 +556,7 @@ class DashboardCollector:
                             elif isinstance(nested_value, dict):
                                 # Double nested - flatten further
                                 for deep_key, deep_value in nested_value.items():
-                                    if isinstance(deep_value, (int, float)):
+                                    if isinstance(deep_value, int | float):
                                         flat_key = f"{key}_{nested_key}_{deep_key}"
                                         scoring_metrics[flat_key] = deep_value
                                     elif isinstance(deep_value, bool):
@@ -759,7 +759,7 @@ class DashboardCollector:
             # Test metrics
             tests = summary.get("tests", {})
             for metric_name, value in tests.items():
-                if isinstance(value, (int, float)):
+                if isinstance(value, int | float):
                     self.collect_metrics_snapshot(
                         metric_type="test_metrics",
                         metric_name=metric_name,
@@ -769,7 +769,7 @@ class DashboardCollector:
             # Validation metrics
             validations = summary.get("validations", {})
             for metric_name, value in validations.items():
-                if isinstance(value, (int, float)):
+                if isinstance(value, int | float):
                     self.collect_metrics_snapshot(
                         metric_type="validation_metrics",
                         metric_name=metric_name,

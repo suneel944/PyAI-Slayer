@@ -1,0 +1,44 @@
+# Multi-environment configuration for PyAI-Slayer
+environments:
+  sandbox:
+    base_url: "https://govgpt.sandbox.dge.gov.ae"
+    chat_url: "https://govgpt.sandbox.dge.gov.ae"
+    timeout: 30
+    headless: false
+    
+  staging:
+    base_url: "https://govgpt.staging.dge.gov.ae"
+    chat_url: "https://govgpt.staging.dge.gov.ae"
+    timeout: 30
+    headless: true
+    
+  production:
+    base_url: "https://govgpt.dge.gov.ae"
+    chat_url: "https://govgpt.dge.gov.ae"
+    timeout: 20
+    headless: true
+
+# Test execution profiles
+profiles:
+  smoke:
+    test_suites:
+      - tests/ui/test_chat_ui_desktop.py::TestChatUI::test_chat_widget_loads
+      - tests/ai_responses/test_gpt_english.py::TestGPTEnglish::test_basic_query_response
+    timeout: 300
+    
+  regression:
+    test_suites:
+      - tests/ui/
+      - tests/ai_responses/
+    timeout: 1800
+    
+  security:
+    test_suites:
+      - tests/security/
+    timeout: 900
+    
+  performance:
+    test_suites:
+      - tests/ai_responses/test_response_time.py
+    timeout: 600
+

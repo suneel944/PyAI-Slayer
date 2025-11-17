@@ -780,7 +780,7 @@ class AIResponseValidator:
                 loss = outputs.loss
 
             # Perplexity = exp(loss)
-            perplexity = torch.exp(loss).item()
+            perplexity: float = float(torch.exp(loss).item())
 
             return perplexity
 

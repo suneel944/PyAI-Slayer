@@ -94,4 +94,4 @@ class LocalizationHelper:
     def is_rtl_language(self, lang_code: str) -> bool:
         """Check if language is RTL."""
         lang_config = self.get_language_config(lang_code)
-        return lang_config["rtl"] if lang_config else False
+        return bool(lang_config["rtl"]) if lang_config else False

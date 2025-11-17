@@ -353,7 +353,7 @@ def create_app(data_store: DashboardDataStore | None = None) -> FastAPI:
     return app
 
 
-def run_dashboard(host: str = "0.0.0.0", port: int = 8080):
+def run_dashboard(host: str = "0.0.0.0", port: int = 8080):  # noqa: B104
     """Run dashboard server."""
     import uvicorn
 

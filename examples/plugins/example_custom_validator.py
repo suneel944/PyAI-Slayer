@@ -6,7 +6,7 @@ from core.validation.validation_strategy import ValidationStrategy, ValidationSt
 class LengthValidationStrategy(ValidationStrategy):
     """Custom validation strategy for response length."""
 
-    def validate(self, query: str, response: str, **kwargs):
+    def validate(self, _query: str, response: str, **kwargs):
         """Validate response length."""
         min_length = kwargs.get('min_length', 10)
         max_length = kwargs.get('max_length', 1000)

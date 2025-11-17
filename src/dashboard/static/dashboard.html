@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyAI-Slayer Metrics Hub</title>
+    <meta name="description" content="Comprehensive AI Testing Metrics & Analytics Platform">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.0/dist/apexcharts.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Zenscroll - Lightweight smooth scrolling library -->
+    <script src="https://unpkg.com/zenscroll@4.0.2/zenscroll-min.js"></script>
+</head>
+<body>
+    <!-- Ambient Background Effects -->
+    <div class="ambient-bg">
+        <div class="blob-3"></div>
+    </div>
+    
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <i data-lucide="brain"></i>
+                    </div>
+                    <div>
+                        <h1 class="dashboard-title">PyAI-Slayer Metrics Hub</h1>
+                        <p class="dashboard-subtitle">Comprehensive AI Testing Metrics & Analytics Platform</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="custom-dropdown" id="timeRangeDropdown">
+                    <button class="custom-dropdown-trigger" id="timeRangeTrigger" aria-haspopup="true" aria-expanded="false">
+                        <span class="dropdown-selected" id="timeRangeSelected">Last 24 Hours</span>
+                        <i data-lucide="chevron-down" class="dropdown-icon"></i>
+                    </button>
+                    <div class="custom-dropdown-menu" id="timeRangeMenu" role="menu">
+                        <div class="dropdown-item" data-value="1h" role="menuitem">
+                            <span>Last Hour</span>
+                            <i data-lucide="check" class="dropdown-check"></i>
+                        </div>
+                        <div class="dropdown-item active" data-value="24h" role="menuitem">
+                            <span>Last 24 Hours</span>
+                            <i data-lucide="check" class="dropdown-check"></i>
+                        </div>
+                        <div class="dropdown-item" data-value="7d" role="menuitem">
+                            <span>Last 7 Days</span>
+                            <i data-lucide="check" class="dropdown-check"></i>
+                        </div>
+                        <div class="dropdown-item" data-value="30d" role="menuitem">
+                            <span>Last 30 Days</span>
+                            <i data-lucide="check" class="dropdown-check"></i>
+                        </div>
+                    </div>
+                </div>
+                <button class="export-btn" onclick="exportAllMetrics()">
+                    <i data-lucide="download"></i>
+                    Export All Metrics
+                </button>
+            </div>
+        </header>
+
+        <!-- Tab Content -->
+        <main class="dashboard-content">
+            <!-- Navigation Tabs -->
+            <div class="dashboard-nav-container">
+                <nav class="dashboard-nav">
+                    <div class="nav-tab-indicator" id="navTabIndicator"></div>
+                    <button class="nav-tab active" data-tab="overview" onclick="switchTab('overview')">
+                        <span>Overview</span>
+                    </button>
+                    <button class="nav-tab" data-tab="test-results" onclick="switchTab('test-results')">
+                        <span>Test Results</span>
+                    </button>
+                    <button class="nav-tab" data-tab="base-model" onclick="switchTab('base-model')">
+                        <span>Base Model</span>
+                    </button>
+                    <button class="nav-tab" data-tab="rag" onclick="switchTab('rag')">
+                        <span>RAG</span>
+                    </button>
+                    <button class="nav-tab" data-tab="safety" onclick="switchTab('safety')">
+                        <span>Safety</span>
+                    </button>
+                    <button class="nav-tab" data-tab="performance" onclick="switchTab('performance')">
+                        <span>Performance</span>
+                    </button>
+                    <button class="nav-tab" data-tab="reliability" onclick="switchTab('reliability')">
+                        <span>Reliability</span>
+                    </button>
+                    <button class="nav-tab" data-tab="agent" onclick="switchTab('agent')">
+                        <span>Agent</span>
+                    </button>
+                    <button class="nav-tab" data-tab="security" onclick="switchTab('security')">
+                        <span>Security</span>
+                    </button>
+                </nav>
+            </div>
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon gauge">
+                                <i data-lucide="gauge"></i>
+                            </div>
+                            <span class="kpi-trend" id="overallHealthTrend"></span>
+                        </div>
+                        <div class="kpi-label">Overall Health Score</div>
+                        <div class="kpi-value" id="overallHealth">N/A</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon clock">
+                                <i data-lucide="clock"></i>
+                            </div>
+                            <span class="kpi-trend" id="avgResponseTimeTrend"></span>
+                        </div>
+                        <div class="kpi-label">Avg Response Time</div>
+                        <div class="kpi-value" id="avgResponseTime">N/A</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon shield">
+                                <i data-lucide="shield"></i>
+                            </div>
+                            <span class="kpi-trend" id="safetyScoreTrend"></span>
+                        </div>
+                        <div class="kpi-label">Overall Safety Score</div>
+                        <div class="kpi-value" id="safetyScore">N/A</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon target">
+                                <i data-lucide="target"></i>
+                            </div>
+                            <span class="kpi-trend" id="userSatisfactionTrend"></span>
+                        </div>
+                        <div class="kpi-label">User Satisfaction</div>
+                        <div class="kpi-value" id="userSatisfaction">N/A</div>
+                    </div>
+                </div>
+
+                <!-- A-Tier Critical Metrics -->
+                <div class="critical-metrics-section">
+                    <!-- Ambient Background Effects -->
+                    <div class="critical-metrics-ambient-bg-1"></div>
+                    <div class="critical-metrics-ambient-bg-2"></div>
+                    
+                    <div class="critical-metrics-content">
+                        <!-- Header Section -->
+                        <div class="critical-metrics-header">
+                            <div class="critical-metrics-header-left">
+                                <div class="critical-metrics-icon-wrapper">
+                                    <div class="critical-metrics-icon-glow"></div>
+                                    <div class="critical-metrics-icon-container">
+                                        <i data-lucide="zap" class="critical-metrics-icon"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="critical-metrics-title-row">
+                                        <h2 class="critical-metrics-title">A-Tier Critical Metrics</h2>
+                                        <div class="critical-metrics-badge">
+                                            <span class="critical-metrics-badge-text">Production Critical</span>
+                                        </div>
+                                    </div>
+                                    <p class="critical-metrics-subtitle">Top 15 mission-critical indicators for AI system health and reliability</p>
+                                </div>
+                            </div>
+                            
+                            <div class="critical-metrics-header-right">
+                                <div class="critical-metrics-health-badge">
+                                    <div class="critical-metrics-health-indicator"></div>
+                                    <div>
+                                        <p class="critical-metrics-health-label">System Health</p>
+                                        <p class="critical-metrics-health-value" id="criticalMetricsSystemHealth">N/A</p>
+                                    </div>
+                                </div>
+                                <div class="critical-metrics-count-badge">
+                                    <p class="critical-metrics-count-label">Metrics</p>
+                                    <p class="critical-metrics-count-value" id="criticalMetricsCount">15/15</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Metrics Grid -->
+                        <div class="critical-metrics-grid" id="criticalMetricsGrid">
+                            <!-- Metrics will be populated by JavaScript -->
+                        </div>
+                        
+                        <!-- Bottom Stats Summary -->
+                        <div class="critical-metrics-summary">
+                            <div class="critical-metrics-summary-card excellent">
+                                <div class="critical-metrics-summary-header">
+                                    <div class="critical-metrics-summary-dot excellent"></div>
+                                    <p class="critical-metrics-summary-label">Excellent</p>
+                                </div>
+                                <p class="critical-metrics-summary-value excellent" id="criticalMetricsExcellent">0</p>
+                                <p class="critical-metrics-summary-desc">metrics meeting targets</p>
+                            </div>
+                            
+                            <div class="critical-metrics-summary-card good">
+                                <div class="critical-metrics-summary-header">
+                                    <div class="critical-metrics-summary-dot good"></div>
+                                    <p class="critical-metrics-summary-label">Good</p>
+                                </div>
+                                <p class="critical-metrics-summary-value good" id="criticalMetricsGood">0</p>
+                                <p class="critical-metrics-summary-desc">metrics above 90%</p>
+                            </div>
+                            
+                            <div class="critical-metrics-summary-card watch">
+                                <div class="critical-metrics-summary-header">
+                                    <div class="critical-metrics-summary-dot watch"></div>
+                                    <p class="critical-metrics-summary-label">Watch</p>
+                                </div>
+                                <p class="critical-metrics-summary-value watch" id="criticalMetricsWatch">0</p>
+                                <p class="critical-metrics-summary-desc">needs attention</p>
+                            </div>
+                            
+                            <div class="critical-metrics-summary-card trend">
+                                <div class="critical-metrics-summary-header">
+                                    <i data-lucide="trending-up" class="critical-metrics-trend-icon"></i>
+                                    <p class="critical-metrics-summary-label">Trend</p>
+                                </div>
+                                <p class="critical-metrics-summary-value trend" id="criticalMetricsTrend">+0.0%</p>
+                                <p class="critical-metrics-summary-desc">vs last week</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-row">
+                    <div class="performance-trends-card">
+                        <div class="performance-trends-card-bg-effect"></div>
+                        <div class="performance-trends-header">
+                            <div>
+                                <h3 class="performance-trends-title">
+                                    <i data-lucide="trending-up" class="trend-icon"></i>
+                                    Performance Trends
+                                </h3>
+                                <p class="performance-trends-subtitle">24-hour quality & latency metrics</p>
+                            </div>
+                            <div class="live-badge">
+                                <p class="live-badge-text">Live</p>
+                            </div>
+                        </div>
+                        <div id="performanceTrendChart" class="performance-trends-chart"></div>
+                        <div class="performance-trends-footer" id="performanceTrendsFooter"></div>
+                    </div>
+                    <div class="health-radar-card">
+                        <div class="health-radar-card-bg-effect"></div>
+                        <div class="health-radar-header">
+                            <div>
+                                <h3 class="health-radar-title">
+                                    <i data-lucide="activity" class="health-icon"></i>
+                                    Multi-Dimensional Health
+                                </h3>
+                                <p class="health-radar-subtitle">Comprehensive system quality score</p>
+                            </div>
+                            <div class="health-score-badge" id="healthScoreBadge">
+                                <p class="health-score-text">N/A</p>
+                            </div>
+                        </div>
+                        <div id="healthRadarChart" class="health-radar-chart"></div>
+                        <div class="health-radar-footer" id="healthRadarFooter"></div>
+                    </div>
+                </div>
+
+                <!-- Category Performance Breakdown -->
+                <div class="category-breakdown-card">
+                    <div class="category-breakdown-blur-bottom"></div>
+                    <div class="category-breakdown-header">
+                        <div>
+                            <h3 class="category-breakdown-title">
+                                <i data-lucide="eye" class="category-breakdown-icon"></i>
+                                Category Performance Breakdown
+                            </h3>
+                            <p class="category-breakdown-subtitle">Comprehensive quality scores across all metric categories</p>
+                        </div>
+                        <div class="category-avg-badge">
+                            <p class="category-avg-label">Avg Score</p>
+                            <p class="category-avg-value" id="categoryAvgScore">N/A</p>
+                        </div>
+                    </div>
+                    <div class="category-breakdown-grid" id="categoryBreakdown">
+                        <!-- Categories will be populated by JavaScript -->
+                    </div>
+                    <div class="category-breakdown-summary" id="categoryBreakdownSummary">
+                        <!-- Summary cards will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Results Tab -->
+            <div id="test-results" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon">
+                                <i data-lucide="check-circle"></i>
+                            </div>
+                            <div>
+                                <h2 class="section-title">Test Results & Analysis</h2>
+                                <p class="section-subtitle">Detailed test execution results with AI quality metrics</p>
+                            </div>
+                        </div>
+                        <div class="test-results-stats">
+                            <button class="test-stat-card passed filter-btn" id="filterPassed" onclick="setTestFilter('passed')">
+                                <div class="test-stat-label">Passed</div>
+                                <div class="test-stat-value" id="testResultsPassed">0</div>
+                            </button>
+                            <button class="test-stat-card failed filter-btn" id="filterFailed" onclick="setTestFilter('failed')">
+                                <div class="test-stat-label">Failed</div>
+                                <div class="test-stat-value" id="testResultsFailed">0</div>
+                            </button>
+                            <button class="test-stat-card skipped filter-btn" id="filterSkipped" onclick="setTestFilter('skipped')">
+                                <div class="test-stat-label">Skipped</div>
+                                <div class="test-stat-value" id="testResultsSkipped">0</div>
+                            </button>
+                            <button class="test-stat-card all filter-btn" id="filterAll" onclick="setTestFilter('all')">
+                                <div class="test-stat-label">All</div>
+                                <div class="test-stat-value" id="testResultsAll">0</div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="test-results-container">
+                        <div id="testResultsList" class="test-results-list">
+                            <!-- Test results will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="test-results-pagination" id="testResultsPagination">
+                        <!-- Pagination controls will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Base Model Tab -->
+            <div id="base-model" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon">
+                                <i data-lucide="brain"></i>
+                            </div>
+                            <h2 class="section-title">Base Model Quality Metrics</h2>
+                        </div>
+                    </div>
+                    <div class="metrics-columns">
+                        <div class="metric-column">
+                            <h3 class="column-title">Accuracy Metrics</h3>
+                            <div class="metric-item">
+                                <span class="metric-name">Accuracy</span>
+                                <span class="metric-value" id="baseAccuracy">N/A</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-name">Top-K Accuracy</span>
+                                <span class="metric-value" id="baseTopK">N/A</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-name">Exact Match</span>
+                                <span class="metric-value" id="baseExactMatch">N/A</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-name">F1 Score</span>
+                                <span class="metric-value" id="baseF1">N/A</span>
+                            </div>
+                        </div>
+                        <div class="metric-column">
+                            <h3 class="column-title">Semantic & Language</h3>
+                            <div class="metric-item">
+                                <span class="metric-name">BLEU</span>
+                                <span class="metric-value" id="baseBLEU">N/A</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-name">ROUGE-L</span>
+                                <span class="metric-value" id="baseROUGE">N/A</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-name">BERTScore</span>
+                                <span class="metric-value" id="baseBERT">N/A</span>
+                            </div>
+                        </div>
+                        <div class="metric-column">
+                            <h3 class="column-title">Reasoning Quality</h3>
+                            <div class="metric-item">
+                                <span class="metric-name">CoT Validity</span>
+                                <span class="metric-value" id="baseCoT">N/A</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-name">Step Correctness</span>
+                                <span class="metric-value" id="baseStepCorrect">N/A</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-name">Logic Consistency</span>
+                                <span class="metric-value" id="baseLogic">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="critical-section">
+                        <div class="critical-header">
+                            <i data-lucide="alert-triangle"></i>
+                            <h3>Knowledge Reliability (Critical)</h3>
+                        </div>
+                        <div class="critical-metrics-row">
+                            <div class="critical-metric">
+                                <div class="critical-value" id="hallucinationRate">N/A</div>
+                                <div class="critical-label">Hallucination Rate</div>
+                            </div>
+                            <div class="critical-metric">
+                                <div class="critical-value" id="factualConsistency">N/A</div>
+                                <div class="critical-label">Factual Consistency</div>
+                            </div>
+                            <div class="critical-metric">
+                                <div class="critical-value" id="truthfulness">N/A</div>
+                                <div class="critical-label">Truthfulness</div>
+                            </div>
+                            <div class="critical-metric">
+                                <div class="critical-value" id="citationAccuracy">N/A</div>
+                                <div class="critical-label">Citation Accuracy</div>
+                            </div>
+                            <div class="critical-metric">
+                                <div class="critical-value" id="sourceGrounding">N/A</div>
+                                <div class="critical-label">Source Grounding</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RAG Tab -->
+            <div id="rag" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon">
+                                <i data-lucide="database"></i>
+                            </div>
+                            <h2 class="section-title">RAG Pipeline & Retrieval Metrics</h2>
+                        </div>
+                    </div>
+                    <div class="rag-grid">
+                        <!-- Retrieval Performance Card -->
+                        <div class="rag-card large retrieval-card">
+                            <div class="rag-card-header">
+                                <div class="rag-card-icon retrieval-icon">
+                                    <i data-lucide="search"></i>
+                                </div>
+                                <h3 class="rag-card-title">Retrieval Performance</h3>
+                            </div>
+                            <div class="rag-metric-list">
+                                <div class="rag-metric-item">
+                                    <div class="rag-metric-item-header">
+                                        <div class="rag-metric-item-label-group">
+                                            <i data-lucide="target" class="rag-metric-icon"></i>
+                                            <span class="rag-metric-label">Recall@5</span>
+                                        </div>
+                                        <span class="rag-metric-value" id="ragRecall">N/A</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill retrieval-fill" id="ragRecallProgress" style="width: 0%"></div>
+                                    </div>
+                                    <div class="progress-label">Target: &gt; 70%</div>
+                                </div>
+                                <div class="rag-metric-item">
+                                    <div class="rag-metric-item-header">
+                                        <div class="rag-metric-item-label-group">
+                                            <i data-lucide="crosshair" class="rag-metric-icon"></i>
+                                            <span class="rag-metric-label">Precision@5</span>
+                                        </div>
+                                        <span class="rag-metric-value" id="ragPrecision">N/A</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill retrieval-fill" id="ragPrecisionProgress" style="width: 0%"></div>
+                                    </div>
+                                    <div class="progress-label">Target: &gt; 75%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Context Quality Card -->
+                        <div class="rag-card medium context-card">
+                            <div class="rag-card-header">
+                                <div class="rag-card-icon context-icon">
+                                    <i data-lucide="layers"></i>
+                                </div>
+                                <h3 class="rag-card-title">Context Quality</h3>
+                            </div>
+                            <div class="rag-metric-list">
+                                <div class="rag-metric-item">
+                                    <div class="rag-metric-item-header">
+                                        <div class="rag-metric-item-label-group">
+                                            <i data-lucide="link" class="rag-metric-icon"></i>
+                                            <span class="rag-metric-label">Context Relevance</span>
+                                        </div>
+                                        <span class="rag-metric-value" id="ragRelevance">N/A</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill context-fill" id="ragRelevanceProgress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="rag-metric-item">
+                                    <div class="rag-metric-item-header">
+                                        <div class="rag-metric-item-label-group">
+                                            <i data-lucide="check-circle" class="rag-metric-icon"></i>
+                                            <span class="rag-metric-label">Context Coverage</span>
+                                        </div>
+                                        <span class="rag-metric-value" id="ragCoverage">N/A</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill context-fill" id="ragCoverageProgress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="rag-metric-item">
+                                    <div class="rag-metric-item-header">
+                                        <div class="rag-metric-item-label-group">
+                                            <i data-lucide="award" class="rag-metric-icon"></i>
+                                            <span class="rag-metric-label">Gold Context Match</span>
+                                        </div>
+                                        <span class="rag-metric-value" id="ragGoldMatch">N/A</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill context-fill" id="ragGoldMatchProgress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Context Intrusion & Reranker Combined Card -->
+                        <div class="rag-card medium">
+                            <div class="rag-card-header">
+                                <div class="rag-card-icon intrusion-icon">
+                                    <i data-lucide="shield-alert"></i>
+                                </div>
+                                <h3 class="rag-card-title">Context Intrusion</h3>
+                            </div>
+                            <div class="rag-card-body">
+                                <div class="rag-card-value" id="ragIntrusion">N/A</div>
+                                <div class="rag-card-status" id="ragIntrusionStatus">
+                                    <span class="status-indicator"></span>
+                                    <span>No Data</span>
+                                </div>
+                                <div class="rag-card-target">Target: &lt; 5%</div>
+                                <div class="rag-card-description">Measures verbatim copying from context</div>
+                            </div>
+                        </div>
+
+                        <!-- Reranker Score Card -->
+                        <div class="rag-card medium reranker-card">
+                            <div class="rag-card-header">
+                                <div class="rag-card-icon reranker-icon">
+                                    <i data-lucide="arrow-up-down"></i>
+                                </div>
+                                <h3 class="rag-card-title">Reranker Score</h3>
+                            </div>
+                            <div class="rag-card-body">
+                                <div class="rag-card-value purple" id="ragReranker">N/A</div>
+                                <div class="rag-card-status" id="ragRerankerStatus">
+                                    <span class="status-indicator"></span>
+                                    <span>No Data</span>
+                                </div>
+                                <div class="rag-card-target">Target: &gt; 0.8</div>
+                                <div class="rag-card-description">Query-document relevance score</div>
+                            </div>
+                        </div>
+
+                        <!-- Overall RAG Health Card -->
+                        <div class="rag-card medium health-card">
+                            <div class="rag-card-header">
+                                <div class="rag-card-icon health-icon">
+                                    <i data-lucide="activity"></i>
+                                </div>
+                                <h3 class="rag-card-title">Overall RAG Health</h3>
+                            </div>
+                            <div class="rag-card-body">
+                                <div class="rag-card-value-large" id="ragHealth">N/A</div>
+                                <div class="rag-card-trend" id="ragHealthTrend">
+                                    <span>No trend data</span>
+                                </div>
+                                <div class="rag-health-breakdown">
+                                    <div class="health-item">
+                                        <span class="health-label">Retrieval</span>
+                                        <span class="health-value" id="ragHealthRetrieval">-</span>
+                                    </div>
+                                    <div class="health-item">
+                                        <span class="health-label">Quality</span>
+                                        <span class="health-value" id="ragHealthQuality">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Tab -->
+            <div id="safety" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon">
+                                <i data-lucide="shield"></i>
+                            </div>
+                            <h2 class="section-title">Safety & Guardrail Metrics</h2>
+                        </div>
+                    </div>
+                    <div class="safety-grid">
+                        <div class="safety-category">
+                            <h3 class="safety-category-title">Content Safety</h3>
+                            <div class="safety-metric-item">
+                                <span class="safety-metric-name">Toxicity Score</span>
+                                <span class="safety-metric-value" id="safetyToxicity">N/A</span>
+                            </div>
+                            <div class="safety-metric-item">
+                                <span class="safety-metric-name">Bias Score</span>
+                                <span class="safety-metric-value" id="safetyBias">N/A</span>
+                            </div>
+                            <div class="safety-metric-item">
+                                <span class="safety-metric-name">Harmfulness Score</span>
+                                <span class="safety-metric-value" id="safetyHarm">N/A</span>
+                            </div>
+                            <div class="safety-metric-item">
+                                <span class="safety-metric-name">Ethical Violations</span>
+                                <span class="safety-metric-value" id="safetyEthical">N/A</span>
+                            </div>
+                        </div>
+                        <div class="safety-category">
+                            <h3 class="safety-category-title">Data Protection</h3>
+                            <div class="safety-metric-item">
+                                <span class="safety-metric-name">Data Leakage</span>
+                                <span class="safety-metric-value" id="safetyDataLeak">N/A</span>
+                            </div>
+                            <div class="safety-metric-item">
+                                <span class="safety-metric-name">PII/PHI Leakage</span>
+                                <span class="safety-metric-value" id="safetyPII">N/A</span>
+                            </div>
+                            <div class="safety-metric-item">
+                                <span class="safety-metric-name">Compliance Score</span>
+                                <span class="safety-metric-value" id="safetyCompliance">N/A</span>
+                            </div>
+                        </div>
+                        <div class="safety-category">
+                            <h3 class="safety-category-title">Attack Resistance</h3>
+                            <div class="safety-metric-item">
+                                <span class="safety-metric-name">Prompt Injection</span>
+                                <span class="safety-metric-value" id="safetyInjection">N/A</span>
+                            </div>
+                            <div class="safety-metric-item">
+                                <span class="safety-metric-name">Refusal Rate</span>
+                                <span class="safety-metric-value" id="safetyRefusal">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overall-score-card">
+                        <div class="overall-score-label">Overall Safety Score</div>
+                        <div class="overall-score-value" id="overallSafetyScore">N/A</div>
+                        <div class="overall-score-status">
+                            <i data-lucide="check-circle"></i>
+                            Exceeds enterprise safety standards
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div id="performance" class="tab-content">
+                <div class="section-card performance-section-card">
+                    <div class="performance-section-bg-effect"></div>
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon">
+                                <i data-lucide="zap"></i>
+                            </div>
+                            <h2 class="section-title">Performance & Latency Metrics</h2>
+                        </div>
+                    </div>
+                    <div class="performance-metrics-grid">
+                        <div class="performance-card">
+                            <div class="performance-label">Token Latency</div>
+                            <div class="performance-value" id="perfTokenLatency">N/A</div>
+                            <div class="performance-unit">ms/token</div>
+                        </div>
+                        <div class="performance-card">
+                            <div class="performance-label">TTFT</div>
+                            <div class="performance-value" id="perfTTFT">N/A</div>
+                            <div class="performance-unit">ms</div>
+                        </div>
+                        <div class="performance-card">
+                            <div class="performance-label">E2E Latency</div>
+                            <div class="performance-value" id="perfE2E">N/A</div>
+                            <div class="performance-unit">ms</div>
+                        </div>
+                        <div class="performance-card">
+                            <div class="performance-label">Throughput</div>
+                            <div class="performance-value" id="perfThroughput">N/A</div>
+                            <div class="performance-unit">tokens/sec</div>
+                        </div>
+                    </div>
+                    <div class="performance-details-grid">
+                        <div class="performance-details-card">
+                            <h3 class="details-title">
+                                <i data-lucide="cpu"></i>
+                                <span>Resource Utilization</span>
+                            </h3>
+                            <div id="resourceUtilizationChart" class="resource-utilization-chart-container"></div>
+                        </div>
+                        <div class="performance-details-card latency-distribution-card">
+                            <div class="latency-distribution-header">
+                                <div>
+                                    <h3 class="latency-distribution-title">
+                                        <div class="latency-title-indicator"></div>
+                                        Latency Distribution
+                                    </h3>
+                                    <p class="latency-distribution-subtitle">Performance percentiles across all requests</p>
+                                </div>
+                                <div class="latency-avg-badge">
+                                    <p class="latency-avg-text">Avg: <span class="latency-avg-value" id="latencyAvgValue">N/A</span></p>
+                                </div>
+                            </div>
+                            <div id="latencyDistributionChart" class="latency-chart-container"></div>
+                            <div class="latency-distribution-legend" id="latencyDistributionLegend"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reliability Tab -->
+            <div id="reliability" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon">
+                                <i data-lucide="check-circle"></i>
+                            </div>
+                            <h2 class="section-title">Reliability & Stability Metrics</h2>
+                        </div>
+                    </div>
+                    <div class="reliability-grid">
+                        <div class="reliability-category">
+                            <h3 class="reliability-category-title">Output Quality</h3>
+                            <div class="reliability-metric-item">
+                                <span class="reliability-metric-name">Determinism Score</span>
+                                <span class="reliability-metric-value" id="relDeterminism">N/A</span>
+                            </div>
+                            <div class="reliability-metric-item">
+                                <span class="reliability-metric-name">Output Stability</span>
+                                <span class="reliability-metric-value" id="relStability">N/A</span>
+                            </div>
+                            <div class="reliability-metric-item">
+                                <span class="reliability-metric-name">Output Validity</span>
+                                <span class="reliability-metric-value" id="relValidity">N/A</span>
+                            </div>
+                        </div>
+                        <div class="reliability-category">
+                            <h3 class="reliability-category-title">System Health</h3>
+                            <div class="reliability-metric-item">
+                                <span class="reliability-metric-name">Crash Rate</span>
+                                <span class="reliability-metric-value" id="relCrash">N/A</span>
+                            </div>
+                            <div class="reliability-metric-item">
+                                <span class="reliability-metric-name">Retry Rate</span>
+                                <span class="reliability-metric-value" id="relRetry">N/A</span>
+                            </div>
+                            <div class="reliability-metric-item">
+                                <span class="reliability-metric-name">Completion Success</span>
+                                <span class="reliability-metric-value" id="relCompletion">N/A</span>
+                            </div>
+                        </div>
+                        <div class="reliability-category">
+                            <h3 class="reliability-category-title">Schema & Format</h3>
+                            <div class="reliability-metric-item">
+                                <span class="reliability-metric-name">Schema Compliance</span>
+                                <span class="reliability-metric-value" id="relSchema">N/A</span>
+                            </div>
+                            <div class="reliability-metric-item">
+                                <span class="reliability-metric-name">JSON Validity</span>
+                                <span class="reliability-metric-value" id="relJSON">N/A</span>
+                            </div>
+                            <div class="reliability-metric-item">
+                                <span class="reliability-metric-name">Type Correctness</span>
+                                <span class="reliability-metric-value" id="relType">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overall-score-card">
+                        <div class="overall-score-label">Overall Reliability Score</div>
+                        <div class="overall-score-value" id="overallReliability">N/A</div>
+                        <div class="overall-score-status">
+                            <i data-lucide="check-circle"></i>
+                            Production-ready reliability
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Tab -->
+            <div id="agent" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon">
+                                <i data-lucide="activity"></i>
+                            </div>
+                            <h2 class="section-title">Agent & Autonomous System Metrics</h2>
+                        </div>
+                    </div>
+                    <div class="agent-grid">
+                        <div class="agent-category">
+                            <h3 class="agent-category-title">Task Performance</h3>
+                            <div class="agent-metric-item">
+                                <div class="agent-metric-header">
+                                    <span class="agent-metric-name">Task Completion Rate</span>
+                                    <span class="agent-metric-value" id="agentTaskCompletion">N/A</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill pink" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="agent-metric-item">
+                                <div class="agent-metric-header">
+                                    <span class="agent-metric-name">Step Efficiency</span>
+                                    <span class="agent-metric-value" id="agentStepEfficiency">N/A</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill red" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="agent-metric-item">
+                                <div class="agent-metric-header">
+                                    <span class="agent-metric-name">Error Recovery Rate</span>
+                                    <span class="agent-metric-value" id="agentErrorRecovery">N/A</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill orange" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="agent-category">
+                            <h3 class="agent-category-title">Planning & Execution</h3>
+                            <div class="agent-metric-item">
+                                <span class="agent-metric-name">Tool Usage Accuracy</span>
+                                <span class="agent-metric-value" id="agentToolUsage">N/A</span>
+                            </div>
+                            <div class="agent-metric-item">
+                                <span class="agent-metric-name">Planning Coherence</span>
+                                <span class="agent-metric-value" id="agentPlanning">N/A</span>
+                            </div>
+                            <div class="agent-metric-item">
+                                <span class="agent-metric-name">Action Hallucination</span>
+                                <span class="agent-metric-value" id="agentActionHall">N/A</span>
+                            </div>
+                            <div class="agent-metric-item">
+                                <span class="agent-metric-name">Goal Drift</span>
+                                <span class="agent-metric-value" id="agentGoalDrift">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overall-score-card">
+                        <div class="overall-score-label">Overall Agent Performance</div>
+                        <div class="overall-score-value" id="overallAgent">N/A</div>
+                        <div class="overall-score-status">
+                            <i data-lucide="check-circle"></i>
+                            Strong autonomous capabilities
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Tab -->
+            <div id="security" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon">
+                                <i data-lucide="shield"></i>
+                            </div>
+                            <h2 class="section-title">Security Testing Metrics</h2>
+                        </div>
+                    </div>
+                    <div class="security-metrics-grid">
+                        <div class="security-metric-card">
+                            <div class="security-metric-label">Injection Attack Success</div>
+                            <div class="security-metric-value" id="secInjection">N/A</div>
+                            <div class="security-metric-target">Target: less than 2%</div>
+                        </div>
+                        <div class="security-metric-card">
+                            <div class="security-metric-label">Adversarial Vulnerability</div>
+                            <div class="security-metric-value" id="secAdversarial">N/A</div>
+                            <div class="security-metric-target">Target: less than 3%</div>
+                        </div>
+                        <div class="security-metric-card">
+                            <div class="security-metric-label">Data Exfiltration</div>
+                            <div class="security-metric-value" id="secExfiltration">N/A</div>
+                            <div class="security-metric-target">Target: less than 1%</div>
+                        </div>
+                        <div class="security-metric-card">
+                            <div class="security-metric-label">Model Evasion</div>
+                            <div class="security-metric-value" id="secEvasion">N/A</div>
+                            <div class="security-metric-target">Target: less than 2%</div>
+                        </div>
+                        <div class="security-metric-card">
+                            <div class="security-metric-label">Extraction Risk</div>
+                            <div class="security-metric-value" id="secExtraction">N/A</div>
+                            <div class="security-metric-target">Target: less than 1%</div>
+                        </div>
+                    </div>
+                    <div class="security-attacks-card">
+                        <div class="security-attacks-header">
+                            <i data-lucide="alert-triangle"></i>
+                            <h3>Security Attack Vectors Tested</h3>
+                        </div>
+                        <div class="security-attacks-grid">
+                            <div class="security-attack-item">
+                                <div class="attack-count" id="attackInjection">0</div>
+                                <div class="attack-label">Injection Tests</div>
+                            </div>
+                            <div class="security-attack-item">
+                                <div class="attack-count" id="attackAdversarial">0</div>
+                                <div class="attack-label">Adversarial Tests</div>
+                            </div>
+                            <div class="security-attack-item">
+                                <div class="attack-count" id="attackExfiltration">0</div>
+                                <div class="attack-label">Exfiltration Tests</div>
+                            </div>
+                            <div class="security-attack-item">
+                                <div class="attack-count" id="attackExtraction">0</div>
+                                <div class="attack-label">Extraction Tests</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overall-score-card">
+                        <div class="overall-score-label">Overall Security Score</div>
+                        <div class="overall-score-value" id="overallSecurity">N/A</div>
+                        <div class="overall-score-status">
+                            <i data-lucide="check-circle"></i>
+                            High security posture maintained
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <div class="footer-stats">
+                <div class="footer-stat">
+                    <div class="footer-stat-label">Total Tests Run</div>
+                    <div class="footer-stat-value" id="footerTotalTests">0</div>
+                </div>
+                <div class="footer-stat">
+                    <div class="footer-stat-label">Metrics Tracked</div>
+                    <div class="footer-stat-value" id="footerMetrics">0</div>
+                </div>
+                <div class="footer-stat">
+                    <div class="footer-stat-label">Data Points</div>
+                    <div class="footer-stat-value" id="footerDataPoints">0</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/charts_advanced.js"></script>
+    <script src="/static/dashboard.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
+
+</body>
+</html>

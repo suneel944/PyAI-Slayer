@@ -1,0 +1,55 @@
+{
+  "name": "PyAI-Slayer Monitoring Dashboard",
+  "short_name": "PyAI-Slayer",
+  "description": "Real-time AI Testing Metrics & Comprehensive Reporting Dashboard",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/static/screenshot-narrow.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["productivity", "developer tools", "monitoring"],
+  "shortcuts": [
+    {
+      "name": "View Tests",
+      "short_name": "Tests",
+      "description": "View all test results",
+      "url": "/?tab=tests",
+      "icons": [{ "src": "/static/icon-tests.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Failed Tests",
+      "short_name": "Failed",
+      "description": "View failed tests",
+      "url": "/?tab=failed",
+      "icons": [{ "src": "/static/icon-failed.png", "sizes": "96x96" }]
+    }
+  ]
+}

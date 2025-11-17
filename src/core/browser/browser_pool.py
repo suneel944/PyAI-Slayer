@@ -54,7 +54,7 @@ class BrowserPool:
                 manager.start(browser_type=self.browser_type, headless=self.headless)
                 self._available.put(manager)
             except Exception as e:
-                logger.error(f"Failed to create browser instance {i+1}: {e}")
+                logger.error(f"Failed to create browser instance {i + 1}: {e}")
                 raise
 
         self._initialized = True

@@ -94,7 +94,7 @@ make dashboard-custom HOST=0.0.0.0 PORT=8888
    ```bash
    # Ensure Prometheus metrics are enabled
    export ENABLE_PROMETHEUS_METRICS=true
-   
+
    # Run tests
    make test
    ```

@@ -22,17 +22,17 @@ function addNotification(type, title, message, metadata = {}) {
         timestamp: new Date().toISOString(),
         read: false
     };
-    
+
     notifications.unshift(notification);
-    
+
     // Keep only last 100 notifications
     if (notifications.length > 100) {
         notifications = notifications.slice(0, 100);
     }
-    
+
     localStorage.setItem('dashboard-notifications', JSON.stringify(notifications));
     updateNotificationBadge();
-    
+
     // Show toast for immediate feedback
     showToast(title, message, type === 'test_failed' ? 'error' : type === 'alert_triggered' ? 'warning' : 'info');
 }
@@ -40,12 +40,12 @@ function addNotification(type, title, message, metadata = {}) {
 function loadNotifications() {
     const container = document.getElementById('notificationList');
     if (!container) return;
-    
+
     if (notifications.length === 0) {
         container.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-secondary);">No notifications yet</div>';
         return;
     }
-    
+
     container.innerHTML = notifications.map(notif => `
         <div class="notification-item ${notif.read ? 'read' : 'unread'}" onclick="markNotificationRead('${notif.id}')">
             <div class="notification-icon ${notif.type}">
@@ -124,7 +124,7 @@ function formatTimeAgo(timestamp) {
     const now = new Date();
     const time = new Date(timestamp);
     const diff = Math.floor((now - time) / 1000); // seconds
-    
+
     if (diff < 60) return 'Just now';
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
@@ -145,7 +145,7 @@ function createAlertRule(rule) {
         webhookUrl: rule.webhookUrl || '',
         createdAt: new Date().toISOString()
     };
-    
+
     alertRules.push(newRule);
     localStorage.setItem('dashboard-alert-rules', JSON.stringify(alertRules));
     loadAlertRules();
@@ -155,12 +155,12 @@ function createAlertRule(rule) {
 function loadAlertRules() {
     const container = document.getElementById('alertRulesList');
     if (!container) return;
-    
+
     if (alertRules.length === 0) {
         container.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-secondary);">No alert rules configured</div>';
         return;
     }
-    
+
     container.innerHTML = alertRules.map(rule => `
         <div class="alert-rule-item">
             <div class="alert-rule-header">
@@ -224,7 +224,7 @@ function getThresholdUnit(condition) {
 function checkAlertRules(stats) {
     alertRules.filter(rule => rule.enabled).forEach(rule => {
         let triggered = false;
-        
+
         switch (rule.condition) {
             case 'pass_rate_below':
                 triggered = (stats.pass_rate || 0) < rule.threshold;
@@ -236,7 +236,7 @@ function checkAlertRules(stats) {
                 triggered = (stats.avg_duration || 0) > rule.threshold;
                 break;
         }
-        
+
         if (triggered) {
             handleAlertTrigger(rule, stats);
         }
@@ -245,9 +245,9 @@ function checkAlertRules(stats) {
 
 function handleAlertTrigger(rule, stats) {
     const message = `${rule.name}: ${formatCondition(rule.condition)} threshold (${rule.threshold}) exceeded`;
-    
+
     addNotification('alert_triggered', 'Alert Triggered', message, { rule, stats });
-    
+
     if (rule.channel === 'webhook' && rule.webhookUrl) {
         sendWebhook(rule.webhookUrl, {
             alert: rule.name,
@@ -278,7 +278,7 @@ function addWebhook(webhook) {
         enabled: true,
         createdAt: new Date().toISOString()
     };
-    
+
     webhooks.push(newWebhook);
     localStorage.setItem('dashboard-webhooks', JSON.stringify(webhooks));
     loadWebhooks();
@@ -288,12 +288,12 @@ function addWebhook(webhook) {
 function loadWebhooks() {
     const container = document.getElementById('webhooksList');
     if (!container) return;
-    
+
     if (webhooks.length === 0) {
         container.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-secondary);">No webhooks configured</div>';
         return;
     }
-    
+
     container.innerHTML = webhooks.map(webhook => `
         <div class="webhook-item">
             <div class="webhook-header">
@@ -341,13 +341,13 @@ function deleteWebhook(id) {
 async function testWebhook(id) {
     const webhook = webhooks.find(w => w.id === id);
     if (!webhook) return;
-    
+
     const testPayload = {
         event: 'test',
         message: 'Test webhook from PyAI-Slayer Dashboard',
         timestamp: new Date().toISOString()
     };
-    
+
     const success = await sendWebhook(webhook.url, testPayload);
     if (success) {
         showToast('Webhook Test', 'Test payload sent successfully', 'success');
@@ -361,7 +361,7 @@ async function sendWebhook(url, payload) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        
+
         if (response.ok) {
             addNotification('webhook', 'Webhook Sent', `Payload delivered to ${url}`, { payload });
             return true;
@@ -386,14 +386,14 @@ function logActivity(action, details) {
         timestamp: new Date().toISOString(),
         user: 'Current User' // In production, get from auth
     };
-    
+
     activityLog.unshift(activity);
-    
+
     // Keep only last 200 activities
     if (activityLog.length > 200) {
         activityLog = activityLog.slice(0, 200);
     }
-    
+
     localStorage.setItem('dashboard-activity-log', JSON.stringify(activityLog));
     updateActivityTimeline();
 }
@@ -401,14 +401,14 @@ function logActivity(action, details) {
 function updateActivityTimeline() {
     const container = document.getElementById('activityTimeline');
     if (!container) return;
-    
+
     const recentActivities = activityLog.slice(0, 20);
-    
+
     if (recentActivities.length === 0) {
         container.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-secondary);">No recent activity</div>';
         return;
     }
-    
+
     container.innerHTML = recentActivities.map(activity => `
         <div class="activity-item">
             <div class="activity-icon">${getActivityIcon(activity.action)}</div>
@@ -451,7 +451,7 @@ function initCollaborationFeatures() {
     loadAlertRules();
     loadWebhooks();
     updateActivityTimeline();
-    
+
     // Log initial activity
     logActivity('dashboard_loaded', 'Dashboard accessed');
 }

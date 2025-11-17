@@ -14,9 +14,8 @@ scrape_configs:
       - targets: ['host.docker.internal:8000']
         labels:
           environment: 'local'
-      
+
       # For Docker containers, use service name
       # - targets: ['pyai-slayer:8000']
       #   labels:
       #     environment: 'docker'
-

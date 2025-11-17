@@ -36,4 +36,3 @@ Browser automation is handled by `BrowserManager` in `src/core/browser/browser_m
 The framework also includes:
 - **BrowserPool** (`src/core/browser/browser_pool.py`) - Manages a pool of browser instances for parallel test execution
 - Browser instances are automatically managed through pytest fixtures in `tests/conftest.py`
-

@@ -98,7 +98,7 @@ class MetricValidator:
             return validated_value
 
         # For unknown metrics, still validate it's a number
-        if not isinstance(value, (int, float)):
+        if not isinstance(value, int | float):
             logger.warning(f"Metric {metric_name} has non-numeric value: {value}")
             return None
 

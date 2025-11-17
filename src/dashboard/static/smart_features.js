@@ -6,13 +6,13 @@
 // ===== ADVANCED SEARCH WITH FUZZY MATCHING =====
 function fuzzySearch(text, searchTerm) {
     if (!searchTerm) return true;
-    
+
     const textLower = text.toLowerCase();
     const searchLower = searchTerm.toLowerCase();
-    
+
     // Exact match
     if (textLower.includes(searchLower)) return true;
-    
+
     // Fuzzy matching - allow for typos
     let searchIndex = 0;
     for (let i = 0; i < textLower.length && searchIndex < searchLower.length; i++) {
@@ -26,14 +26,14 @@ function fuzzySearch(text, searchTerm) {
 function applySearch(searchTerm) {
     const rows = document.querySelectorAll('#testsTableBody tr, #failedTestsTableBody tr');
     let visibleCount = 0;
-    
+
     rows.forEach(row => {
         const text = row.textContent;
         const matches = fuzzySearch(text, searchTerm);
         row.style.display = matches ? '' : 'none';
         if (matches) visibleCount++;
     });
-    
+
     // Show count
     updateSearchResults(visibleCount);
 }
@@ -66,9 +66,9 @@ function toggleFilter(category, value) {
 function updateFilterChips() {
     const container = document.getElementById('filterChips');
     if (!container) return;
-    
+
     container.innerHTML = '';
-    
+
     Object.keys(activeFilters).forEach(category => {
         activeFilters[category].forEach(value => {
             const chip = document.createElement('div');
@@ -80,7 +80,7 @@ function updateFilterChips() {
             container.appendChild(chip);
         });
     });
-    
+
     // Add clear all button if any filters active
     const hasFilters = Object.values(activeFilters).some(arr => arr.length > 0);
     if (hasFilters) {
@@ -128,7 +128,7 @@ let filterPresets = JSON.parse(localStorage.getItem('dashboard-filter-presets'))
 function saveFilterPreset() {
     const name = prompt('Enter preset name:');
     if (!name) return;
-    
+
     filterPresets[name] = {
         ...activeFilters,
         saved: new Date().toISOString()
@@ -140,7 +140,7 @@ function saveFilterPreset() {
 
 function loadFilterPreset(name) {
     if (!filterPresets[name]) return;
-    
+
     activeFilters = {
         status: [...(filterPresets[name].status || [])],
         language: [...(filterPresets[name].language || [])],
@@ -153,7 +153,7 @@ function loadFilterPreset(name) {
 
 function deleteFilterPreset(name) {
     if (!confirm(`Delete preset "${name}"?`)) return;
-    
+
     delete filterPresets[name];
     localStorage.setItem('dashboard-filter-presets', JSON.stringify(filterPresets));
     updatePresetsList();
@@ -163,13 +163,13 @@ function deleteFilterPreset(name) {
 function updatePresetsList() {
     const container = document.getElementById('filterPresets');
     if (!container) return;
-    
+
     const presetNames = Object.keys(filterPresets);
     if (presetNames.length === 0) {
         container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.875rem;">No saved presets</div>';
         return;
     }
-    
+
     container.innerHTML = presetNames.map(name => `
         <div class="preset-item">
             <button onclick="loadFilterPreset('${name}')" class="preset-load">${name}</button>
@@ -187,7 +187,7 @@ let dateRange = {
 function setDateRange(preset) {
     const now = new Date();
     const start = new Date();
-    
+
     switch (preset) {
         case 'today':
             start.setHours(0, 0, 0, 0);
@@ -208,7 +208,7 @@ function setDateRange(preset) {
             // Custom range will be set via date inputs
             return;
     }
-    
+
     dateRange = { start, end: now };
     updateDateRangeDisplay();
     applyFilters();
@@ -217,12 +217,12 @@ function setDateRange(preset) {
 function updateDateRangeDisplay() {
     const display = document.getElementById('dateRangeDisplay');
     if (!display) return;
-    
+
     if (!dateRange.start || !dateRange.end) {
         display.textContent = 'All Time';
         return;
     }
-    
+
     const format = date => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     display.textContent = `${format(dateRange.start)} - ${format(dateRange.end)}`;
 }
@@ -243,12 +243,12 @@ async function calculateComparison() {
     try {
         // Get current period stats
         const currentStats = await fetch('/api/statistics').then(r => r.json());
-        
+
         // Get previous period (same duration, shifted back)
         const hours = 24; // Default to 24h comparison
         const prevParams = new URLSearchParams({ hours: hours * 2 });
         const historicalData = await fetch(`/api/tests?${prevParams}`).then(r => r.json());
-        
+
         // Calculate comparison metrics
         const comparison = {
             tests: {
@@ -264,7 +264,7 @@ async function calculateComparison() {
                 change: calculateChange(currentStats.failed, historicalData.filter(t => t.status === 'failed').length / 2)
             }
         };
-        
+
         displayComparison(comparison);
     } catch (error) {
         console.error('Failed to calculate comparison:', error);
@@ -283,7 +283,7 @@ function displayComparison(comparison) {
         passRateChange: comparison.passRate.change,
         failedChange: comparison.failures.change
     };
-    
+
     Object.keys(cards).forEach(id => {
         const element = document.getElementById(id);
         if (element) {
@@ -307,9 +307,9 @@ function clearComparison() {
 function calculatePerformanceBenchmarks(tests) {
     const durations = tests.map(t => t.duration).filter(d => d > 0);
     if (durations.length === 0) return null;
-    
+
     durations.sort((a, b) => a - b);
-    
+
     return {
         min: durations[0],
         max: durations[durations.length - 1],
@@ -323,7 +323,7 @@ function calculatePerformanceBenchmarks(tests) {
 function displayBenchmarks(benchmarks) {
     const container = document.getElementById('performanceBenchmarks');
     if (!container || !benchmarks) return;
-    
+
     container.innerHTML = `
         <div class="benchmark-grid">
             <div class="benchmark-item">
@@ -364,16 +364,16 @@ function calculateCustomMetrics(tests) {
         typeDistribution: {},
         hourlyDistribution: new Array(24).fill(0)
     };
-    
+
     // Calculate distributions
     tests.forEach(test => {
         metrics.languageDistribution[test.language] = (metrics.languageDistribution[test.language] || 0) + 1;
         metrics.typeDistribution[test.test_type] = (metrics.typeDistribution[test.test_type] || 0) + 1;
-        
+
         const hour = new Date(test.timestamp).getHours();
         metrics.hourlyDistribution[hour]++;
     });
-    
+
     return metrics;
 }
 
@@ -383,22 +383,22 @@ let currentSort = { column: null, direction: 'asc' };
 function sortTable(column) {
     const direction = currentSort.column === column && currentSort.direction === 'asc' ? 'desc' : 'asc';
     currentSort = { column, direction };
-    
+
     const tbody = document.querySelector('#testsTableBody');
     if (!tbody) return;
-    
+
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const sortedRows = rows.sort((a, b) => {
         const aText = a.cells[getColumnIndex(column)]?.textContent || '';
         const bText = b.cells[getColumnIndex(column)]?.textContent || '';
-        
+
         const result = aText.localeCompare(bText, undefined, { numeric: true });
         return direction === 'asc' ? result : -result;
     });
-    
+
     tbody.innerHTML = '';
     sortedRows.forEach(row => tbody.appendChild(row));
-    
+
     // Update sort indicators
     updateSortIndicators(column, direction);
 }
@@ -412,7 +412,7 @@ function updateSortIndicators(column, direction) {
     document.querySelectorAll('th').forEach(th => {
         th.classList.remove('sort-asc', 'sort-desc');
     });
-    
+
     const th = document.querySelector(`th[data-column="${column}"]`);
     if (th) {
         th.classList.add(`sort-${direction}`);

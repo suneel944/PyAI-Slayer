@@ -107,7 +107,7 @@ Runs unit tests only:
 ### `lint`
 Runs code quality checks:
 - Ruff linting
-- Black formatting check
+- Ruff formatting check
 - MyPy type checking
 - Profile: `lint`
 
@@ -257,4 +257,3 @@ docker-compose config
 
 - [Getting Started](getting_started.rst)
 - [Testing Guide](contributing.rst)
-

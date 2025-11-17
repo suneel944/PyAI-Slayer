@@ -1,0 +1,142 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+.venv*/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+*.iml
+
+# Environment variables
+.env
+.env.local
+.env.*
+!.env.example
+
+# Python version (use system pyenv, not project-level)
+# .python-version
+
+# Legacy requirements.txt (dependencies now in pyproject.toml)
+# requirements.txt
+
+# Test Reports and Artifacts
+reports/
+*.html
+*.json
+allure-results/
+allure-report/
+.pytest_cache/
+.tox/
+test-results/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+htmlcov/
+.hypothesis/
+
+# Type Checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Linting
+.ruff_cache/
+
+# Screenshots and Videos
+screenshots/
+videos/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.avi
+
+# Logs
+*.log
+logs/
+
+# Playwright
+.playwright/
+traces/
+*.trace
+*.zip
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+dashboard_data.db
+
+# Model cache and downloads
+.cache/
+models/
+transformers_cache/
+huggingface/
+*.bin
+*.safetensors
+
+# Sphinx documentation builds
+docs/_build/
+docs/.doctrees/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Pre-commit
+.pre-commit-config.yaml.bak
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# OS Files
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~

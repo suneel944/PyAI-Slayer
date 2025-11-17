@@ -1,0 +1,42 @@
+{
+  "valid_response_schema": {
+    "type": "object",
+    "properties": {
+      "text": {
+        "type": "string",
+        "minLength": 10
+      },
+      "timestamp": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string",
+        "enum": ["ai", "bot", "assistant"]
+      }
+    },
+    "required": ["text"]
+  },
+  "error_response_schema": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string"
+      },
+      "message": {
+        "type": "string"
+      },
+      "code": {
+        "type": "string"
+      }
+    },
+    "required": ["error", "message"]
+  },
+  "fallback_messages": [
+    "I'm sorry, I didn't understand that. Could you please rephrase your question?",
+    "I'm having trouble understanding. Can you try asking in a different way?",
+    "Sorry, I couldn't process that request. Please try again.",
+    "عذراً، لم أفهم ذلك. هل يمكنك إعادة صياغة سؤالك؟",
+    "أواجه صعوبة في الفهم. هل يمكنك المحاولة بطريقة مختلفة؟"
+  ]
+}
+

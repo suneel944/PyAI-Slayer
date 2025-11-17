@@ -1,0 +1,500 @@
+{
+  "common_queries": [
+    {
+      "id": "Q001-AR",
+      "category": "visa_inquiry",
+      "prompt": "كيف يمكنني تجديد تأشيرة الإقامة؟",
+      "expected_keywords": ["تأشيرة", "تجديد", "إقامة", "وثائق"],
+      "min_response_length": 50,
+      "max_response_time_seconds": 30
+    },
+    {
+      "id": "Q002-AR",
+      "category": "health_services",
+      "prompt": "أين يمكنني الحصول على لقاح COVID-19؟",
+      "expected_keywords": ["لقاح", "صحة", "عيادة", "موعد"],
+      "min_response_length": 50,
+      "max_response_time_seconds": 30
+    },
+    {
+      "id": "Q003-AR",
+      "category": "government_services",
+      "prompt": "ما هي الوثائق المطلوبة لفتح عمل في الإمارات؟",
+      "expected_keywords": ["عمل", "وثائق", "رخصة", "متطلبات"],
+      "min_response_length": 50,
+      "max_response_time_seconds": 30
+    },
+    {
+      "id": "Q004-AR",
+      "category": "education",
+      "prompt": "كيف أتقدم بطلب للحصول على تأشيرة طالب؟",
+      "expected_keywords": ["طالب", "تأشيرة", "تعليم", "طلب"],
+      "min_response_length": 50,
+      "max_response_time_seconds": 30
+    },
+    {
+      "id": "Q005-AR",
+      "category": "general",
+      "prompt": "ما هي ساعات عمل المكاتب الحكومية؟",
+      "expected_keywords": ["ساعات", "عمل", "مكتب", "حكومي"],
+      "min_response_length": 30,
+      "max_response_time_seconds": 30
+    },
+    {
+      "id": "Q006-AR",
+      "category": "rag_testing",
+      "prompt": "ما هي متطلبات تجديد التأشيرة لسكان الإمارات؟",
+      "expected_keywords": ["تأشيرة", "تجديد", "متطلبات", "سكان", "وثائق"],
+      "min_response_length": 60,
+      "max_response_time_seconds": 30
+    },
+    {
+      "id": "Q007-AR",
+      "category": "schema_testing",
+      "prompt": "قدم معلومات تجديد التأشيرة بتنسيق منظم",
+      "expected_keywords": ["تأشيرة", "تجديد", "معلومات", "تنسيق"],
+      "min_response_length": 50,
+      "max_response_time_seconds": 30
+    },
+    {
+      "id": "Q008-AR",
+      "category": "performance",
+      "prompt": "أخبرني عن جميع الخدمات الحكومية المتاحة في الإمارات",
+      "expected_keywords": ["حكومي", "خدمات", "الإمارات"],
+      "min_response_length": 100,
+      "max_response_time_seconds": 45
+    },
+    {
+      "id": "Q009-AR",
+      "category": "agent_testing",
+      "prompt": "ساعدني في فهم عملية تجديد التأشيرة خطوة بخطوة",
+      "expected_keywords": ["تأشيرة", "تجديد", "خطوة", "عملية"],
+      "min_response_length": 80,
+      "max_response_time_seconds": 35
+    },
+    {
+      "id": "Q010-AR",
+      "category": "general",
+      "prompt": "ما هي أفضل طريقة للتواصل مع الدوائر الحكومية؟",
+      "expected_keywords": ["تواصل", "دوائر", "حكومية", "طريقة"],
+      "min_response_length": 50,
+      "max_response_time_seconds": 30
+    }
+  ],
+  "edge_cases": [
+    {
+      "id": "E001-AR",
+      "prompt": "أسدقجكل",
+      "expected_behavior": "fallback_message",
+      "min_response_length": 10
+    },
+    {
+      "id": "E002-AR",
+      "prompt": "???",
+      "expected_behavior": "fallback_message",
+      "min_response_length": 10
+    },
+    {
+      "id": "E003-AR",
+      "prompt": "",
+      "expected_behavior": "validation_error",
+      "min_response_length": 0
+    },
+    {
+      "id": "E004-AR",
+      "prompt": "أ",
+      "expected_behavior": "fallback_or_short_response",
+      "min_response_length": 5
+    }
+  ],
+  "general_public_prompts": [
+    {
+      "id": "GP001-AR",
+      "category": "expat_government_facility",
+      "user_type": "expat",
+      "prompt": "أنا جديد في دبي وأحتاج لزيارة مكتب حكومي. أين أقرب مركز خدمة وما هي ساعات عملهم؟ هل يمكنك أيضاً توفير المصادر لهذه المعلومات؟",
+      "expected_keywords": ["حكومي", "مركز خدمة", "دبي", "ساعات عمل", "موقع"],
+      "min_response_length": 80,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP002-AR",
+      "category": "uae_national_tourist_location",
+      "user_type": "uae_national",
+      "prompt": "أريد أن آخذ عائلتي إلى مكان سياحي جميل هذا الأسبوع. ما هي أفضل الأماكن للزيارة في أبوظبي؟ يرجى تضمين المصادر أو المواقع الرسمية.",
+      "expected_keywords": ["سياحي", "أبوظبي", "أماكن", "زيارة", "عائلة"],
+      "min_response_length": 100,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP003-AR",
+      "category": "arabic_speaker_government_place",
+      "user_type": "arabic_speaker",
+      "prompt": "أين يمكنني العثور على مركز خدمة الهوية الاتحادية في الشارقة؟ أحتاج إلى تجديد هويتي. هل يمكنك إخباري بالموقع الدقيق واستشهد بمصادرك؟",
+      "expected_keywords": ["الهوية الاتحادية", "الشارقة", "مركز خدمة", "موقع", "تجديد"],
+      "min_response_length": 70,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP004-AR",
+      "category": "expat_visa_office",
+      "user_type": "expat",
+      "prompt": "أحتاج للذهاب إلى مكتب الهجرة لتجديد تأشيرتي. أين المكتب الرئيسي للهجرة في دبي وما هي الوثائق التي يجب أن أحضرها؟ يرجى توفير المصادر الرسمية.",
+      "expected_keywords": ["هجرة", "تأشيرة", "دبي", "وثائق", "مكتب"],
+      "min_response_length": 90,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP005-AR",
+      "category": "uae_national_heritage_site",
+      "user_type": "uae_national",
+      "prompt": "ما هي بعض المواقع التراثية والمتاحف المهمة التي يمكنني زيارتها في الإمارات؟ أريد التعرف على الثقافة الإماراتية. يرجى تضمين المصادر الرسمية.",
+      "expected_keywords": ["تراثي", "متحف", "الإمارات", "ثقافة", "مواقع"],
+      "min_response_length": 100,
+      "max_response_time_seconds": 40,
+      "requires_citation": true
+    },
+    {
+      "id": "GP006-AR",
+      "category": "expat_health_facility",
+      "user_type": "expat",
+      "prompt": "أين يمكنني العثور على مراكز الصحة الحكومية في دبي؟ أحتاج للحصول على شهادة صحية. هل يمكنك توفير المواقع ومعلومات الاتصال الرسمية مع المصادر؟",
+      "expected_keywords": ["مركز صحة", "دبي", "شهادة صحية", "حكومي", "موقع"],
+      "min_response_length": 80,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP007-AR",
+      "category": "arabic_speaker_tourist_attraction",
+      "user_type": "arabic_speaker",
+      "prompt": "ما هي أفضل الأماكن السياحية في دبي للزيارة مع العائلة؟ أريد مصادر رسمية للمعلومات.",
+      "expected_keywords": ["سياحي", "دبي", "أماكن", "عائلة", "زيارة"],
+      "min_response_length": 100,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP008-AR",
+      "category": "expat_business_license_office",
+      "user_type": "expat",
+      "prompt": "أريد بدء عمل في الإمارات. أين أذهب لتقديم طلب للحصول على رخصة تجارية؟ أي مكتب حكومي يتعامل مع هذا وما هي المتطلبات؟ يرجى الاستشهاد بالمصادر الرسمية.",
+      "expected_keywords": ["رخصة تجارية", "الإمارات", "مكتب حكومي", "متطلبات", "طلب"],
+      "min_response_length": 100,
+      "max_response_time_seconds": 40,
+      "requires_citation": true
+    },
+    {
+      "id": "GP009-AR",
+      "category": "uae_national_government_service",
+      "user_type": "uae_national",
+      "prompt": "أين أقرب مركز تسهيل أو مركز خدمة للمعاملات الحكومية؟ أحتاج لدفع بعض الرسوم. هل يمكنك توفير الموقع والموقع الرسمي؟",
+      "expected_keywords": ["تسهيل", "مركز خدمة", "حكومي", "معاملات", "موقع"],
+      "min_response_length": 70,
+      "max_response_time_seconds": 30,
+      "requires_citation": true
+    },
+    {
+      "id": "GP010-AR",
+      "category": "expat_tourist_landmark",
+      "user_type": "expat",
+      "prompt": "لدي زوار قادمون من الخارج. ما هي المعالم السياحية التي يجب زيارتها في الإمارات؟ يرجى تضمين مواقع السياحة الرسمية كمصادر.",
+      "expected_keywords": ["سياحي", "معالم", "الإمارات", "زوار", "أماكن"],
+      "min_response_length": 120,
+      "max_response_time_seconds": 40,
+      "requires_citation": true
+    },
+    {
+      "id": "GP011-AR",
+      "category": "arabic_speaker_government_facility",
+      "user_type": "arabic_speaker",
+      "prompt": "أين يمكنني العثور على مكتب الهوية الاتحادية في أبوظبي؟ أحتاج إلى تجديد هويتي. يرجى توفير المصادر الرسمية.",
+      "expected_keywords": ["الهوية الاتحادية", "أبوظبي", "مكتب", "تجديد", "موقع"],
+      "min_response_length": 70,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP012-AR",
+      "category": "expat_education_office",
+      "user_type": "expat",
+      "prompt": "أحتاج للحصول على تصديق شهادة مدرسية لطفلي. أي مكتب حكومي يتعامل مع تصديق الوثائق في دبي؟ يرجى توفير المصادر الرسمية والموقع.",
+      "expected_keywords": ["تصديق", "شهادة", "دبي", "مكتب حكومي", "وثائق"],
+      "min_response_length": 80,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP013-AR",
+      "category": "uae_national_historical_place",
+      "user_type": "uae_national",
+      "prompt": "ما هي بعض الأماكن التاريخية في الإمارات التي تعرض تراثنا؟ أريد زيارتها مع أطفالي. هل يمكنك توفير المصادر الرسمية؟",
+      "expected_keywords": ["تاريخي", "تراث", "الإمارات", "أماكن", "زيارة"],
+      "min_response_length": 100,
+      "max_response_time_seconds": 40,
+      "requires_citation": true
+    },
+    {
+      "id": "GP014-AR",
+      "category": "expat_driving_license_office",
+      "user_type": "expat",
+      "prompt": "أين أذهب لتحويل رخصتي الأجنبية إلى رخصة إماراتية؟ أي مكتب هيئة الطرق والمواصلات يجب أن أزوره وما هي الوثائق المطلوبة؟ يرجى الاستشهاد بالمصادر الرسمية.",
+      "expected_keywords": ["رخصة قيادة", "هيئة الطرق", "تحويل", "وثائق", "مكتب"],
+      "min_response_length": 90,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP015-AR",
+      "category": "arabic_speaker_tourist_beach",
+      "user_type": "arabic_speaker",
+      "prompt": "ما هي أفضل الشواطئ العامة في الإمارات للزيارة؟ أريد معلومات من مصادر رسمية.",
+      "expected_keywords": ["شاطئ", "عام", "الإمارات", "زيارة", "سياحي"],
+      "min_response_length": 80,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP016-AR",
+      "category": "expat_court_house",
+      "user_type": "expat",
+      "prompt": "أحتاج لزيارة محكمة لأمر قانوني. أين تقع المحاكم الرئيسية في دبي؟ هل يمكنك توفير العنوان والموقع الرسمي مع المصادر؟",
+      "expected_keywords": ["محكمة", "دبي", "قانوني", "موقع", "عنوان"],
+      "min_response_length": 70,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP017-AR",
+      "category": "uae_national_cultural_center",
+      "user_type": "uae_national",
+      "prompt": "أين يمكنني العثور على المراكز الثقافية أو المكتبات في الإمارات؟ أريد معرفة المزيد عن الأدب الإماراتي. يرجى تضمين المصادر الرسمية.",
+      "expected_keywords": ["مركز ثقافي", "مكتبة", "الإمارات", "أدب", "ثقافة"],
+      "min_response_length": 90,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP018-AR",
+      "category": "expat_police_station",
+      "user_type": "expat",
+      "prompt": "أحتاج للحصول على شهادة عدم محكومية. أي مركز شرطة في دبي يتعامل مع هذا وما هي المتطلبات؟ يرجى توفير المصادر الرسمية.",
+      "expected_keywords": ["شرطة", "شهادة عدم محكومية", "دبي", "متطلبات", "مركز"],
+      "min_response_length": 80,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    },
+    {
+      "id": "GP019-AR",
+      "category": "arabic_speaker_government_service",
+      "user_type": "arabic_speaker",
+      "prompt": "أين يمكنني دفع فواتير الخدمات الحكومية في الشارقة؟ أحتاج إلى موقع المكتب الرسمي.",
+      "expected_keywords": ["حكومي", "فواتير", "الشارقة", "مكتب", "دفع"],
+      "min_response_length": 60,
+      "max_response_time_seconds": 30,
+      "requires_citation": true
+    },
+    {
+      "id": "GP020-AR",
+      "category": "expat_tourist_desert",
+      "user_type": "expat",
+      "prompt": "أريد تجربة رحلة سفاري في الصحراء. ما هي أفضل مواقع الصحراء بالقرب من دبي للسياح؟ يرجى توفير مصادر السياحة الرسمية.",
+      "expected_keywords": ["صحراء", "سفاري", "دبي", "سياحي", "موقع"],
+      "min_response_length": 90,
+      "max_response_time_seconds": 35,
+      "requires_citation": true
+    }
+  ],
+  "multi_turn": [
+    {
+      "id": "M001-AR",
+      "turns": [
+        {
+          "prompt": "أخبرني عن تجديد التأشيرة",
+          "expected_keywords": ["تأشيرة", "تجديد"]
+        },
+        {
+          "prompt": "ما هي الوثائق التي أحتاجها؟",
+          "expected_keywords": ["وثائق", "مطلوبة", "حاجة"]
+        },
+        {
+          "prompt": "كم من الوقت يستغرق؟",
+          "expected_keywords": ["وقت", "مدة", "أيام", "أسابيع"]
+        }
+      ]
+    },
+    {
+      "id": "M002-AR",
+      "user_type": "expat",
+      "turns": [
+        {
+          "prompt": "أين مكتب الهجرة في دبي؟",
+          "expected_keywords": ["هجرة", "مكتب", "دبي", "موقع"]
+        },
+        {
+          "prompt": "ما هي ساعات عملهم؟",
+          "expected_keywords": ["ساعات عمل", "وقت", "جدول"]
+        },
+        {
+          "prompt": "هل يمكنك توفير الموقع الرسمي أو المصدر لهذه المعلومات؟",
+          "expected_keywords": ["رسمي", "موقع", "مصدر", "استشهاد"]
+        },
+        {
+          "prompt": "بناءً على ما أخبرتني به للتو، ما هي الوثائق التي يجب أن أحضرها معي؟",
+          "expected_keywords": ["وثائق", "إحضار", "مطلوبة", "بناءً على"]
+        }
+      ]
+    },
+    {
+      "id": "M003-AR",
+      "user_type": "uae_national",
+      "turns": [
+        {
+          "prompt": "ما هي أفضل الأماكن السياحية للزيارة في أبوظبي؟",
+          "expected_keywords": ["سياحي", "أماكن", "أبوظبي", "زيارة"]
+        },
+        {
+          "prompt": "هل يمكنك توفير المصادر الرسمية لهذه التوصيات؟",
+          "expected_keywords": ["رسمي", "مصادر", "توصيات", "استشهاد"]
+        },
+        {
+          "prompt": "من الأماكن التي ذكرتها، أيها أقرب إلى وسط المدينة؟",
+          "expected_keywords": ["أقرب", "وسط المدينة", "موقع", "مسافة"]
+        },
+        {
+          "prompt": "ما هي رسوم الدخول للأماكن التي أوصيت بها؟",
+          "expected_keywords": ["رسوم دخول", "سعر", "تكلفة", "تذاكر"]
+        }
+      ]
+    },
+    {
+      "id": "M004-AR",
+      "user_type": "arabic_speaker",
+      "turns": [
+        {
+          "prompt": "أين يمكنني تجديد هوية الإمارات؟",
+          "expected_keywords": ["هوية الإمارات", "تجديد", "موقع"]
+        },
+        {
+          "prompt": "ما هي الوثائق المطلوبة؟",
+          "expected_keywords": ["وثائق", "مطلوبة", "حاجة"]
+        },
+        {
+          "prompt": "هل يمكنك توفير المصادر الرسمية لهذه المعلومات؟",
+          "expected_keywords": ["رسمي", "مصادر", "استشهاد"]
+        },
+        {
+          "prompt": "كم من الوقت يستغرق التجديد بناءً على ما ذكرته؟",
+          "expected_keywords": ["وقت", "مدة", "معالجة", "بناءً على"]
+        }
+      ]
+    },
+    {
+      "id": "M005-AR",
+      "user_type": "expat",
+      "turns": [
+        {
+          "prompt": "أحتاج للحصول على رخصة تجارية في الإمارات. من أين أبدأ؟",
+          "expected_keywords": ["رخصة تجارية", "الإمارات", "بداية", "عملية"]
+        },
+        {
+          "prompt": "أي مكتب حكومي يتعامل مع هذا وهل يمكنك توفير موقعه الرسمي؟",
+          "expected_keywords": ["مكتب حكومي", "رسمي", "موقع", "مصدر"]
+        },
+        {
+          "prompt": "بناءً على إجابتك السابقة، ما هي المتطلبات المحددة لرخصة تجارية؟",
+          "expected_keywords": ["متطلبات", "رخصة تجارية", "محددة", "بناءً على"]
+        },
+        {
+          "prompt": "كم من الوقت تستغرق العملية من التقديم إلى الموافقة؟",
+          "expected_keywords": ["عملية", "وقت", "تقديم", "موافقة"]
+        }
+      ]
+    },
+    {
+      "id": "M006-AR",
+      "user_type": "uae_national",
+      "turns": [
+        {
+          "prompt": "ما هي بعض المواقع التراثية التي يمكنني زيارتها في الإمارات؟",
+          "expected_keywords": ["تراثي", "مواقع", "الإمارات", "زيارة"]
+        },
+        {
+          "prompt": "يرجى توفير المصادر الرسمية أو المواقع الحكومية لهذه المواقع.",
+          "expected_keywords": ["رسمي", "مصادر", "حكومي", "مواقع"]
+        },
+        {
+          "prompt": "من المواقع التي ذكرتها، أيها يحتوي على أفضل مجموعة متحفية؟",
+          "expected_keywords": ["متحف", "مجموعة", "أفضل", "من المذكورة"]
+        },
+        {
+          "prompt": "ما هي ساعات العمل للمواقع التراثية التي أوصيت بها؟",
+          "expected_keywords": ["ساعات عمل", "جدول", "أوقات"]
+        }
+      ]
+    },
+    {
+      "id": "M007-AR",
+      "user_type": "expat",
+      "turns": [
+        {
+          "prompt": "أين يمكنني العثور على مراكز الصحة الحكومية في دبي؟",
+          "expected_keywords": ["مراكز صحة", "حكومي", "دبي", "موقع"]
+        },
+        {
+          "prompt": "ما هي الخدمات التي يقدمونها؟",
+          "expected_keywords": ["خدمات", "مقدمة", "صحة"]
+        },
+        {
+          "prompt": "هل يمكنك الاستشهاد بالمصادر الرسمية لهذه المعلومات؟",
+          "expected_keywords": ["رسمي", "مصادر", "استشهاد", "استشهد"]
+        },
+        {
+          "prompt": "بناءً على الخدمات التي ذكرتها، أي مركز هو الأفضل للحصول على شهادة صحية؟",
+          "expected_keywords": ["شهادة صحية", "أفضل", "مركز", "بناءً على"]
+        },
+        {
+          "prompt": "ما هي الوثائق التي أحتاج لإحضارها بناءً على إجابتك السابقة؟",
+          "expected_keywords": ["وثائق", "إحضار", "حاجة", "بناءً على"]
+        }
+      ]
+    },
+    {
+      "id": "M008-AR",
+      "user_type": "arabic_speaker",
+      "turns": [
+        {
+          "prompt": "ما هي أفضل الأماكن السياحية في دبي؟",
+          "expected_keywords": ["سياحي", "أماكن", "دبي", "أفضل"]
+        },
+        {
+          "prompt": "يرجى توفير المصادر الرسمية.",
+          "expected_keywords": ["رسمي", "مصادر", "استشهاد"]
+        },
+        {
+          "prompt": "من الأماكن التي ذكرتها، أيهما مناسب للعائلات؟",
+          "expected_keywords": ["عائلة", "مناسب", "من المذكورة", "أماكن"]
+        },
+        {
+          "prompt": "ما هي تكلفة زيارة هذه الأماكن بناءً على المعلومات التي قدمتها؟",
+          "expected_keywords": ["تكلفة", "سعر", "زيارة", "بناءً على المعلومات"]
+        }
+      ]
+    }
+  ],
+  "arabic_test_queries": {
+    "visa_renewal": {
+      "query": "كيف يمكنني تجديد تأشيرة الإقامة؟"
+    },
+    "greeting": {
+      "query": "مرحبا"
+    },
+    "working_hours": {
+      "query": "ما هي ساعات عمل المكاتب الحكومية؟"
+    }
+  }
+}

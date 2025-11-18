@@ -30,7 +30,7 @@ We will implement the Circuit Breaker pattern for all external dependencies.
 - **Bulkhead pattern**: Good complement but doesn't replace circuit breaker
 
 ## Implementation
-Circuit breaker is implemented in `src/core/circuit_breaker.py` with three states:
+Circuit breaker is implemented in `src/core/infrastructure/circuit_breaker.py` with three states:
 - CLOSED: Normal operation
 - OPEN: Failing, reject requests
 - HALF_OPEN: Testing recovery

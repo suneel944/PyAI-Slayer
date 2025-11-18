@@ -13,8 +13,9 @@ Quick Start
 
 .. code-block:: python
 
-   from core import BrowserManager, AIResponseValidator
-   from config import settings
+   from core.browser.browser_manager import BrowserManager
+   from core.ai.ai_validator import AIResponseValidator
+   from config.settings import settings
 
    # Initialize browser
    browser_manager = BrowserManager()

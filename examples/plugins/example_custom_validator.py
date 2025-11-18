@@ -36,6 +36,16 @@ class ExampleCustomValidatorPlugin(ValidationPlugin):
         """Get plugin version."""
         return "1.0.0"
 
+    def initialize(self, container) -> None:
+        """Initialize plugin with DI container."""
+        # Plugin initialization logic here
+        pass
+
+    def cleanup(self) -> None:
+        """Cleanup plugin resources."""
+        # Plugin cleanup logic here
+        pass
+
     def register_strategies(self, registry: ValidationStrategyRegistry) -> None:
         """Register custom validation strategies."""
         strategy = LengthValidationStrategy()

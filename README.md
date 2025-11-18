@@ -147,17 +147,27 @@ make clean             # Remove artifacts
 ```
 PyAI-Slayer/
 ├── src/
-│   ├── dashboard/          # Real-time dashboard & API
-│   ├── validators/         # AI response validators
-│   └── utils/             # Utilities & helpers
+│   ├── config/           # Configuration layer
+│   ├── core/             # Core framework components
+│   │   ├── ai/          # AI validation
+│   │   ├── browser/     # Browser automation
+│   │   ├── infrastructure/  # Infrastructure components
+│   │   ├── observability/  # Observability features
+│   │   ├── security/   # Security testing
+│   │   └── validation/ # Validation strategies
+│   ├── dashboard/       # Real-time dashboard & API
+│   └── utils/          # Utilities & helpers
 ├── tests/
-│   ├── base_model/        # Base model tests
-│   ├── rag/              # RAG tests
-│   ├── safety/           # Safety tests
-│   └── pages/            # Page objects
-├── configs/              # Test configurations
-├── docs/                 # Documentation
-└── scripts/             # Utility scripts
+│   ├── e2e/            # End-to-end tests
+│   │   ├── ai/         # AI validation tests
+│   │   ├── security/   # Security tests
+│   │   └── ui/         # UI tests
+│   ├── integration/    # Integration tests
+│   ├── unit/           # Unit tests
+│   ├── pages/          # Page Object Model
+│   └── test_data/     # Test data
+├── docs/               # Documentation
+└── scripts/           # Utility scripts
 ```
 
 ## 🔧 Configuration
@@ -166,15 +176,15 @@ Key environment variables in `.env`:
 
 ```env
 # Target Application
-CHATBOT_URL=http://localhost:3000
-CHATBOT_API_URL=http://localhost:8000
+BASE_URL=https://your-chatbot-url.example.com
+CHAT_URL=https://your-chatbot-url.example.com
 
 # AI Models
-EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-LLM_MODEL=gpt-4
+SEMANTIC_MODEL_NAME=intfloat/multilingual-e5-base
+ARABIC_SEMANTIC_MODEL_NAME=Omartificial-Intelligence-Space/mmbert-base-arabic-nli
 
 # Dashboard
-DASHBOARD_PORT=8080
+PROMETHEUS_PORT=8000
 ENABLE_PROMETHEUS_METRICS=true
 
 # Testing
@@ -182,7 +192,7 @@ HEADLESS=true
 BROWSER=chromium
 ```
 
-See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for complete options.
+See [docs/getting_started.rst](docs/getting_started.rst) for complete configuration options.
 
 ## 📚 Documentation
 
@@ -191,6 +201,7 @@ See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for complete options.
 - [Framework Architecture](docs/FRAMEWORK_ARCHITECTURE.md) - Design & patterns
 - [Metrics Calculations](docs/METRICS_CALCULATIONS.md) - How metrics are computed
 - [Docker Guide](docs/DOCKER.md) - Container usage
+- [Plugins Guide](docs/PLUGINS.md) - Extending the framework with plugins
 - [API Reference](docs/api_reference.rst) - Code documentation
 
 ## 🐳 Docker Quick Start

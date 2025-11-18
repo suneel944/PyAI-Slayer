@@ -15,6 +15,16 @@ class ExampleEventHandlerPlugin(EventPlugin):
         """Get plugin version."""
         return "1.0.0"
 
+    def initialize(self, container) -> None:
+        """Initialize plugin with DI container."""
+        # Plugin initialization logic here
+        pass
+
+    def cleanup(self) -> None:
+        """Cleanup plugin resources."""
+        # Plugin cleanup logic here
+        pass
+
     def register_handlers(self, emitter: EventEmitter) -> None:
         """Register event handlers."""
         # Register handler for test events

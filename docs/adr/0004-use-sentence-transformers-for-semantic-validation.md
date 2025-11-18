@@ -31,6 +31,6 @@ We will use sentence-transformers library with multilingual models for semantic 
 - **BERT directly**: More complex, sentence-transformers is easier to use
 
 ## Implementation
-Semantic validation is implemented in `AIResponseValidator` using:
+Semantic validation is implemented in `AIResponseValidator` (`src/core/ai/ai_validator.py`) using:
 - `intfloat/multilingual-e5-base` for general use
 - `Omartificial-Intelligence-Space/mmbert-base-arabic-nli` for Arabic-specific validation

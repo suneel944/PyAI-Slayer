@@ -24,15 +24,15 @@ class MyPlugin(Plugin):
     def get_name(self) -> str:
         """Return unique plugin name."""
         return "my_plugin"
-    
+
     def get_version(self) -> str:
         """Return plugin version."""
         return "1.0.0"
-    
+
     def initialize(self, container) -> None:
         """Initialize plugin with DI container."""
         pass
-    
+
     def cleanup(self) -> None:
         """Cleanup plugin resources."""
         pass
@@ -51,12 +51,12 @@ from core.validation.validation_strategy import ValidationStrategy
 
 class LengthValidationStrategy(ValidationStrategy):
     """Custom validation strategy for response length."""
-    
+
     def validate(self, query: str, response: str, **kwargs):
         """Validate response length."""
         min_length = kwargs.get("min_length", 10)
         max_length = kwargs.get("max_length", 1000)
-        
+
         is_valid = min_length <= len(response) <= max_length
         return is_valid, {
             "strategy": "length",
@@ -64,7 +64,7 @@ class LengthValidationStrategy(ValidationStrategy):
             "min_length": min_length,
             "max_length": max_length,
         }
-    
+
     def get_name(self) -> str:
         """Get strategy name."""
         return "length"
@@ -80,21 +80,21 @@ from core.validation.validation_strategy import ValidationStrategyRegistry
 
 class MyValidationPlugin(ValidationPlugin):
     """Plugin that adds custom validation strategies."""
-    
+
     def get_name(self) -> str:
         return "my_validation_plugin"
-    
+
     def get_version(self) -> str:
         return "1.0.0"
-    
+
     def initialize(self, container) -> None:
         """Initialize plugin."""
         pass
-    
+
     def cleanup(self) -> None:
         """Cleanup plugin."""
         pass
-    
+
     def register_strategies(self, registry: ValidationStrategyRegistry) -> None:
         """Register custom validation strategies."""
         strategy = LengthValidationStrategy()
@@ -153,39 +153,39 @@ from core.validation.plugins import EventPlugin
 
 class MyEventHandlerPlugin(EventPlugin):
     """Plugin that handles framework events."""
-    
+
     def get_name(self) -> str:
         return "my_event_handler"
-    
+
     def get_version(self) -> str:
         return "1.0.0"
-    
+
     def initialize(self, container) -> None:
         """Initialize plugin."""
         pass
-    
+
     def cleanup(self) -> None:
         """Cleanup plugin."""
         pass
-    
+
     def register_handlers(self, emitter: EventEmitter) -> None:
         """Register event handlers."""
         # Register handler for test events
         emitter.on(EventType.TEST_STARTED, self._on_test_started)
         emitter.on(EventType.TEST_COMPLETED, self._on_test_completed)
         emitter.on(EventType.TEST_FAILED, self._on_test_failed)
-    
+
     def _on_test_started(self, event: Event) -> None:
         """Handle test started event."""
         test_name = event.data.get("test_name", "unknown")
         print(f"[Plugin] Test started: {test_name}")
-    
+
     def _on_test_completed(self, event: Event) -> None:
         """Handle test completed event."""
         test_name = event.data.get("test_name", "unknown")
         duration = event.data.get("duration", 0)
         print(f"[Plugin] Test completed: {test_name} (duration: {duration:.2f}s)")
-    
+
     def _on_test_failed(self, event: Event) -> None:
         """Handle test failed event."""
         test_name = event.data.get("test_name", "unknown")
@@ -333,20 +333,20 @@ def pytest_configure(config):
     # Get framework components
     container = get_container()
     event_emitter = get_event_emitter()
-    
+
     # Initialize plugin manager
     plugin_manager = get_plugin_manager(
         container=container,
         event_emitter=event_emitter
     )
-    
+
     # Load plugins from examples directory
     examples_dir = Path(__file__).parent.parent / "examples" / "plugins"
     plugin_manager.load_plugins_from_directory(examples_dir)
-    
+
     # Or load specific plugins
     # plugin_manager.load_plugin_from_module("examples.plugins.example_custom_validator")
-    
+
     print(f"Loaded {len(plugin_manager.get_all_plugins())} plugins")
 ```
 
@@ -361,7 +361,7 @@ from core.validation.validation_strategy import get_strategy_registry
 def test_with_custom_validation():
     """Test using custom validation strategy."""
     registry = get_strategy_registry()
-    
+
     # Use custom length validation
     is_valid, details = registry.validate(
         "length",
@@ -370,7 +370,7 @@ def test_with_custom_validation():
         min_length=10,
         max_length=100
     )
-    
+
     assert is_valid, f"Validation failed: {details}"
     assert details["length"] == 24
 ```
@@ -381,10 +381,10 @@ def test_with_custom_validation():
 def test_with_multiple_strategies():
     """Test using multiple validation strategies."""
     registry = get_strategy_registry()
-    
+
     query = "What is AI?"
     response = "AI is artificial intelligence..."
-    
+
     # Validate with all strategies
     results = registry.validate_all(
         query=query,
@@ -392,7 +392,7 @@ def test_with_multiple_strategies():
         min_length=10,
         threshold=0.7
     )
-    
+
     # Check results
     for strategy_name, (is_valid, details) in results.items():
         print(f"{strategy_name}: {is_valid} - {details}")
@@ -524,4 +524,3 @@ For plugin-related questions or issues:
 - Check example plugins in `examples/plugins/`
 - Review plugin source code in `src/core/validation/plugins.py`
 - Open an issue on GitHub with plugin details
-

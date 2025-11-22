@@ -126,6 +126,20 @@ class BrowserManager:
             self.playwright.stop()
         logger.info("Browser closed and cleaned up")
 
+    def get_playwright(self) -> Playwright:
+        """
+        Get the Playwright instance for API requests.
+
+        Returns:
+            Playwright instance
+
+        Raises:
+            RuntimeError: If Playwright is not started
+        """
+        if not self.playwright:
+            raise RuntimeError("Playwright is not started. Call start() first.")
+        return self.playwright
+
     def __enter__(self):
         """Context manager entry."""
         self.start()

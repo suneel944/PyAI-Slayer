@@ -140,3 +140,8 @@ $RECYCLE.BIN/
 
 # Linux
 *~
+
+# Data directory (eval sets, calibration results - may contain sensitive info)
+data/
+!data/.gitkeep
+!data/examples/

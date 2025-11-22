@@ -92,8 +92,14 @@ class FailureAnalyzer:
                 )
 
         # Analyze semantic similarity
-        if scoring_details and "similarity" in scoring_details:
-            similarity = scoring_details["similarity"]
+        # Check for both "similarity_score" (stored metric) and "similarity" (legacy/alternative)
+        similarity = None
+        if scoring_details:
+            similarity = scoring_details.get("similarity_score") or scoring_details.get(
+                "similarity"
+            )
+
+        if similarity is not None and scoring_details:
             threshold = scoring_details.get("threshold", 0.5)
 
             if similarity < 0.3:

@@ -25,8 +25,15 @@ class TestGPTEnglish:
         """AI-001: Basic query gets relevant response."""
         # Use first query from common_queries if available
         common_queries = self.test_data.get("common_queries", [])
+        query = None
+        expected_response = None
+        reference = None
+
         if common_queries and len(common_queries) > 0:
-            query = common_queries[0].get("prompt", "")
+            query_entry = common_queries[0]
+            query = query_entry.get("prompt", "")
+            expected_response = query_entry.get("expected_response")
+            reference = query_entry.get("reference")
         else:
             query = "How do I renew my residence visa?"
 
@@ -39,17 +46,6 @@ class TestGPTEnglish:
 
         response_time = time.time() - start_time
 
-        # AI response time is now automatically recorded in send_message()
-        # But we can also record it here for tests that measure it manually
-        try:
-            from core.observability import get_prometheus_metrics
-
-            metrics = get_prometheus_metrics()
-            if metrics.enabled:
-                metrics.record_ai_response_time(response_time, language="en")
-        except Exception:
-            pass
-
         assert response is not None, "No response received"
         assert len(response) > 0, "Response is empty"
         assert (
@@ -58,6 +54,22 @@ class TestGPTEnglish:
 
         is_relevant, similarity = self.validator.validate_relevance(query, response)
         assert is_relevant, f"Response not relevant (similarity: {similarity:.3f})"
+
+        # Store reference/expected_response for BLEU, ROUGE, BERTScore calculations
+        from core.ai.ai_validator import _store_validation_data
+
+        _store_validation_data(
+            query=query,
+            response=response,
+            metrics={
+                "validation_type": "relevance",
+                "similarity_score": float(similarity),
+                "is_relevant": is_relevant,
+            },
+            expected_response=expected_response,
+            reference=reference
+            or expected_response,  # Use reference if available, fallback to expected_response
+        )
 
         logger.info(f"Response relevance: {similarity:.3f}, time: {response_time:.2f}s")
 

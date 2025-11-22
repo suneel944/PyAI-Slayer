@@ -92,8 +92,10 @@ i:focus-visible, svg:focus-visible, [data-lucide]:focus-visible {
 
 /* ===== BASE STYLES ===== */
 html {
-    scroll-behavior: smooth;
+    /* Lenis handles smooth scrolling, so we disable native smooth scroll */
     -webkit-overflow-scrolling: touch;
+    /* Optimize for Lenis */
+    overflow-x: hidden;
 }
 
 body {
@@ -108,12 +110,16 @@ body {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
+    /* Ultra-optimized for 120 FPS smooth scrolling with Lenis */
+    scroll-padding-top: 20px;
+    /* Maximum hardware acceleration for ultra-smooth rendering */
     transform: translateZ(0);
+    will-change: scroll-position, transform;
+    /* GPU acceleration optimizations */
     backface-visibility: hidden;
     perspective: 1000px;
-    /* Smooth scrolling optimizations */
-    scroll-behavior: smooth;
-    scroll-padding-top: 20px;
+    /* Enable compositor optimizations */
+    contain: layout style paint;
 }
 
 /* Optimize scrollable containers for smooth performance */
@@ -124,7 +130,7 @@ body {
 [class*="-container"]:not([class*="dashboard-container"]),
 [class*="-list"],
 [class*="-menu"]:not([class*="custom-dropdown-menu"]) {
-    scroll-behavior: smooth;
+    /* Removed scroll-behavior: smooth for better performance */
     -webkit-overflow-scrolling: touch;
 }
 
@@ -159,9 +165,12 @@ body::after {
     overflow: hidden;
     pointer-events: none;
     z-index: 0;
-    will-change: transform;
+    /* Optimized for fixed position - won't repaint during scroll */
+    will-change: auto;
     transform: translateZ(0);
     backface-visibility: hidden;
+    /* Isolate compositing layer */
+    isolation: isolate;
 }
 
 .ambient-bg::before {
@@ -223,13 +232,16 @@ body::after {
     min-height: 100vh;
     position: relative;
     z-index: 10;
-    transform: translateZ(0);
-    will-change: scroll-position;
+    /* Ultra-optimized for 120 FPS smooth scrolling */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    /* Maximum hardware acceleration for ultra-smooth rendering */
+    transform: translateZ(0);
+    will-change: scroll-position, transform;
+    /* GPU compositor optimizations */
     backface-visibility: hidden;
-    /* Smooth scrolling optimizations */
-    scroll-behavior: smooth;
+    /* Enable layout containment for better performance */
+    contain: layout style paint;
 }
 
 /* ===== HEADER ===== */
@@ -913,8 +925,9 @@ body::after {
 .dashboard-content {
     position: relative;
     background: rgba(15, 20, 30, 0.4);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    /* Optimized blur for 120 FPS performance */
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
     border-radius: 24px;
     border: 2px solid rgba(255, 255, 255, 0.08);
     padding: 2.5rem;
@@ -926,17 +939,27 @@ body::after {
     min-height: 400px;
     z-index: 0;
     overflow: hidden;
+    /* Ultra-optimized for 120 FPS scrolling */
+    will-change: transform, scroll-position;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    /* Enable compositor optimizations */
+    contain: layout style paint;
 }
 
 /* ===== TAB CONTENT ===== */
 .tab-content {
     display: none;
     animation: fadeIn 0.4s ease-out;
-    transform: translateZ(0);
-    will-change: scroll-position;
+    /* Ultra-optimized for 120 FPS scrolling */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    /* GPU acceleration for ultra-smooth rendering */
+    transform: translateZ(0);
+    will-change: transform, scroll-position;
     backface-visibility: hidden;
+    /* Compositor optimizations */
+    contain: layout style paint;
 }
 
 .tab-content.active {
@@ -1000,7 +1023,6 @@ body::after {
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 1.75rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
     box-shadow:
@@ -1017,25 +1039,7 @@ body::after {
     backface-visibility: hidden;
 }
 
-.kpi-card:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    border-top-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-4px) scale(1.02);
-    box-shadow:
-        0 20px 60px rgba(0, 0, 0, 0.5),
-        0 8px 24px rgba(0, 0, 0, 0.4),
-        0 0 0 0.5px rgba(255, 255, 255, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.3),
-        inset 1px 0 0 rgba(255, 255, 255, 0.1),
-        inset -1px 0 0 rgba(255, 255, 255, 0.1);
-    background: linear-gradient(
-        135deg,
-        rgba(15, 20, 30, 0.6) 0%,
-        rgba(20, 25, 35, 0.55) 50%,
-        rgba(15, 20, 30, 0.6) 100%
-    );
-}
+/* Removed hover zoom effect - keeping it simple */
 
 .kpi-header {
     display: flex;
@@ -1072,14 +1076,7 @@ body::after {
     transition: opacity 0.3s ease;
 }
 
-.kpi-card:hover .kpi-icon::before {
-    opacity: 1;
-}
-
-.kpi-card:hover .kpi-icon {
-    transform: scale(1.15);
-    filter: brightness(1.1);
-}
+/* Removed icon hover zoom effects - keeping it simple */
 
 .kpi-icon.gauge {
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.25) 100%);
@@ -1093,14 +1090,7 @@ body::after {
     border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
-.kpi-card:hover .kpi-icon.gauge {
-    box-shadow:
-        0 8px 24px rgba(16, 185, 129, 0.4),
-        0 0 30px rgba(16, 185, 129, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-    filter: drop-shadow(0 0 16px rgba(16, 185, 129, 0.6));
-}
+/* Removed gauge icon hover effects - keeping it simple */
 
 .kpi-icon.clock {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.25) 100%);
@@ -1114,14 +1104,7 @@ body::after {
     border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-.kpi-card:hover .kpi-icon.clock {
-    box-shadow:
-        0 8px 24px rgba(59, 130, 246, 0.4),
-        0 0 30px rgba(59, 130, 246, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-    filter: drop-shadow(0 0 16px rgba(59, 130, 246, 0.6));
-}
+/* Removed clock icon hover effects - keeping it simple */
 
 .kpi-icon.shield {
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.25) 100%);
@@ -1135,14 +1118,7 @@ body::after {
     border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
-.kpi-card:hover .kpi-icon.shield {
-    box-shadow:
-        0 8px 24px rgba(139, 92, 246, 0.4),
-        0 0 30px rgba(139, 92, 246, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-    filter: drop-shadow(0 0 16px rgba(139, 92, 246, 0.6));
-}
+/* Removed shield icon hover effects - keeping it simple */
 
 .kpi-icon.target {
     background: linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(219, 39, 119, 0.25) 100%);
@@ -1156,14 +1132,7 @@ body::after {
     border: 1px solid rgba(236, 72, 153, 0.3);
 }
 
-.kpi-card:hover .kpi-icon.target {
-    box-shadow:
-        0 8px 24px rgba(236, 72, 153, 0.4),
-        0 0 30px rgba(236, 72, 153, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-    filter: drop-shadow(0 0 16px rgba(236, 72, 153, 0.6));
-}
+/* Removed target icon hover effects - keeping it simple */
 
 .kpi-icon i {
     width: 24px;
@@ -3740,6 +3709,13 @@ body::after {
     background: linear-gradient(to right, #f59e0b, #d97706);
 }
 
+.progress-fill.purple {
+    background: linear-gradient(to right, #8b5cf6, #7c3aed);
+    box-shadow:
+        0 0 8px rgba(139, 92, 246, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
 /* ===== SAFETY GRID ===== */
 .safety-grid {
     display: grid;
@@ -5706,11 +5682,11 @@ body::after {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    /* Smooth scrolling optimizations */
-    scroll-behavior: smooth;
     scroll-padding-top: 10px;
+    /* Ensure container can capture scroll events */
+    position: relative;
+    /* Use contain for better scroll performance */
+    contain: layout style paint;
 }
 
 .test-results-list {

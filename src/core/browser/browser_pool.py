@@ -81,6 +81,7 @@ class BrowserPool:
 
         timeout = timeout if timeout is not None else self.max_wait_time
         start_time = time.time()
+        manager = None
 
         try:
             # Try to get from queue with timeout
@@ -90,11 +91,31 @@ class BrowserPool:
             raise ResourceError(
                 f"No browser available in pool after {elapsed:.2f}s", resource_type="browser_pool"
             ) from e
+        except Exception as e:
+            # If we got a manager but something else failed, ensure cleanup
+            if manager:
+                with contextlib.suppress(Exception):
+                    manager.close()
+            logger.error(f"Error acquiring browser from pool: {e}", exc_info=True)
+            raise ResourceError(
+                f"Failed to acquire browser: {e}", resource_type="browser_pool"
+            ) from e
 
-        with self._lock:
-            self._in_use.add(manager)
-
-        return manager
+        try:
+            with self._lock:
+                self._in_use.add(manager)
+            return manager
+        except Exception as e:
+            # If adding to in_use fails, return manager to pool
+            try:
+                if manager and manager.browser and manager.browser.is_connected():
+                    self._available.put(manager)
+            except Exception:
+                pass
+            logger.error(f"Error tracking browser in pool: {e}", exc_info=True)
+            raise ResourceError(
+                f"Failed to track browser: {e}", resource_type="browser_pool"
+            ) from e
 
     def release(self, manager: BrowserManager) -> None:
         """
@@ -104,23 +125,37 @@ class BrowserPool:
             manager: BrowserManager instance to release
         """
         if self._shutdown:
+            # Still try to close the browser even if pool is shutting down
+            try:
+                if manager:
+                    manager.close()
+            except Exception as e:
+                logger.warning(f"Error closing browser during shutdown: {e}")
             return
 
-        with self._lock:
-            if manager in self._in_use:
-                self._in_use.remove(manager)
+        # Remove from in_use set first
+        try:
+            with self._lock:
+                if manager in self._in_use:
+                    self._in_use.remove(manager)
+        except Exception as e:
+            logger.warning(f"Error removing browser from in_use set: {e}")
 
         # Check if browser is still usable
         try:
-            if manager.browser and manager.browser.is_connected():
+            if manager and manager.browser and manager.browser.is_connected():
                 self._available.put(manager)
             else:
                 # Browser is dead, create replacement
                 logger.warning("Released browser is not connected, creating replacement")
                 self._replace_browser(manager)
         except Exception as e:
-            logger.error(f"Error releasing browser: {e}, creating replacement")
-            self._replace_browser(manager)
+            logger.error(f"Error releasing browser: {e}, attempting replacement", exc_info=True)
+            # Ensure we try to replace even if put() failed
+            try:
+                self._replace_browser(manager)
+            except Exception as replace_error:
+                logger.error(f"Failed to replace browser: {replace_error}", exc_info=True)
 
     def _replace_browser(self, old_manager: BrowserManager) -> None:
         """Replace a dead browser with a new one."""

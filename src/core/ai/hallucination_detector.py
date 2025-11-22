@@ -1,9 +1,12 @@
 """Advanced hallucination detection for AI responses."""
 
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from loguru import logger
+
+if TYPE_CHECKING:
+    from core.ai.fact_checker import HuggingFaceFactChecker
 
 
 @dataclass
@@ -33,10 +36,31 @@ class ConsistencyResult:
 class AdvancedHallucinationDetector:
     """Enhanced hallucination detection with multiple strategies."""
 
-    def __init__(self):
-        """Initialize hallucination detector."""
+    def __init__(self, use_fact_checker: bool = True):
+        """
+        Initialize hallucination detector.
+
+        Args:
+            use_fact_checker: Whether to use HuggingFace fact-checker (default: True)
+        """
         self._bert_scorer = None
+        self.use_fact_checker = use_fact_checker
+        self._fact_checker: HuggingFaceFactChecker | None = None
         logger.info("Advanced hallucination detector initialized")
+
+    @property
+    def fact_checker(self):
+        """Lazy load fact-checker."""
+        if self._fact_checker is None and self.use_fact_checker:
+            try:
+                from core.ai.fact_checker import HuggingFaceFactChecker
+
+                self._fact_checker = HuggingFaceFactChecker(enabled=True)
+                logger.info("Fact-checker initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize fact-checker: {e}")
+                self._fact_checker = None
+        return self._fact_checker
 
     @property
     def bert_scorer(self):
@@ -56,12 +80,12 @@ class AdvancedHallucinationDetector:
         self, response: str, known_facts: list[str], threshold: float = 0.5
     ) -> HallucinationResult:
         """
-        Detect hallucination using semantic similarity (BERTScore).
+        Detect hallucination using fact-checking (NLI) and semantic similarity (BERTScore).
 
         Args:
             response: AI response to check
             known_facts: List of ground truth facts
-            threshold: Similarity threshold (higher = stricter)
+            threshold: Similarity threshold (higher = stricter) - only used if fact-checker unavailable
 
         Returns:
             HallucinationResult
@@ -74,8 +98,44 @@ class AdvancedHallucinationDetector:
                 details={"error": "No known facts provided"},
             )
 
+        # Try fact-checker first (more accurate)
+        if self.fact_checker:
+            try:
+                fact_result = self.fact_checker.check_multiple_facts(
+                    claim=response, premises=known_facts, threshold=threshold
+                )
+                if fact_result:
+                    # NLI-based detection is more reliable
+                    # Map NLI labels to hallucination detection:
+                    # - CONTRADICTION -> has_hallucination = True
+                    # - ENTAILMENT -> has_hallucination = False (factual)
+                    # - NEUTRAL -> has_hallucination = False (unknown, not a hallucination)
+                    if fact_result.label == "CONTRADICTION":
+                        has_hallucination = True
+                    elif fact_result.label == "ENTAILMENT":
+                        has_hallucination = False
+                    else:  # NEUTRAL
+                        # Neutral means we can't determine - treat as not hallucination
+                        # but with lower confidence
+                        has_hallucination = False
+
+                    return HallucinationResult(
+                        has_hallucination=has_hallucination,
+                        confidence=fact_result.confidence,
+                        detection_method="nli_fact_check",
+                        details={
+                            "nli_label": fact_result.label,
+                            "nli_confidence": fact_result.confidence,
+                            "fact_checker_model": self.fact_checker.model_name,
+                            **fact_result.details,
+                        },
+                    )
+            except Exception as e:
+                logger.debug(f"Fact-checker failed, falling back to BERTScore: {e}")
+
+        # Fallback to BERTScore (less accurate but always available)
         try:
-            # Use BERTScore for more accurate semantic comparison
+            # Use BERTScore for semantic comparison
             P, R, F1 = self.bert_scorer.score(cands=[response] * len(known_facts), refs=known_facts)
 
             # Get best matching fact
@@ -101,6 +161,7 @@ class AdvancedHallucinationDetector:
                     "threshold": threshold,
                     "num_facts": len(known_facts),
                     "num_conflicting": len(conflicting_facts),
+                    "note": "Using BERTScore fallback (fact-checker unavailable)",
                 },
                 conflicting_facts=conflicting_facts,
             )
@@ -112,12 +173,7 @@ class AdvancedHallucinationDetector:
 
         except Exception as e:
             logger.error(f"Error in semantic hallucination detection: {e}")
-            return HallucinationResult(
-                has_hallucination=False,
-                confidence=0.0,
-                detection_method="semantic_bertscore",
-                details={"error": str(e)},
-            )
+            raise
 
     def detect_factual_inconsistency(
         self, response: str, known_facts: dict[str, Any]
@@ -394,10 +450,24 @@ class AdvancedHallucinationDetector:
         Returns:
             ConsistencyResult
         """
-        # Split response into sentences
-        sentences = [s.strip() for s in response.split(".") if s.strip()]
+        if not response or not response.strip():
+            return ConsistencyResult(
+                is_consistent=True,
+                contradictions=[],
+                confidence=1.0,
+            )
+
+        # Split response into sentences (handle multiple sentence endings)
+        import re
+
+        sentences = [
+            s.strip()
+            for s in re.split(r"[.!?]+", response)
+            if s.strip() and len(s.strip()) > 10  # Filter very short fragments
+        ]
 
         if len(sentences) < 2:
+            # Single sentence or very short response - assume consistent
             return ConsistencyResult(
                 is_consistent=True,
                 contradictions=[],
@@ -405,17 +475,25 @@ class AdvancedHallucinationDetector:
             )
 
         # Check for contradictions using self-contradiction detection
-        result = self.detect_self_contradiction(sentences)
-
-        return ConsistencyResult(
-            is_consistent=not result.has_hallucination,
-            contradictions=result.conflicting_facts or [],
-            confidence=1.0 - result.confidence,
-        )
+        try:
+            result = self.detect_self_contradiction(sentences)
+            return ConsistencyResult(
+                is_consistent=not result.has_hallucination,
+                contradictions=result.conflicting_facts or [],
+                confidence=1.0 - result.confidence,
+            )
+        except Exception as e:
+            logger.error(f"Error in internal consistency check: {e}")
+            # On error, assume consistent (fail-safe)
+            return ConsistencyResult(
+                is_consistent=True,
+                contradictions=[],
+                confidence=0.5,  # Lower confidence due to error
+            )
 
     def evaluate_grounding(self, response: str, known_sources: list[str]) -> float:
         """
-        Evaluate how well the response is grounded in known sources.
+        Evaluate how well the response is grounded in known sources using BERTScore.
 
         Args:
             response: AI response to check
@@ -424,17 +502,32 @@ class AdvancedHallucinationDetector:
         Returns:
             Grounding score (0.0 to 1.0, higher is better)
         """
-        if not known_sources:
+        if not response or not response.strip():
+            logger.warning("Empty response provided for grounding evaluation")
             return 0.0
 
-        # Convert known_sources to list of facts for semantic detection
-        result = self.detect_semantic_hallucination(response, known_sources, threshold=0.5)
+        if not known_sources:
+            logger.warning("No known sources provided for grounding evaluation")
+            return 0.0
 
-        # Return inverse of hallucination confidence as grounding score
-        # Higher confidence in hallucination = lower grounding
-        grounding_score = 1.0 - result.confidence
+        try:
+            # Use BERTScore to evaluate grounding
+            P, R, F1 = self.bert_scorer.score(
+                cands=[response] * len(known_sources), refs=known_sources
+            )
 
-        return max(0.0, min(1.0, grounding_score))
+            # Get best matching source
+            best_f1 = float(F1.max())
+            avg_f1 = float(F1.mean())
+
+            # Weighted combination: 70% best match, 30% average
+            grounding_score = (best_f1 * 0.7) + (avg_f1 * 0.3)
+
+            return max(0.0, min(1.0, grounding_score))
+
+        except Exception as e:
+            logger.error(f"Error in grounding evaluation: {e}")
+            raise
 
 
 # Global instance

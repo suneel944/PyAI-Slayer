@@ -20,6 +20,7 @@ def _store_validation_data(
     response: str | None,
     metrics: dict[str, Any],
     expected_response: str | None = None,
+    reference: str | None = None,
 ) -> None:
     """Store validation data for test reporting (transparent to tests)."""
     global _validation_context
@@ -27,6 +28,7 @@ def _store_validation_data(
         "query": query,
         "response": response,
         "expected_response": expected_response,
+        "reference": reference,
         "metrics": metrics,
     }
 
@@ -810,9 +812,13 @@ class AIResponseValidator:
             lang: str = str(metrics["language"])
             metrics["bertscore"] = self.calculate_bertscore(candidate, reference, lang=lang)
             metrics["rouge"] = self.calculate_rouge_scores(candidate, reference)
-            # Store expected_response in validation context when reference is provided
+            # Store reference in validation context when reference is provided
             _store_validation_data(
-                query=None, response=candidate, metrics=metrics, expected_response=reference
+                query=None,
+                response=candidate,
+                metrics=metrics,
+                expected_response=reference,
+                reference=reference,
             )
 
         # Perplexity (optional, slow)

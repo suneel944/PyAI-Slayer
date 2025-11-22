@@ -136,3 +136,7 @@ $RECYCLE.BIN/
 .git/
 .gitignore
 .gitattributes
+
+# Data directory (eval sets, calibration results - may contain sensitive info)
+data/
+!data/examples/

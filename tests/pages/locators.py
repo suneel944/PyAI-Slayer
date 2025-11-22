@@ -30,21 +30,6 @@ class ChatLocators:
 
 
 @dataclass(frozen=True)
-class LoginLocators:
-    """Static locators for login page elements."""
-
-    SSO_LOGIN_BUTTON: ClassVar[str] = "button:has-text('Log in using SSO')"
-    EMAIL_LOGIN_BUTTON: ClassVar[str] = "button:has-text('Log in with email')"
-    EMAIL_INPUT: ClassVar[str] = "input[type='email']"
-    PASSWORD_INPUT: ClassVar[str] = "input[type='password']"
-    LOGIN_BUTTON: ClassVar[str] = "button[type='submit']"
-    ERROR_MESSAGE: ClassVar[str] = ".error-message, .alert-error, [role='alert']"
-
-    LOGOUT_BUTTON: ClassVar[str] = "button:has-text('Logout'), button:has-text('Sign out')"
-    USER_MENU: ClassVar[str] = ".user-menu, [data-testid='user-menu']"
-
-
-@dataclass(frozen=True)
 class PollingConfig:
     """Configuration constants for polling mechanisms."""
 

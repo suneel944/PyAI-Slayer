@@ -123,6 +123,37 @@ class Settings(BaseSettings):
     semantic_model_name: str = "intfloat/multilingual-e5-base"
     arabic_semantic_model_name: str = "Omartificial-Intelligence-Space/mmbert-base-arabic-nli"
 
+    # Fact-checker configuration
+    fact_checker_model_name: str | None = None  # Primary model (None = use fallback list)
+    fact_checker_fallback_models: str = "microsoft/deberta-large-mnli,roberta-large-mnli,facebook/bart-large-mnli"  # Comma-separated fallback models
+    fact_checker_enabled: bool = True
+    fact_checker_use_cuda: bool = True  # Use GPU if available
+    fact_checker_cuda_device: int = 0  # CUDA device ID
+
+    # Fact-checker thresholds
+    fact_checker_strong_contradiction_threshold: float = 0.7  # Confidence for strong contradiction
+    fact_checker_strong_entailment_threshold: float = 0.7  # Confidence for strong entailment
+    fact_checker_weak_entailment_threshold: float = 0.5  # Confidence for weak entailment
+    fact_checker_neutral_threshold: float = 0.8  # Confidence for neutral classification
+    fact_checker_neutral_ratio_threshold: float = 0.7  # Ratio of neutrals to mark as unknown
+
+    # RAG Reranker configuration
+    rag_reranker_model_name: str | None = None  # Primary model (None = use fallback list)
+    rag_reranker_fallback_models: str = "BAAI/bge-reranker-base,BAAI/bge-reranker-large,ms-marco-MiniLM-L-12-v2"  # Comma-separated fallback models
+    rag_reranker_enabled: bool = True
+    rag_reranker_use_cuda: bool = True  # Use GPU if available
+    rag_reranker_cuda_device: int = 0  # CUDA device ID
+
+    # RAG Metric Targets (optional - overrides calibration file if set)
+    # Leave empty to use calibration recommendations from data/rag_calibration_recommendations.json
+    rag_target_retrieval_recall_5: float | None = None
+    rag_target_retrieval_precision_5: float | None = None
+    rag_target_context_relevance: float | None = None
+    rag_target_context_coverage: float | None = None
+    rag_target_context_intrusion: float | None = None  # Lower is better
+    rag_target_gold_context_match: float | None = None
+    rag_target_reranker_score: float | None = None  # 0-1 scale
+
     # Validation thresholds
     semantic_similarity_threshold: float = 0.7
     arabic_semantic_similarity_threshold: float = 0.5

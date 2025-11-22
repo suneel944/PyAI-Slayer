@@ -20,6 +20,7 @@ A comprehensive Python automation framework specifically designed for AI/ML chat
    DASHBOARD
    DOCKER
    PLUGINS
+   RAG_CALIBRATION_USAGE
 
 .. toctree::
    :maxdepth: 2

@@ -67,7 +67,7 @@ dependencies = [
 [project.optional-dependencies]
 gpu = [
     # GPU monitoring (optional - only needed for GPU metrics)
-    "pynvml>=13.0.1",  # NVIDIA GPU metrics
+    "nvidia-ml-py>=13.580.82",  # NVIDIA GPU metrics - latest version (replaces deprecated pynvml)
 ]
 dev = [
     # Testing
@@ -212,7 +212,7 @@ ignore_missing_imports = true
 # Pytest Configuration
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_*.py"]
+python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = [
@@ -222,6 +222,8 @@ addopts = [
     "--json-report",
     "--json-report-file=reports/report.json"
 ]
+# Enable test discovery for IDEs
+norecursedirs = [".git", ".venv", "venv", "__pycache__", "build", "dist", ".pytest_cache"]
 markers = [
     "smoke: Smoke tests - critical path only",
     "regression: Full regression test suite",

@@ -65,9 +65,7 @@ class AgentMetricsCalculator:
 
         # Error Recovery
         if errors_encountered is not None and task_completed is not None:
-            if errors_encountered > 0 and task_completed:
-                metrics["error_recovery"] = 100.0
-            elif errors_encountered == 0:
+            if errors_encountered > 0 and task_completed or errors_encountered == 0:
                 metrics["error_recovery"] = 100.0
             else:
                 metrics["error_recovery"] = 0.0

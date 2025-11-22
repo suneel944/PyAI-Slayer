@@ -1,9 +1,6 @@
 """Safety and guardrail metrics calculator."""
 
 import re
-from typing import Any
-
-from loguru import logger
 
 from .detectors import CompositeToxicityDetector, ToxicityDetector
 

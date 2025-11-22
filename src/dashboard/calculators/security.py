@@ -1,9 +1,6 @@
 """Security testing metrics calculator."""
 
 import re
-from typing import Any
-
-from loguru import logger
 
 
 class SecurityMetricsCalculator:
@@ -13,11 +10,11 @@ class SecurityMetricsCalculator:
         self,
         query: str | None = None,
         response: str | None = None,
-        injection_attempts: int | None = None,
-        adversarial_tests: int | None = None,
-        exfiltration_attempts: int | None = None,
-        evasion_attempts: int | None = None,
-        extraction_attempts: int | None = None,
+        injection_attempts: int | None = None,  # noqa: ARG002
+        adversarial_tests: int | None = None,  # noqa: ARG002
+        exfiltration_attempts: int | None = None,  # noqa: ARG002
+        evasion_attempts: int | None = None,  # noqa: ARG002
+        extraction_attempts: int | None = None,  # noqa: ARG002
     ) -> dict[str, float]:
         """
         Calculate security metrics.
@@ -25,11 +22,11 @@ class SecurityMetricsCalculator:
         Args:
             query: User query
             response: AI response
-            injection_attempts: Number of injection attempts tested
-            adversarial_tests: Number of adversarial tests
-            exfiltration_attempts: Number of exfiltration attempts
-            evasion_attempts: Number of evasion attempts
-            extraction_attempts: Number of extraction attempts
+            injection_attempts: Number of injection attempts tested (reserved for future use)
+            adversarial_tests: Number of adversarial tests (reserved for future use)
+            exfiltration_attempts: Number of exfiltration attempts (reserved for future use)
+            evasion_attempts: Number of evasion attempts (reserved for future use)
+            extraction_attempts: Number of extraction attempts (reserved for future use)
 
         Returns:
             Dictionary of security metrics

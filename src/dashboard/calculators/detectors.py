@@ -1,7 +1,7 @@
 """Detector classes for heavy/complex dependencies (toxicity, etc.)."""
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from loguru import logger
 
@@ -39,7 +39,7 @@ class HuggingFaceToxicityDetector(ToxicityDetector):
         """
         self.enabled = enabled
         self.model_name = model_name
-        self._pipeline: "TextClassificationPipeline | None" = None
+        self._pipeline: TextClassificationPipeline | None = None
         self._loaded = False
 
     def _load_model(self) -> bool:

@@ -1,6 +1,5 @@
 """Performance metrics calculator."""
 
-from typing import Any
 
 
 class PerformanceMetricsCalculator:

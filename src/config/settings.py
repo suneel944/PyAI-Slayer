@@ -191,6 +191,33 @@ class Settings(BaseSettings):
             return [lang.strip() for lang in v.split(",") if lang.strip()]
         return v
 
+    @field_validator(
+        "rag_target_retrieval_recall_5",
+        "rag_target_retrieval_precision_5",
+        "rag_target_context_relevance",
+        "rag_target_context_coverage",
+        "rag_target_context_intrusion",
+        "rag_target_gold_context_match",
+        "rag_target_reranker_score",
+        mode="before",
+    )
+    @classmethod
+    def parse_rag_target(cls, v):
+        """Parse RAG target values, converting empty strings to None."""
+        if v == "" or v is None:
+            return None
+        if isinstance(v, (int, float)):
+            return float(v)
+        if isinstance(v, str):
+            v = v.strip()
+            if v == "":
+                return None
+            try:
+                return float(v)
+            except ValueError:
+                return None
+        return v
+
     def __init__(self, **kwargs):
         """
         Initialize settings with environment-specific overrides.

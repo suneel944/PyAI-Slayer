@@ -40,7 +40,10 @@ class HuggingFaceReranker:
     def _load_model(self) -> bool:
         """Lazy load the reranker model."""
         if self._loaded:
-            return self._pipeline is not None
+            # Return True if either pipeline (FlagReranker) or model/tokenizer (transformers) is available
+            return (self._pipeline is not None) or (
+                self._model is not None and self._tokenizer is not None
+            )
 
         if not self.enabled:
             return False
@@ -177,8 +180,15 @@ class HuggingFaceReranker:
                 # Transformers API: manual inference
                 import torch
 
-                # Format for cross-encoder: "[query] [SEP] [document]"
-                text = f"{query} [SEP] {document}"
+                # BGE rerankers use the tokenizer's sep_token (usually </s>) or just concatenate
+                # Check if tokenizer has sep_token and use it, otherwise use space
+                sep_token = (
+                    self._tokenizer.sep_token
+                    if hasattr(self._tokenizer, "sep_token") and self._tokenizer.sep_token
+                    else " "
+                )
+                # Format: query + sep_token + document
+                text = f"{query}{sep_token}{document}"
 
                 # Tokenize
                 inputs = self._tokenizer(
@@ -195,32 +205,46 @@ class HuggingFaceReranker:
                     outputs = self._model(**inputs)
                     # Get logits
                     logits = outputs.logits
+                    logger.debug(
+                        f"Reranker logits shape: {logits.shape}, value: {logits[0][0].item() if logits.numel() > 0 else 'N/A'}"
+                    )
 
                     # BGE rerankers are typically regression models (single output)
                     # or binary classification models
                     if logits.shape[-1] == 1:
                         # Regression model: single output value
-                        score = float(logits[0][0])
+                        raw_score = float(logits[0][0])
                         # BGE rerankers output raw scores that can be negative
                         # Normalize using sigmoid to [0, 1]
                         import math
 
-                        score = 1 / (1 + math.exp(-score))
+                        score = 1 / (1 + math.exp(-raw_score))
+                        logger.debug(f"Reranker raw_score: {raw_score}, normalized: {score}")
                     elif logits.shape[-1] == 2:
                         # Binary classification: use positive class probability
                         probs = torch.softmax(logits, dim=-1)
                         score = float(probs[0][1])  # Positive class
+                        logger.debug(f"Reranker binary classification score: {score}")
                     else:
                         # Multi-class or other: use softmax and take max
                         probs = torch.softmax(logits, dim=-1)
                         score = float(torch.max(probs[0]))
+                        logger.debug(f"Reranker multi-class score: {score}")
 
-                return max(0.0, min(1.0, float(score)))
+                final_score = max(0.0, min(1.0, float(score)))
+                logger.debug(f"Reranker final score: {final_score}")
+                return final_score
             else:
+                logger.debug(
+                    f"Reranker: model={self._model is not None}, tokenizer={self._tokenizer is not None}"
+                )
                 return 0.0
 
         except Exception as e:
-            logger.debug(f"Reranker scoring failed: {e}, falling back to 0.0")
+            logger.warning(f"Reranker scoring failed: {e}, falling back to 0.0")
+            import traceback
+
+            logger.debug(f"Reranker error traceback: {traceback.format_exc()}")
             return 0.0
 
     def score_batch(self, query: str, documents: list[str]) -> list[float]:
@@ -241,12 +265,44 @@ class HuggingFaceReranker:
             if self._use_flag_reranker and self._pipeline:
                 # FlagReranker supports batch scoring
                 pairs = [[query, doc] for doc in documents]
-                scores = self._pipeline.compute_score(pairs)
-                # Normalize scores
+                raw_scores = self._pipeline.compute_score(pairs)
+
+                # Handle different return types from FlagReranker
                 import math
 
-                normalized_scores = [1 / (1 + math.exp(-s)) for s in scores]
-                return [max(0.0, min(1.0, float(s))) for s in normalized_scores]
+                import numpy as np
+
+                # Convert to list if numpy array
+                if isinstance(raw_scores, np.ndarray):
+                    scores_list = raw_scores.tolist()
+                elif isinstance(raw_scores, list):
+                    scores_list = raw_scores
+                else:
+                    # Single value - shouldn't happen for batch, but handle it
+                    scores_list = [raw_scores]
+
+                # Normalize scores using sigmoid
+                # FlagReranker typically returns raw similarity scores that can be negative or > 1
+                normalized_scores = []
+                for s in scores_list:
+                    # Convert to float
+                    score_val = float(s)
+
+                    # Apply sigmoid normalization to ensure [0, 1] range
+                    # Sigmoid: 1 / (1 + exp(-x)) maps any real number to (0, 1)
+                    normalized = 1 / (1 + math.exp(-score_val))
+
+                    # Clamp to [0, 1] to ensure no edge cases
+                    normalized = max(0.0, min(1.0, normalized))
+                    normalized_scores.append(normalized)
+
+                    # Log if score seems unusual (for debugging)
+                    if score_val > 5.0 or score_val < -5.0:
+                        logger.debug(
+                            f"Reranker unusual raw score: {score_val:.4f}, normalized: {normalized:.4f}"
+                        )
+
+                return normalized_scores
             else:
                 # Fallback to individual scoring
                 scores = []

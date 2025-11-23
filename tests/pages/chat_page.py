@@ -7,6 +7,7 @@ from playwright.sync_api import Page
 
 from tests.pages.base_page import BasePage
 from tests.pages.locators import ChatLocators, PollingConfig
+from utils.helpers import extract_sources_from_message
 from utils.timing_utils import TimingCalculator, calculate_ttft, validate_timestamp_recent
 
 
@@ -35,6 +36,7 @@ class ChatPage(BasePage):
         self._current_user_message_id = None
         self._request_timestamp = None
         self._timing_calculator = TimingCalculator()
+        self._last_user_query: str | None = None
         self._setup_response_interception()
 
     def _setup_response_interception(self):
@@ -138,6 +140,17 @@ class ChatPage(BasePage):
                         for msg in reversed(messages):
                             if msg.get("role") == "assistant" and msg.get("content"):
                                 self._last_ai_response = msg.get("content")
+
+                                # Extract sources from the message for RAG metrics
+                                extracted_sources = extract_sources_from_message(msg)
+                                if extracted_sources:
+                                    logger.debug(
+                                        f"Extracted {len(extracted_sources)} sources from completed response: "
+                                        f"{[s[:50] + '...' if len(s) > 50 else s for s in extracted_sources[:3]]}"
+                                    )
+                                    # Store sources in RAG context for dashboard collection
+                                    self._store_retrieved_docs(extracted_sources)
+
                                 logger.debug(
                                     f"Captured AI response from API: {self._last_ai_response[:50]}..."
                                 )
@@ -294,6 +307,17 @@ class ChatPage(BasePage):
                             # Capture final response (prefer newest valid message with content)
                             if content and content.strip() and is_valid_message:
                                 self._last_ai_response = content
+
+                                # Extract sources from the message for RAG metrics
+                                extracted_sources = extract_sources_from_message(msg)
+                                if extracted_sources:
+                                    logger.debug(
+                                        f"Extracted {len(extracted_sources)} sources from message: "
+                                        f"{[s[:50] + '...' if len(s) > 50 else s for s in extracted_sources[:3]]}"
+                                    )
+                                    # Store sources in RAG context for dashboard collection
+                                    self._store_retrieved_docs(extracted_sources)
+
                                 logger.debug(
                                     f"Captured AI response from chat GET (async): {self._last_ai_response[:50]}..."
                                 )
@@ -332,6 +356,28 @@ class ChatPage(BasePage):
             )
         except Exception as e:
             logger.debug(f"Failed to store first_token_time in validation data: {e}")
+
+    def _store_retrieved_docs(self, retrieved_docs: list[str]):
+        """Store retrieved documents/sources in RAG context for dashboard collection."""
+        if not retrieved_docs:
+            return
+
+        try:
+            from core.ai.rag_tester import _store_rag_context
+
+            _store_rag_context(
+                retrieved_docs=retrieved_docs,
+                expected_sources=None,
+                gold_context=None,
+                query=self._last_user_query,
+                response=self._last_ai_response,
+            )
+            logger.debug(
+                f"Stored {len(retrieved_docs)} retrieved documents in RAG context: "
+                f"{[doc[:50] + '...' if len(doc) > 50 else doc for doc in retrieved_docs[:3]]}"
+            )
+        except Exception as e:
+            logger.debug(f"Failed to store retrieved documents in RAG context: {e}")
 
     def wait_for_chat_loaded(self, timeout: int | None = None) -> bool:
         """Wait for chat widget to load."""
@@ -374,6 +420,8 @@ class ChatPage(BasePage):
             logger.info("Filling message input...")
             message_input.clear()
             message_input.fill(text)
+            # Store the user query for RAG metrics
+            self._last_user_query = text
             logger.info("✓ Message filled")
 
             self.page.wait_for_timeout(500)

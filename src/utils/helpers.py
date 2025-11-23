@@ -127,3 +127,61 @@ def expand_payload_list(payloads: list[Any]) -> list[str]:
         elif isinstance(expanded_item, list):
             expanded.extend(expand_payload_list(expanded_item))
     return expanded
+
+
+def extract_sources_from_message(message: dict[str, Any]) -> list[str]:
+    """
+    Extract sources/retrieved documents from a chat message.
+
+    Sources can come from:
+    1. The 'sources' field in the message object (if populated)
+    2. Markdown references in the content (e.g., [^1], [^2] with URLs)
+
+    Args:
+        message: Message object from chat API response
+
+    Returns:
+        List of source URLs or document texts
+    """
+    sources: list[str] = []
+
+    # First, try to get sources from the message's 'sources' field
+    msg_sources = message.get("sources")
+    if msg_sources and isinstance(msg_sources, list):
+        for source in msg_sources:
+            if isinstance(source, str) and source.strip():
+                sources.append(source.strip())
+            elif isinstance(source, dict):
+                # Handle structured source objects
+                url = source.get("url") or source.get("link") or source.get("href")
+                text = source.get("text") or source.get("title") or source.get("content")
+                if url:
+                    sources.append(url)
+                elif text:
+                    sources.append(text)
+
+    # If no sources found, try parsing markdown references from content
+    if not sources:
+        content = message.get("content", "")
+        if content and isinstance(content, str):
+            # Parse markdown-style references: [^1]: [Title](URL)
+            import re
+
+            # Pattern to match reference definitions: [^N]: [Title](URL)
+            reference_pattern = r"\[\^(\d+)\]:\s*\[([^\]]+)\]\(([^)]+)\)"
+            matches = re.findall(reference_pattern, content)
+
+            for _num, _title, url in matches:
+                if url and url.strip():
+                    sources.append(url.strip())
+
+            # Also try to extract URLs from the References section
+            # Look for URLs in markdown link format: [text](url)
+            if not sources:
+                url_pattern = r"\[([^\]]+)\]\(([^)]+)\)"
+                url_matches = re.findall(url_pattern, content)
+                for _text, url in url_matches:
+                    if url and url.strip() and url.startswith(("http://", "https://")):
+                        sources.append(url.strip())
+
+    return sources

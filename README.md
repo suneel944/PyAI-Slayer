@@ -139,32 +139,52 @@ See [RAG Calibration Guide](docs/RAG_CALIBRATION_USAGE.md) for detailed instruct
 ## 🛠️ Common Commands
 
 ```bash
-# Development
-make setup              # Install dependencies
-make test              # Run all e2e tests (AI, security, UI)
-make test-ai           # Run AI tests only
-make test-security    # Run security tests only
-make test-ui          # Run UI tests only
-make test-unit        # Run unit tests only
-make test-all         # Run all tests (unit + e2e)
-make dashboard        # Launch dashboard
+# Setup & Installation
+make setup              # Complete project setup (check Python, create venv, install deps)
+make install-dev        # Install package with dev dependencies (auto-detects GPU)
+make install-hooks      # Install pre-commit hooks
+make playwright-install # Install Playwright browsers
 
-# Quality Checks
-make check             # Run linters
-make format            # Format code
-make type-check        # Run type checking
+# Testing
+make test               # Run all e2e tests (AI, security, UI - excludes unit tests)
+make test-all           # Run all tests (unit + e2e)
+make test-unit          # Run unit tests only
+make test-unit-cov      # Run unit tests with coverage report
+make test-ai            # Run AI tests only
+make test-security      # Run security tests only
+make test-ui            # Run UI tests only
+make test-integration   # Run integration tests only
+make test-property      # Run property-based tests (Hypothesis)
+make test-cov           # Run all tests with coverage report
 
-# Metrics & Analysis
-make metrics-summary   # View metrics summary
-make metrics-export    # Export to JSON
+# Code Quality
+make lint               # Run linter (ruff)
+make format             # Format code (ruff format only)
+make format-check       # Check code formatting without modifying files
+make type-check         # Run type checker (mypy)
+make check              # Run all checks (lint + type-check)
+make pre-commit         # Run all pre-commit checks (format + lint + type-check + security)
+make security-scan      # Run security scan (bandit)
 
-# Docker
-make docker-build      # Build container
-make docker-test       # Run tests in container
-make docker-dashboard  # Run dashboard in container
+# Build & CI
+make build              # Build distribution packages
+make ci                 # Run CI pipeline (install-dev + lint + type-check + test-unit)
+
+# Documentation
+make docs               # Build Sphinx documentation
+make docs-serve         # Build and serve documentation at http://localhost:8000
+
+# Dashboard & Metrics
+make dashboard          # Start metrics dashboard server
+make dashboard-custom   # Start dashboard with custom port
+make metrics-summary    # View test metrics summary (requires metrics enabled)
+make metrics-export     # Export metrics to JSON file
+make metrics-raw        # View raw metrics data
 
 # Cleanup
-make clean             # Remove artifacts
+make clean              # Remove venv, build artifacts, caches
+
+For a complete list of all available commands, run `make help`.
 ```
 
 ## 📁 Project Structure
@@ -226,6 +246,12 @@ RAG_RERANKER_FALLBACK_MODELS=BAAI/bge-reranker-base,BAAI/bge-reranker-large,ms-m
 RAG_RERANKER_ENABLED=true
 RAG_RERANKER_USE_CUDA=true  # Use GPU if available
 RAG_RERANKER_CUDA_DEVICE=0  # CUDA device ID
+RAG_FETCH_URL_CONTENT=true  # Fetch content from URLs for reranker scoring (improves accuracy)
+RAG_URL_FETCH_TIMEOUT=10  # Timeout in seconds for URL content fetching
+RAG_URL_MAX_CONTENT_LENGTH=10000  # Maximum content length per URL (characters)
+RAG_URL_MAX_RETRIES=3  # Maximum retry attempts per URL
+RAG_URL_RETRY_DELAY=1.0  # Delay between retries in seconds
+RAG_URL_MAX_WORKERS=5  # Maximum parallel workers for URL fetching
 
 # RAG Metric Targets (Optional - overrides calibration file if set)
 # Leave empty to use calibration recommendations from data/rag_calibration_recommendations.json

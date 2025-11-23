@@ -11,7 +11,7 @@ NC := \033[0m # No Color
 # Variables
 PYTHON := python3
 VENV := venv
-VENV_BIN := $(VENV)/bin
+VENV_BIN := $(abspath $(VENV)/bin)
 MIN_PYTHON_VERSION := 3.11
 PROJECT_NAME := pyai-slayer
 
@@ -44,36 +44,71 @@ ifeq ($(UNAME_S),Darwin)
     PLATFORM := macos
 endif
 
-.PHONY: help check-python check-gpu venv setup install install-dev clean clean-build clean-cache clean-test clean-venv clean-all test test-unit test-all test-integration test-cov test-ai test-security test-ui lint format type-check check build ci activate playwright-install
+.PHONY: \
+	help check-python check-gpu venv setup install install-dev \
+	clean clean-build clean-cache clean-test clean-venv clean-all \
+	test test-unit test-all test-integration test-cov test-ai test-security test-ui \
+	lint format format-check type-check security-scan check \
+	build ci activate playwright-install \
+	docs docs-serve \
+	test-unit-cov test-property \
+	install-hooks pre-commit \
+	validate-version changelog \
+	docker-build docker-run docker-test docker-unit docker-lint docker-shell docker-clean \
+	metrics-summary metrics-export metrics-raw \
+	dashboard dashboard-custom
 
 # Default target
 help:
 	@echo "$(CYAN)PyAI-Slayer - The Open Source AI Testing Arsenal$(NC)"
 	@echo ""
-	@echo "$(GREEN)Available targets:$(NC)"
+	@echo "$(GREEN)Setup & Installation:$(NC)"
 	@echo "  $(YELLOW)make setup$(NC)              - Complete project setup (check Python, create venv, install deps)"
 	@echo "  $(YELLOW)make install$(NC)            - Install package in production mode (auto-detects GPU)"
 	@echo "  $(YELLOW)make install-dev$(NC)       - Install package with dev dependencies (auto-detects GPU)"
+	@echo "  $(YELLOW)make install-hooks$(NC)     - Install pre-commit hooks"
+	@echo "  $(YELLOW)make playwright-install$(NC) - Install Playwright browsers"
+	@echo "  $(YELLOW)make activate$(NC)          - Show venv activation instructions"
+	@echo ""
+	@echo "$(GREEN)Testing:$(NC)"
 	@echo "  $(YELLOW)make test$(NC)               - Run e2e application tests (AI, security, UI - excludes unit tests)"
+	@echo "  $(YELLOW)make test-all$(NC)          - Run all tests (unit + e2e)"
+	@echo "  $(YELLOW)make test-unit$(NC)         - Run unit tests only"
+	@echo "  $(YELLOW)make test-unit-cov$(NC)     - Run unit tests with coverage report"
 	@echo "  $(YELLOW)make test-ai$(NC)           - Run AI tests only"
 	@echo "  $(YELLOW)make test-security$(NC)    - Run security tests only"
 	@echo "  $(YELLOW)make test-ui$(NC)            - Run UI tests only"
-	@echo "  $(YELLOW)make test-unit$(NC)         - Run unit tests only"
-	@echo "  $(YELLOW)make test-all$(NC)          - Run all tests (unit + e2e)"
+	@echo "  $(YELLOW)make test-integration$(NC)  - Run integration tests only"
+	@echo "  $(YELLOW)make test-property$(NC)     - Run property-based tests (Hypothesis)"
 	@echo "  $(YELLOW)make test-cov$(NC)          - Run all tests with coverage report"
+	@echo ""
+	@echo "$(GREEN)Code Quality:$(NC)"
 	@echo "  $(YELLOW)make lint$(NC)               - Run linter (ruff)"
 	@echo "  $(YELLOW)make format$(NC)            - Format code (ruff format only)"
-	@echo "  $(YELLOW)make pre-commit$(NC)        - Run all pre-commit checks (format + lint + type-check + security)"
+	@echo "  $(YELLOW)make format-check$(NC)      - Check code formatting without modifying files"
 	@echo "  $(YELLOW)make type-check$(NC)        - Run type checker (mypy)"
 	@echo "  $(YELLOW)make check$(NC)             - Run all checks (lint + type-check)"
+	@echo "  $(YELLOW)make pre-commit$(NC)        - Run all pre-commit checks (format + lint + type-check + security)"
+	@echo "  $(YELLOW)make security-scan$(NC)     - Run security scan (bandit)"
+	@echo ""
+	@echo "$(GREEN)Build & CI:$(NC)"
 	@echo "  $(YELLOW)make build$(NC)             - Build distribution packages"
 	@echo "  $(YELLOW)make ci$(NC)                - Run CI pipeline (install-dev + lint + type-check + test-unit)"
-	@echo "  $(YELLOW)make clean$(NC)             - Remove venv, build artifacts, caches"
-	@echo "  $(YELLOW)make playwright-install$(NC) - Install Playwright browsers"
-	@echo "  $(YELLOW)make activate$(NC)          - Show venv activation instructions"
+	@echo ""
+	@echo "$(GREEN)Documentation:$(NC)"
+	@echo "  $(YELLOW)make docs$(NC)              - Build Sphinx documentation"
+	@echo "  $(YELLOW)make docs-serve$(NC)        - Build and serve documentation at http://localhost:8000"
+	@echo ""
+	@echo "$(GREEN)Dashboard & Metrics:$(NC)"
+	@echo "  $(YELLOW)make dashboard$(NC)         - Start metrics dashboard server"
+	@echo "  $(YELLOW)make dashboard-custom$(NC)   - Start dashboard with custom port"
 	@echo "  $(YELLOW)make metrics-summary$(NC)   - View test metrics summary (requires metrics enabled)"
 	@echo "  $(YELLOW)make metrics-export$(NC)     - Export metrics to JSON file"
+	@echo "  $(YELLOW)make metrics-raw$(NC)       - View raw metrics data"
 	@echo ""
+	@echo "$(GREEN)Cleanup:$(NC)"
+	@echo "  $(YELLOW)make clean$(NC)             - Remove build artifacts & caches (keep venv)"
+	@echo "  $(YELLOW)make clean-all$(NC)         - Clean everything including venv"
 
 # Check if GPU is available
 check-gpu:
@@ -207,6 +242,22 @@ test-cov: venv
 	@$(VENV_BIN)/pytest tests/ -n $(PARALLEL_WORKERS) --cov=src \
 		--cov-report=html --cov-report=term-missing -vv -s --log-cli-level=INFO --log-cli-format="%(asctime)s [%(levelname)8s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
 	@echo "$(GREEN)✓ Coverage report generated in htmlcov/$(NC)"
+
+# Run unit tests only
+test-unit: venv
+	@echo "$(CYAN)Running unit tests in parallel ($(PARALLEL_WORKERS) workers) with verbose logs...$(NC)"
+	@echo "$(YELLOW)PARALLEL_WORKERS=$(PARALLEL_WORKERS)$(NC)"
+	@$(VENV_BIN)/pytest tests/unit/ -n $(PARALLEL_WORKERS) -vv -s --tb=short --log-cli-level=INFO --log-cli-format="%(asctime)s [%(levelname)8s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
+
+# Run unit tests with coverage (for CI)
+test-unit-cov: venv
+	@echo "$(CYAN)Running unit tests with coverage...$(NC)"
+	@$(VENV_BIN)/pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=term-missing
+
+# Run property-based tests
+test-property: venv
+	@echo "$(CYAN)Running property-based tests...$(NC)"
+	@$(VENV_BIN)/pytest tests/unit/test_*_property.py -v
 
 # Run linter
 lint: venv
@@ -346,31 +397,27 @@ activate:
 
 # Build documentation
 docs: venv
+	@echo "$(CYAN)Installing documentation dependencies...$(NC)"
+	@if ! $(VENV_BIN)/python -c "import sphinx" >/dev/null 2>&1; then \
+		echo "$(YELLOW)Sphinx not found, installing...$(NC)"; \
+		$(VENV_BIN)/pip install -e ".[dev]" 2>&1 | grep -v "already satisfied" || true; \
+	fi
+	@if ! $(VENV_BIN)/python -c "import sphinx" >/dev/null 2>&1; then \
+		echo "$(YELLOW)Installing Sphinx directly...$(NC)"; \
+		$(VENV_BIN)/pip install sphinx sphinx-rtd-theme sphinx-autodoc-typehints myst-parser; \
+	fi
+	@if ! $(VENV_BIN)/python -c "import myst_parser" >/dev/null 2>&1; then \
+		echo "$(YELLOW)Installing myst-parser...$(NC)"; \
+		$(VENV_BIN)/pip install myst-parser; \
+	fi
 	@echo "$(CYAN)Building Sphinx documentation...$(NC)"
-	@$(VENV_BIN)/pip install -e ".[dev]" > /dev/null 2>&1 || true
-	@cd docs && $(VENV_BIN)/sphinx-build -b html . _build/html
+	@$(VENV_BIN)/python -m sphinx -b html docs docs/_build/html
 	@echo "$(GREEN)✓ Documentation built in docs/_build/html/$(NC)"
 
 # Serve documentation
 docs-serve: docs
 	@echo "$(CYAN)Serving documentation at http://localhost:8000$(NC)"
-	@cd docs/_build/html && $(VENV_BIN)/python -m http.server 8000
-
-# Run unit tests only
-test-unit: venv
-	@echo "$(CYAN)Running unit tests in parallel ($(PARALLEL_WORKERS) workers) with verbose logs...$(NC)"
-	@echo "$(YELLOW)PARALLEL_WORKERS=$(PARALLEL_WORKERS)$(NC)"
-	@$(VENV_BIN)/pytest tests/unit/ -n $(PARALLEL_WORKERS) -vv -s --tb=short --log-cli-level=INFO --log-cli-format="%(asctime)s [%(levelname)8s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
-
-# Run unit tests with coverage (for CI)
-test-unit-cov: venv
-	@echo "$(CYAN)Running unit tests with coverage...$(NC)"
-	@$(VENV_BIN)/pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=term-missing
-
-# Run property-based tests
-test-property: venv
-	@echo "$(CYAN)Running property-based tests...$(NC)"
-	@$(VENV_BIN)/pytest tests/unit/test_*_property.py -v
+	@$(VENV_BIN)/python -m http.server 8000 -d docs/_build/html
 
 # Install pre-commit hooks
 install-hooks: venv

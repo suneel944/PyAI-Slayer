@@ -18,13 +18,42 @@ def _store_rag_context(
 ) -> None:
     """Store RAG context data for test reporting (transparent to tests)."""
     global _rag_context
-    _rag_context = {
-        "retrieved_docs": retrieved_docs or [],
-        "expected_sources": expected_sources or [],
-        "gold_context": gold_context,
-        "query": query,
-        "response": response,
-    }
+    # Merge with existing context instead of replacing (preserve test data if already set)
+    # Initialize if not exists
+    if not _rag_context:
+        _rag_context = {}
+
+    # Update retrieved_docs: prefer test data over ChatPage URLs
+    # If test explicitly provides retrieved_docs, use them (they're more accurate)
+    # Only use ChatPage URLs if test doesn't provide retrieved_docs
+    if retrieved_docs is not None:
+        # If test provides retrieved_docs, always use them (they override ChatPage data)
+        _rag_context["retrieved_docs"] = retrieved_docs
+    elif "retrieved_docs" not in _rag_context:
+        _rag_context["retrieved_docs"] = []
+
+    # Only update expected_sources if not already set
+    if expected_sources is not None:
+        if "expected_sources" not in _rag_context or not _rag_context.get("expected_sources"):
+            _rag_context["expected_sources"] = expected_sources
+    elif "expected_sources" not in _rag_context:
+        _rag_context["expected_sources"] = []
+
+    # Update gold_context, query, response if provided (these can be updated)
+    if gold_context is not None:
+        _rag_context["gold_context"] = gold_context
+    elif "gold_context" not in _rag_context:
+        _rag_context["gold_context"] = None
+
+    if query is not None:
+        _rag_context["query"] = query
+    elif "query" not in _rag_context:
+        _rag_context["query"] = None
+
+    if response is not None:
+        _rag_context["response"] = response
+    elif "response" not in _rag_context:
+        _rag_context["response"] = None
 
 
 def _get_rag_context() -> dict[str, Any]:

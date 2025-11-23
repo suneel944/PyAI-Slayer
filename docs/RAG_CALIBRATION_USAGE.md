@@ -361,11 +361,59 @@ python scripts/calibrate_rag_metrics.py
 
 **Possible causes**:
 - Eval set too small (< 10 examples)
-- Reranker not working correctly
+- Reranker not working correctly (check if `reranker_score` is always 0.0)
 - Responses don't match context well
 - Need to expand eval set with more diverse examples
 
-**Solution**: Expand your eval set with more real production data and re-run calibration.
+**Solution**:
+- If `reranker_score` is consistently 0.0, verify the reranker model is loaded correctly:
+  - Check that `RAG_RERANKER_ENABLED=true` in your `.env`
+  - Ensure CUDA/GPU is available if `RAG_RERANKER_USE_CUDA=true`
+  - Verify the model downloads successfully on first use
+- Expand your eval set with more real production data and re-run calibration
+
+### Reranker Score and URL Content Fetching
+
+**URL Content Fetching (Enabled by Default):**
+- The framework automatically fetches content from URLs to improve reranker accuracy
+- When enabled (`RAG_FETCH_URL_CONTENT=true`, default), URLs are fetched and their content is used for reranker scoring
+- This significantly improves reranker score accuracy for real chat interactions
+
+**Configuration:**
+```env
+# Enable/disable URL content fetching (default: true)
+RAG_FETCH_URL_CONTENT=true
+
+# Timeout per URL in seconds (default: 10)
+RAG_URL_FETCH_TIMEOUT=10
+
+# Maximum content length per URL in characters (default: 10000)
+RAG_URL_MAX_CONTENT_LENGTH=10000
+
+# Maximum retry attempts per URL if fetch fails (default: 3)
+RAG_URL_MAX_RETRIES=3
+
+# Delay between retries in seconds, uses exponential backoff (default: 1.0)
+RAG_URL_RETRY_DELAY=1.0
+
+# Maximum parallel workers for URL fetching (default: 5)
+RAG_URL_MAX_WORKERS=5
+```
+
+**Features:**
+- **Parallel Fetching**: URLs are fetched concurrently using multiple workers for improved performance
+- **Retry Logic**: Automatic retries with exponential backoff (1s, 2s, 4s) for failed requests
+- **Content Type Support**: Automatically handles HTML, PDF, JSON, and plain text content
+- **Error Handling**: Gracefully handles timeouts, connection errors, and HTTP errors (4xx/5xx)
+
+**Fallback Behavior:**
+- If URL fetching fails or is disabled, the reranker falls back to scoring URLs as-is (less accurate)
+- For test data: When tests provide `retrieved_context` (actual document text), that content is used directly (no URL fetching needed)
+
+**Best Practices:**
+- Keep URL fetching enabled for accurate reranker scores in production
+- Adjust timeout and max length based on your URL response times and content sizes
+- For tests, provide actual document content via `retrieved_context` or `retrieved_docs` for fastest execution
 
 ### Want to use different targets per environment?
 

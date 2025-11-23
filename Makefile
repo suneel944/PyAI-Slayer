@@ -44,35 +44,58 @@ ifeq ($(UNAME_S),Darwin)
     PLATFORM := macos
 endif
 
-.PHONY: help check-python check-gpu venv setup install install-dev clean clean-build clean-cache clean-test clean-venv clean-all test test-unit test-all test-integration test-cov test-ai test-security test-ui lint format type-check check build ci activate playwright-install
+.PHONY: help check-python check-gpu venv setup install install-dev clean clean-build clean-cache clean-test clean-venv clean-all test test-unit test-all test-integration test-cov test-ai test-security test-ui lint format type-check check build ci activate playwright-install docs docs-serve
 
 # Default target
 help:
 	@echo "$(CYAN)PyAI-Slayer - The Open Source AI Testing Arsenal$(NC)"
 	@echo ""
-	@echo "$(GREEN)Available targets:$(NC)"
+	@echo "$(GREEN)Setup & Installation:$(NC)"
 	@echo "  $(YELLOW)make setup$(NC)              - Complete project setup (check Python, create venv, install deps)"
 	@echo "  $(YELLOW)make install$(NC)            - Install package in production mode (auto-detects GPU)"
 	@echo "  $(YELLOW)make install-dev$(NC)       - Install package with dev dependencies (auto-detects GPU)"
+	@echo "  $(YELLOW)make install-hooks$(NC)     - Install pre-commit hooks"
+	@echo "  $(YELLOW)make playwright-install$(NC) - Install Playwright browsers"
+	@echo "  $(YELLOW)make activate$(NC)          - Show venv activation instructions"
+	@echo ""
+	@echo "$(GREEN)Testing:$(NC)"
 	@echo "  $(YELLOW)make test$(NC)               - Run e2e application tests (AI, security, UI - excludes unit tests)"
+	@echo "  $(YELLOW)make test-all$(NC)          - Run all tests (unit + e2e)"
+	@echo "  $(YELLOW)make test-unit$(NC)         - Run unit tests only"
+	@echo "  $(YELLOW)make test-unit-cov$(NC)     - Run unit tests with coverage report"
 	@echo "  $(YELLOW)make test-ai$(NC)           - Run AI tests only"
 	@echo "  $(YELLOW)make test-security$(NC)    - Run security tests only"
 	@echo "  $(YELLOW)make test-ui$(NC)            - Run UI tests only"
-	@echo "  $(YELLOW)make test-unit$(NC)         - Run unit tests only"
-	@echo "  $(YELLOW)make test-all$(NC)          - Run all tests (unit + e2e)"
+	@echo "  $(YELLOW)make test-integration$(NC)  - Run integration tests only"
+	@echo "  $(YELLOW)make test-property$(NC)     - Run property-based tests (Hypothesis)"
 	@echo "  $(YELLOW)make test-cov$(NC)          - Run all tests with coverage report"
+	@echo ""
+	@echo "$(GREEN)Code Quality:$(NC)"
 	@echo "  $(YELLOW)make lint$(NC)               - Run linter (ruff)"
 	@echo "  $(YELLOW)make format$(NC)            - Format code (ruff format only)"
-	@echo "  $(YELLOW)make pre-commit$(NC)        - Run all pre-commit checks (format + lint + type-check + security)"
+	@echo "  $(YELLOW)make format-check$(NC)      - Check code formatting without modifying files"
 	@echo "  $(YELLOW)make type-check$(NC)        - Run type checker (mypy)"
 	@echo "  $(YELLOW)make check$(NC)             - Run all checks (lint + type-check)"
+	@echo "  $(YELLOW)make pre-commit$(NC)        - Run all pre-commit checks (format + lint + type-check + security)"
+	@echo "  $(YELLOW)make security-scan$(NC)     - Run security scan (bandit)"
+	@echo ""
+	@echo "$(GREEN)Build & CI:$(NC)"
 	@echo "  $(YELLOW)make build$(NC)             - Build distribution packages"
 	@echo "  $(YELLOW)make ci$(NC)                - Run CI pipeline (install-dev + lint + type-check + test-unit)"
-	@echo "  $(YELLOW)make clean$(NC)             - Remove venv, build artifacts, caches"
-	@echo "  $(YELLOW)make playwright-install$(NC) - Install Playwright browsers"
-	@echo "  $(YELLOW)make activate$(NC)          - Show venv activation instructions"
+	@echo ""
+	@echo "$(GREEN)Documentation:$(NC)"
+	@echo "  $(YELLOW)make docs$(NC)              - Build Sphinx documentation"
+	@echo "  $(YELLOW)make docs-serve$(NC)        - Build and serve documentation at http://localhost:8000"
+	@echo ""
+	@echo "$(GREEN)Dashboard & Metrics:$(NC)"
+	@echo "  $(YELLOW)make dashboard$(NC)         - Start metrics dashboard server"
+	@echo "  $(YELLOW)make dashboard-custom$(NC)   - Start dashboard with custom port"
 	@echo "  $(YELLOW)make metrics-summary$(NC)   - View test metrics summary (requires metrics enabled)"
 	@echo "  $(YELLOW)make metrics-export$(NC)     - Export metrics to JSON file"
+	@echo "  $(YELLOW)make metrics-raw$(NC)       - View raw metrics data"
+	@echo ""
+	@echo "$(GREEN)Cleanup:$(NC)"
+	@echo "  $(YELLOW)make clean$(NC)             - Remove venv, build artifacts, caches"
 	@echo ""
 
 # Check if GPU is available
@@ -346,8 +369,17 @@ activate:
 
 # Build documentation
 docs: venv
+	@echo "$(CYAN)Installing documentation dependencies...$(NC)"
+	@if [ ! -f "$(VENV_BIN)/sphinx-build" ]; then \
+		echo "$(YELLOW)Sphinx not found, installing...$(NC)"; \
+		$(VENV_BIN)/pip install -e ".[dev]" 2>&1 | grep -v "already satisfied" || \
+		$(VENV_BIN)/pip install sphinx sphinx-rtd-theme sphinx-autodoc-typehints myst-parser; \
+	fi
+	@if [ ! -f "$(VENV_BIN)/sphinx-build" ]; then \
+		echo "$(RED)Error: Failed to install Sphinx$(NC)"; \
+		exit 1; \
+	fi
 	@echo "$(CYAN)Building Sphinx documentation...$(NC)"
-	@$(VENV_BIN)/pip install -e ".[dev]" > /dev/null 2>&1 || true
 	@cd docs && $(VENV_BIN)/sphinx-build -b html . _build/html
 	@echo "$(GREEN)✓ Documentation built in docs/_build/html/$(NC)"
 

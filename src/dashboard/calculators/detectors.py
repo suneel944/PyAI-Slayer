@@ -219,4 +219,3 @@ class CompositeToxicityDetector(ToxicityDetector):
 
         # Fallback to keywords
         return self.keyword_detector.score(text)
-

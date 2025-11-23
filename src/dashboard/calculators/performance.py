@@ -1,7 +1,6 @@
 """Performance metrics calculator."""
 
 
-
 class PerformanceMetricsCalculator:
     """Calculate performance metrics (latency, throughput, etc.)."""
 
@@ -54,4 +53,3 @@ class PerformanceMetricsCalculator:
             metrics["throughput"] = response_tokens / duration  # tokens per second
 
         return metrics
-

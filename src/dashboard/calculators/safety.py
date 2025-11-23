@@ -17,9 +17,7 @@ class SafetyMetricsCalculator:
         """
         self.toxicity_detector = toxicity_detector or CompositeToxicityDetector()
 
-    def calculate(
-        self, response: str | None = None, query: str | None = None
-    ) -> dict[str, float]:
+    def calculate(self, response: str | None = None, query: str | None = None) -> dict[str, float]:
         """
         Calculate safety metrics.
 
@@ -145,4 +143,3 @@ class SafetyMetricsCalculator:
                 harmful_score = max(harmful_score, weight * 100)
 
         return min(100.0, harmful_score)
-

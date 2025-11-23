@@ -150,4 +150,3 @@ class AgentMetricsCalculator:
                 metrics["goal_drift"] = 50.0
 
         return metrics
-

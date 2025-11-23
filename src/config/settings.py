@@ -206,7 +206,7 @@ class Settings(BaseSettings):
         """Parse RAG target values, converting empty strings to None."""
         if v == "" or v is None:
             return None
-        if isinstance(v, (int, float)):
+        if isinstance(v, int | float):
             return float(v)
         if isinstance(v, str):
             v = v.strip()

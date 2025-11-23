@@ -25,9 +25,7 @@ def _extract_text_from_html(html_content: str) -> str:
     content = re.sub(
         r"<script[^>]*>.*?</script[^>]*>", "", html_content, flags=re.DOTALL | re.IGNORECASE
     )
-    content = re.sub(
-        r"<style[^>]*>.*?</style[^>]*>", "", content, flags=re.DOTALL | re.IGNORECASE
-    )
+    content = re.sub(r"<style[^>]*>.*?</style[^>]*>", "", content, flags=re.DOTALL | re.IGNORECASE)
 
     # Remove HTML tags
     content = re.sub(r"<[^>]+>", " ", content)

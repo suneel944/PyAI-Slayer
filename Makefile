@@ -11,7 +11,7 @@ NC := \033[0m # No Color
 # Variables
 PYTHON := python3
 VENV := venv
-VENV_BIN := $(VENV)/bin
+VENV_BIN := $(abspath $(VENV)/bin)
 MIN_PYTHON_VERSION := 3.11
 PROJECT_NAME := pyai-slayer
 
@@ -44,7 +44,19 @@ ifeq ($(UNAME_S),Darwin)
     PLATFORM := macos
 endif
 
-.PHONY: help check-python check-gpu venv setup install install-dev clean clean-build clean-cache clean-test clean-venv clean-all test test-unit test-all test-integration test-cov test-ai test-security test-ui lint format type-check check build ci activate playwright-install docs docs-serve
+.PHONY: \
+	help check-python check-gpu venv setup install install-dev \
+	clean clean-build clean-cache clean-test clean-venv clean-all \
+	test test-unit test-all test-integration test-cov test-ai test-security test-ui \
+	lint format format-check type-check security-scan check \
+	build ci activate playwright-install \
+	docs docs-serve \
+	test-unit-cov test-property \
+	install-hooks pre-commit \
+	validate-version changelog \
+	docker-build docker-run docker-test docker-unit docker-lint docker-shell docker-clean \
+	metrics-summary metrics-export metrics-raw \
+	dashboard dashboard-custom
 
 # Default target
 help:
@@ -95,8 +107,8 @@ help:
 	@echo "  $(YELLOW)make metrics-raw$(NC)       - View raw metrics data"
 	@echo ""
 	@echo "$(GREEN)Cleanup:$(NC)"
-	@echo "  $(YELLOW)make clean$(NC)             - Remove venv, build artifacts, caches"
-	@echo ""
+	@echo "  $(YELLOW)make clean$(NC)             - Remove build artifacts & caches (keep venv)"
+	@echo "  $(YELLOW)make clean-all$(NC)         - Clean everything including venv"
 
 # Check if GPU is available
 check-gpu:
@@ -230,6 +242,22 @@ test-cov: venv
 	@$(VENV_BIN)/pytest tests/ -n $(PARALLEL_WORKERS) --cov=src \
 		--cov-report=html --cov-report=term-missing -vv -s --log-cli-level=INFO --log-cli-format="%(asctime)s [%(levelname)8s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
 	@echo "$(GREEN)✓ Coverage report generated in htmlcov/$(NC)"
+
+# Run unit tests only
+test-unit: venv
+	@echo "$(CYAN)Running unit tests in parallel ($(PARALLEL_WORKERS) workers) with verbose logs...$(NC)"
+	@echo "$(YELLOW)PARALLEL_WORKERS=$(PARALLEL_WORKERS)$(NC)"
+	@$(VENV_BIN)/pytest tests/unit/ -n $(PARALLEL_WORKERS) -vv -s --tb=short --log-cli-level=INFO --log-cli-format="%(asctime)s [%(levelname)8s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
+
+# Run unit tests with coverage (for CI)
+test-unit-cov: venv
+	@echo "$(CYAN)Running unit tests with coverage...$(NC)"
+	@$(VENV_BIN)/pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=term-missing
+
+# Run property-based tests
+test-property: venv
+	@echo "$(CYAN)Running property-based tests...$(NC)"
+	@$(VENV_BIN)/pytest tests/unit/test_*_property.py -v
 
 # Run linter
 lint: venv
@@ -370,39 +398,26 @@ activate:
 # Build documentation
 docs: venv
 	@echo "$(CYAN)Installing documentation dependencies...$(NC)"
-	@if [ ! -f "$(VENV_BIN)/sphinx-build" ]; then \
+	@if ! $(VENV_BIN)/python -c "import sphinx" >/dev/null 2>&1; then \
 		echo "$(YELLOW)Sphinx not found, installing...$(NC)"; \
-		$(VENV_BIN)/pip install -e ".[dev]" 2>&1 | grep -v "already satisfied" || \
+		$(VENV_BIN)/pip install -e ".[dev]" 2>&1 | grep -v "already satisfied" || true; \
+	fi
+	@if ! $(VENV_BIN)/python -c "import sphinx" >/dev/null 2>&1; then \
+		echo "$(YELLOW)Installing Sphinx directly...$(NC)"; \
 		$(VENV_BIN)/pip install sphinx sphinx-rtd-theme sphinx-autodoc-typehints myst-parser; \
 	fi
-	@if [ ! -f "$(VENV_BIN)/sphinx-build" ]; then \
-		echo "$(RED)Error: Failed to install Sphinx$(NC)"; \
-		exit 1; \
+	@if ! $(VENV_BIN)/python -c "import myst_parser" >/dev/null 2>&1; then \
+		echo "$(YELLOW)Installing myst-parser...$(NC)"; \
+		$(VENV_BIN)/pip install myst-parser; \
 	fi
 	@echo "$(CYAN)Building Sphinx documentation...$(NC)"
-	@cd docs && $(VENV_BIN)/sphinx-build -b html . _build/html
+	@$(VENV_BIN)/python -m sphinx -b html docs docs/_build/html
 	@echo "$(GREEN)✓ Documentation built in docs/_build/html/$(NC)"
 
 # Serve documentation
 docs-serve: docs
 	@echo "$(CYAN)Serving documentation at http://localhost:8000$(NC)"
-	@cd docs/_build/html && $(VENV_BIN)/python -m http.server 8000
-
-# Run unit tests only
-test-unit: venv
-	@echo "$(CYAN)Running unit tests in parallel ($(PARALLEL_WORKERS) workers) with verbose logs...$(NC)"
-	@echo "$(YELLOW)PARALLEL_WORKERS=$(PARALLEL_WORKERS)$(NC)"
-	@$(VENV_BIN)/pytest tests/unit/ -n $(PARALLEL_WORKERS) -vv -s --tb=short --log-cli-level=INFO --log-cli-format="%(asctime)s [%(levelname)8s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
-
-# Run unit tests with coverage (for CI)
-test-unit-cov: venv
-	@echo "$(CYAN)Running unit tests with coverage...$(NC)"
-	@$(VENV_BIN)/pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=term-missing
-
-# Run property-based tests
-test-property: venv
-	@echo "$(CYAN)Running property-based tests...$(NC)"
-	@$(VENV_BIN)/pytest tests/unit/test_*_property.py -v
+	@$(VENV_BIN)/python -m http.server 8000 -d docs/_build/html
 
 # Install pre-commit hooks
 install-hooks: venv

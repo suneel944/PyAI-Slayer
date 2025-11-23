@@ -36,6 +36,7 @@ class ChatPage(BasePage):
         self._current_user_message_id = None
         self._request_timestamp = None
         self._timing_calculator = TimingCalculator()
+        self._last_user_query: str | None = None
         self._setup_response_interception()
 
     def _setup_response_interception(self):
@@ -368,7 +369,7 @@ class ChatPage(BasePage):
                 retrieved_docs=retrieved_docs,
                 expected_sources=None,
                 gold_context=None,
-                query=None,
+                query=self._last_user_query,
                 response=self._last_ai_response,
             )
             logger.debug(
@@ -419,6 +420,8 @@ class ChatPage(BasePage):
             logger.info("Filling message input...")
             message_input.clear()
             message_input.fill(text)
+            # Store the user query for RAG metrics
+            self._last_user_query = text
             logger.info("✓ Message filled")
 
             self.page.wait_for_timeout(500)

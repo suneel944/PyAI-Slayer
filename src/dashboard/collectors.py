@@ -511,6 +511,11 @@ class DashboardCollector:
                             # Only use if not None/empty string
                             if stored_gold and isinstance(stored_gold, str) and stored_gold.strip():
                                 gold_context = stored_gold
+                        # Also get query from RAG context if not available
+                        if not query:
+                            stored_query = rag_context.get("query")
+                            if stored_query and isinstance(stored_query, str) and stored_query.strip():
+                                query = stored_query
                 except Exception as e:
                     logger.debug(f"Could not extract RAG context: {e}")
 

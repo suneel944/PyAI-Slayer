@@ -710,6 +710,17 @@ class DashboardCollector:
                     if ttft_ms is not None and isinstance(ttft_ms, int | float) and ttft_ms > 0:
                         first_token_time = ttft_ms / 1000.0  # Convert ms to seconds
 
+                # Debug logging for TTFT extraction
+                if first_token_time is None:
+                    logger.debug(
+                        f"TTFT extraction: first_token_time is None. "
+                        f"metrics.first_token_time={metrics.get('first_token_time') if metrics else None}, "
+                        f"validation_data.first_token_time={validation_data.get('first_token_time')}, "
+                        f"validation_data.ttft={validation_data.get('ttft')}"
+                    )
+                else:
+                    logger.debug(f"TTFT extracted successfully: {first_token_time:.3f}s")
+
                 # Extract response_tokens if available
                 response_tokens = None
                 if metrics:

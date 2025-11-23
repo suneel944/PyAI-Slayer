@@ -142,4 +142,3 @@ metrics = engine.calculate_all(...)
 - Calculators: `src/dashboard/calculators/`
 - Metric Spec: `src/dashboard/metrics_spec.py`
 - Documentation: `docs/METRICS_CALCULATIONS.md`
-

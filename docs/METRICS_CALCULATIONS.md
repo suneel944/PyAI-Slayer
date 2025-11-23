@@ -212,7 +212,7 @@ rouge_l = rouge_scores["rougeL_f1"]
 # Primary: Use NLI-based fact-checker (HuggingFaceFactChecker)
 if fact_checker_available:
     fact_result = fact_checker.check_multiple_facts(
-        claim=response, 
+        claim=response,
         premises=known_facts
     )
     has_hallucination = not fact_result.is_factual  # CONTRADICTION or NEUTRAL = hallucination
@@ -508,15 +508,15 @@ def longest_common_substring(text1: str, text2: str) -> int:
     # Normalize: lowercase, remove extra whitespace
     text1 = normalize_for_lcs(text1)
     text2 = normalize_for_lcs(text2)
-    
+
     if not text1 or not text2:
         return 0
-    
+
     # Dynamic programming: dp[i][j] = length of LCS ending at text1[i-1] and text2[j-1]
     m, n = len(text1), len(text2)
     dp = [[0] * (n + 1) for _ in range(m + 1)]
     max_len = 0
-    
+
     for i in range(1, m + 1):
         for j in range(1, n + 1):
             if text1[i - 1] == text2[j - 1]:
@@ -524,7 +524,7 @@ def longest_common_substring(text1: str, text2: str) -> int:
                 max_len = max(max_len, dp[i][j])
             else:
                 dp[i][j] = 0
-    
+
     return max_len
 
 # Calculate LCS for each retrieved document

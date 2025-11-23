@@ -247,14 +247,14 @@ from config import get_feature_flags
 def setup_feature_flags():
     """Setup feature flags for tests."""
     flags = get_feature_flags()
-    
+
     # Enable all features for testing
     flags.register("enable_safety_metrics", enabled=True)
     flags.register("enable_rag_metrics", enabled=True)
     flags.register("enable_agent_metrics", enabled=True)
-    
+
     yield
-    
+
     # Cleanup if needed
     flags.disable("enable_safety_metrics")
 ```
@@ -516,7 +516,7 @@ else:
    # Code: flags.is_enabled("NEW_METRICS")  # ✅ Also works (converted to lowercase)
    ```
 
-2. **Check if flag is registered**: 
+2. **Check if flag is registered**:
    ```python
    flag = flags.get_flag("my_feature")
    if flag is None:
@@ -527,7 +527,7 @@ else:
    ```bash
    # Correct
    FEATURE_FLAG_MY_FEATURE=true
-   
+
    # Wrong (missing prefix)
    MY_FEATURE=true
    ```
@@ -537,7 +537,7 @@ else:
    # If rollout_percentage is 0, it uses the enabled flag
    flags.register("feature", enabled=True, rollout_percentage=0.0)
    # This will return True
-   
+
    # If rollout_percentage is set, it overrides enabled
    flags.register("feature", enabled=False, rollout_percentage=50.0)
    # This will return True for 50% of users
@@ -554,12 +554,12 @@ from dashboard.calculators.detectors import CompositeToxicityDetector
 def setup_metrics_engine():
     """Setup metrics engine based on feature flags."""
     flags = get_feature_flags()
-    
+
     # Check feature flags
     enable_safety = flags.is_enabled("enable_safety_metrics")
     enable_rag = flags.is_enabled("enable_rag_metrics")
     enable_agent = flags.is_enabled("enable_agent_metrics")
-    
+
     # Setup toxicity detector with conditional enabling
     toxicity_detector = None
     if enable_safety:
@@ -570,7 +570,7 @@ def setup_metrics_engine():
             user_id=test_id
         )
         toxicity_detector = CompositeToxicityDetector(enabled=enable_toxicity)
-    
+
     # Create metrics engine
     engine = MetricsEngine(
         enable_safety=enable_safety,
@@ -578,7 +578,7 @@ def setup_metrics_engine():
         enable_agent=enable_agent,
         toxicity_detector=toxicity_detector,
     )
-    
+
     return engine
 
 # Use it
@@ -595,4 +595,3 @@ FEATURE_FLAG_ENABLE_AGENT_METRICS=false
 # Gradual rollout of toxicity detection (25% of tests)
 FEATURE_FLAG_ENABLE_TOXICITY_DETECTION=25
 ```
-

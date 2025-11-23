@@ -174,7 +174,7 @@ Returns:
 - **Reranker Score**: Target label and status indicator use calibrated value
 
 ### 3. Status Indicators
-- **Context Intrusion**: 
+- **Context Intrusion**:
   - Green (Within Target): `< target`
   - Yellow (Needs Attention): `< target * 2`
   - Red (High Intrusion): `>= target * 2`
@@ -329,7 +329,7 @@ Here's a complete example of a well-structured eval set entry:
    - Your RAG pipeline changes (new embedding model, reranker, etc.)
    - You notice metrics drifting in production
 
-7. **Version Control**: 
+7. **Version Control**:
    - Keep your eval set private (it's in `.gitignore`)
    - Keep calibration recommendations private (they're in `.gitignore`)
    - Commit example templates to help others understand the format

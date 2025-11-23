@@ -611,7 +611,34 @@ reranker_score = sum(relevance_scores) / len(relevance_scores)
 
 **Range:** 0.0 - 1.0
 
+**Display Format:** The reranker score is displayed as a 0-1 decimal value in the dashboard (e.g., 0.61), not as a percentage. Unlike other RAG metrics, it is not converted to a 0-100 percentage range.
+
 **Note:** Uses HuggingFace reranker (BGE-Reranker or equivalent) for query-document relevance scoring. Falls back to embedding-based similarity if reranker unavailable.
+
+**Implementation Details:**
+- The reranker supports both FlagReranker API and transformers-based models
+- When using transformers (default), the model uses the tokenizer's separator token (typically `</s>`) to format query-document pairs
+- The reranker automatically loads on first use and caches the model for subsequent calls
+- Scores are normalized using sigmoid function to ensure values are in [0, 1] range
+
+**URL Content Fetching (Enabled by Default):**
+- The framework can automatically fetch content from URLs to improve reranker accuracy
+- When `RAG_FETCH_URL_CONTENT=true` (default), URLs are fetched in parallel and their content is used for reranker scoring
+- This significantly improves reranker score accuracy for real chat interactions where sources are URLs
+- Configuration options:
+  - `RAG_FETCH_URL_CONTENT`: Enable/disable URL content fetching (default: `true`)
+  - `RAG_URL_FETCH_TIMEOUT`: Timeout per URL in seconds (default: `10`)
+  - `RAG_URL_MAX_CONTENT_LENGTH`: Maximum content length per URL in characters (default: `10000`)
+  - `RAG_URL_MAX_RETRIES`: Maximum retry attempts per URL (default: `3`)
+  - `RAG_URL_RETRY_DELAY`: Delay between retries in seconds, uses exponential backoff (default: `1.0`)
+  - `RAG_URL_MAX_WORKERS`: Maximum parallel workers for URL fetching (default: `5`)
+- **Features:**
+  - Parallel fetching: URLs are fetched concurrently using `ThreadPoolExecutor` for improved performance
+  - Retry logic: Automatic retries with exponential backoff (1s, 2s, 4s) for failed requests
+  - Content type support: Automatically handles HTML, PDF, JSON, and plain text content
+  - Error handling: Gracefully handles timeouts, connection errors, and HTTP errors (4xx/5xx)
+- If URL fetching fails or is disabled, the reranker falls back to scoring URLs as-is (less accurate)
+- **For test data**: When tests provide `retrieved_context` (actual document text), that content is used directly (no URL fetching needed)
 
 ### RAG Metric Calibration
 

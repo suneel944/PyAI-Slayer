@@ -1,6 +1,7 @@
 """Data collectors for capturing test execution data."""
 
 import hashlib
+import threading
 from datetime import datetime
 from pathlib import Path
 
@@ -363,11 +364,11 @@ class DashboardCollector:
             logger.error(f"Failed to collect CPU/Memory metrics: {e}", exc_info=True)
             return collected_count
 
-        # GPU utilization (if available, requires pynvml)
+        # GPU utilization (if available, requires nvidia-ml-py)
         if not PYNVML_AVAILABLE:
             logger.debug(
-                "pynvml is not installed. GPU metrics will not be collected. "
-                "Install with: pip install pynvml (or run: pip install -e '.[gpu]')"
+                "nvidia-ml-py is not installed. GPU metrics will not be collected. "
+                "Install with: pip install nvidia-ml-py (or run: pip install -e '.[gpu]')"
             )
             return collected_count
 
@@ -404,7 +405,7 @@ class DashboardCollector:
                         metric_type="system_metrics",
                         metric_name="gpu_utilization",
                         metric_value=float(avg_gpu_util),
-                        labels={"source": "pynvml", "gpu_count": str(device_count)},
+                        labels={"source": "nvidia-ml-py", "gpu_count": str(device_count)},
                     )
                     collected_count += 1
 
@@ -418,14 +419,15 @@ class DashboardCollector:
                         metric_type="system_metrics",
                         metric_name="gpu_memory_usage",
                         metric_value=float(total_gpu_memory),
-                        labels={"source": "pynvml", "gpu_count": str(device_count)},
+                        labels={"source": "nvidia-ml-py", "gpu_count": str(device_count)},
                     )
             else:
                 logger.debug("No GPU devices found")
         except ImportError:
-            # pynvml not available, skip GPU metrics
+            # nvidia-ml-py not available, skip GPU metrics
             logger.debug(
-                "pynvml not available, skipping GPU metrics. Install with: pip install pynvml"
+                "nvidia-ml-py not available, skipping GPU metrics. "
+                "Install with: pip install nvidia-ml-py (or run: pip install -e '.[gpu]')"
             )
         except Exception as e:
             logger.warning(f"GPU metrics collection failed: {e}", exc_info=True)
@@ -465,6 +467,52 @@ class DashboardCollector:
             response = validation_data.get("response")
             expected_response = validation_data.get("expected_response")
             metrics = validation_data.get("metrics", {})
+
+            # Extract RAG context if not explicitly provided or if empty
+            # Note: _store_rag_context converts None to [] for lists, so we check both None and empty
+            needs_rag_context = (
+                retrieved_docs is None
+                or expected_sources is None
+                or gold_context is None
+                or (isinstance(retrieved_docs, list) and len(retrieved_docs) == 0)
+                or (isinstance(expected_sources, list) and len(expected_sources) == 0)
+            )
+            if needs_rag_context:
+                try:
+                    from core.ai.rag_tester import _get_rag_context
+
+                    rag_context = _get_rag_context()
+                    if rag_context:
+                        # Only use RAG context if parameters weren't explicitly provided or are empty
+                        if retrieved_docs is None or (
+                            isinstance(retrieved_docs, list) and len(retrieved_docs) == 0
+                        ):
+                            stored_docs = rag_context.get("retrieved_docs")
+                            # Validate type and ensure non-empty before using
+                            if (
+                                stored_docs
+                                and isinstance(stored_docs, list)
+                                and len(stored_docs) > 0
+                            ):
+                                retrieved_docs = stored_docs
+                        if expected_sources is None or (
+                            isinstance(expected_sources, list) and len(expected_sources) == 0
+                        ):
+                            stored_sources = rag_context.get("expected_sources")
+                            # Validate type and ensure non-empty before using
+                            if (
+                                stored_sources
+                                and isinstance(stored_sources, list)
+                                and len(stored_sources) > 0
+                            ):
+                                expected_sources = stored_sources
+                        if gold_context is None:
+                            stored_gold = rag_context.get("gold_context")
+                            # Only use if not None/empty string
+                            if stored_gold and isinstance(stored_gold, str) and stored_gold.strip():
+                                gold_context = stored_gold
+                except Exception as e:
+                    logger.debug(f"Could not extract RAG context: {e}")
 
             # Collect validation details - always store if we have query or response
             # This ensures we capture data even for tests that don't use standard validation
@@ -598,12 +646,19 @@ class DashboardCollector:
             try:
                 metrics_calculator = get_metrics_calculator()
 
-                # Extract reference from metrics if available
+                # Extract reference from validation_data - prioritize correctly
+                # CRITICAL: Never use response as reference - comparing response to itself gives meaningless perfect scores
                 reference = None
-                if "bertscore" in metrics or "rouge" in metrics:
-                    # If we have BERTScore/ROUGE, we likely have a reference
-                    # Try to get it from validation_data or use response as proxy
-                    reference = validation_data.get("reference") or response
+                # Extract expected_response once for use in multiple places
+                expected_response = validation_data.get("expected_response")
+                # Priority 1: Explicit reference field (best - ground truth)
+                if validation_data.get("reference"):
+                    reference = validation_data.get("reference")
+                # Priority 2: Use expected_response as reference (acceptable fallback)
+                elif expected_response and expected_response.strip():
+                    reference = expected_response
+                # Note: If bertscore/rouge are in metrics, reference should already be in validation_data
+                # If no reference available, BERTScore/ROUGE will not be calculated (which is correct)
 
                 # Extract response length for token estimation
                 response_length = None
@@ -625,11 +680,72 @@ class DashboardCollector:
                     # Use expected_response as known fact if no explicit known_facts provided
                     known_facts = [expected_response]
 
+                # Extract first_token_time from metrics or validation_data if available
+                # Priority: metrics -> validation_data.first_token_time -> validation_data.ttft (convert from ms)
+                first_token_time = None
+                if metrics:
+                    first_token_time = metrics.get("first_token_time")
+                    # Validate type if found
+                    if first_token_time is not None and not isinstance(
+                        first_token_time, int | float
+                    ):
+                        logger.warning(
+                            f"Invalid first_token_time type in metrics: {type(first_token_time)}, expected numeric"
+                        )
+                        first_token_time = None
+
+                if first_token_time is None:
+                    first_token_time = validation_data.get("first_token_time")
+                    if first_token_time is not None and not isinstance(
+                        first_token_time, int | float
+                    ):
+                        logger.warning(
+                            f"Invalid first_token_time type in validation_data: {type(first_token_time)}, expected numeric"
+                        )
+                        first_token_time = None
+
+                if first_token_time is None:
+                    # Check if already in milliseconds (ttft), convert to seconds
+                    ttft_ms = validation_data.get("ttft")
+                    if ttft_ms is not None and isinstance(ttft_ms, int | float) and ttft_ms > 0:
+                        first_token_time = ttft_ms / 1000.0  # Convert ms to seconds
+
+                # Extract response_tokens if available
+                response_tokens = None
+                if metrics:
+                    response_tokens = metrics.get("response_tokens")
+                    # Validate type and value if found
+                    if response_tokens is not None:
+                        if not isinstance(response_tokens, int | float):
+                            logger.warning(
+                                f"Invalid response_tokens type in metrics: {type(response_tokens)}, expected numeric"
+                            )
+                            response_tokens = None
+                        elif response_tokens < 0:
+                            logger.warning(
+                                f"Invalid response_tokens value: {response_tokens}, expected >= 0"
+                            )
+                            response_tokens = None
+
+                if response_tokens is None:
+                    response_tokens = validation_data.get("response_tokens")
+                    if response_tokens is not None:
+                        if not isinstance(response_tokens, int | float):
+                            logger.warning(
+                                f"Invalid response_tokens type in validation_data: {type(response_tokens)}, expected numeric"
+                            )
+                            response_tokens = None
+                        elif response_tokens < 0:
+                            logger.warning(
+                                f"Invalid response_tokens value: {response_tokens}, expected >= 0"
+                            )
+                            response_tokens = None
+
                 # Calculate comprehensive metrics
                 calculated_metrics = metrics_calculator.calculate_all_metrics(
                     query=query,
                     response=response,
-                    expected_response=validation_data.get("expected_response"),
+                    expected_response=expected_response,
                     reference=reference,
                     validation_type=metrics.get("validation_type", "unknown"),
                     similarity_score=metrics.get("similarity_score"),
@@ -639,6 +755,9 @@ class DashboardCollector:
                     expected_sources=expected_sources,
                     gold_context=gold_context,
                     known_facts=known_facts,
+                    # Performance metrics
+                    first_token_time=first_token_time,
+                    response_tokens=response_tokens,
                     # Agent metrics - use test status as task_completed if not explicitly provided
                     task_completed=agent_data.get("task_completed", task_completed),
                     steps_taken=agent_data.get("steps_taken"),
@@ -657,18 +776,19 @@ class DashboardCollector:
                     # Convert percentage metrics to 0-1 range for storage
                     percentage_metrics = [
                         "accuracy",
-                        "top_k_accuracy",
+                        "normalized_similarity_score",
                         "exact_match",
                         "f1_score",
                         "bleu",
+                        "lexical_overlap",  # BLEU fallback
                         "cot_validity",
                         "step_correctness",
                         "logic_consistency",
                         "hallucination_rate",
-                        "factual_consistency",
-                        "truthfulness",
+                        "similarity_proxy_factual_consistency",
+                        "similarity_proxy_truthfulness",
                         "citation_accuracy",
-                        "source_grounding",
+                        "similarity_proxy_source_grounding",
                         "retrieval_recall_5",
                         "retrieval_precision_5",
                         "context_relevance",
@@ -818,22 +938,27 @@ class DashboardCollector:
                 )
 
         except Exception as e:
-            logger.debug(f"Error finding artifacts: {e}")
+            # Artifact collection failures shouldn't break test execution
+            logger.warning(f"Error finding artifacts for test {test_name}: {e}", exc_info=True)
 
 
-# Global collector instance
+# Global collector instance with thread-safe singleton pattern
 _dashboard_collector: DashboardCollector | None = None
+_dashboard_collector_lock = threading.Lock()
 
 
 def get_dashboard_collector() -> DashboardCollector:
-    """Get global dashboard collector instance."""
+    """Get global dashboard collector instance (thread-safe)."""
     global _dashboard_collector
     if _dashboard_collector is None:
-        _dashboard_collector = DashboardCollector()
+        with _dashboard_collector_lock:
+            if _dashboard_collector is None:  # Double-check pattern
+                _dashboard_collector = DashboardCollector()
     return _dashboard_collector
 
 
 def reset_dashboard_collector():
     """Reset global collector (for testing)."""
     global _dashboard_collector
-    _dashboard_collector = None
+    with _dashboard_collector_lock:
+        _dashboard_collector = None

@@ -10,8 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.0/dist/apexcharts.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Zenscroll - Lightweight smooth scrolling library -->
-    <script src="https://unpkg.com/zenscroll@4.0.2/zenscroll-min.js"></script>
+    <!-- Lenis - Ultra-smooth scrolling library (60 FPS) -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
 </head>
 <body>
     <!-- Ambient Background Effects -->
@@ -359,7 +359,7 @@
                                 <span class="metric-value" id="baseAccuracy">N/A</span>
                             </div>
                             <div class="metric-item">
-                                <span class="metric-name">Top-K Accuracy</span>
+                                <span class="metric-name">Normalized Similarity Score</span>
                                 <span class="metric-value" id="baseTopK">N/A</span>
                             </div>
                             <div class="metric-item">
@@ -414,11 +414,11 @@
                             </div>
                             <div class="critical-metric">
                                 <div class="critical-value" id="factualConsistency">N/A</div>
-                                <div class="critical-label">Factual Consistency</div>
+                                <div class="critical-label">Factual Consistency (Similarity Proxy)</div>
                             </div>
                             <div class="critical-metric">
                                 <div class="critical-value" id="truthfulness">N/A</div>
-                                <div class="critical-label">Truthfulness</div>
+                                <div class="critical-label">Truthfulness (Similarity Proxy)</div>
                             </div>
                             <div class="critical-metric">
                                 <div class="critical-value" id="citationAccuracy">N/A</div>
@@ -426,7 +426,7 @@
                             </div>
                             <div class="critical-metric">
                                 <div class="critical-value" id="sourceGrounding">N/A</div>
-                                <div class="critical-label">Source Grounding</div>
+                                <div class="critical-label">Source Grounding (Similarity Proxy)</div>
                             </div>
                         </div>
                     </div>
@@ -465,7 +465,7 @@
                                     <div class="progress-bar">
                                         <div class="progress-fill retrieval-fill" id="ragRecallProgress" style="width: 0%"></div>
                                     </div>
-                                    <div class="progress-label">Target: &gt; 70%</div>
+                                    <div class="progress-label" id="ragRecallTarget">Target: &gt; 70%</div>
                                 </div>
                                 <div class="rag-metric-item">
                                     <div class="rag-metric-item-header">
@@ -478,7 +478,7 @@
                                     <div class="progress-bar">
                                         <div class="progress-fill retrieval-fill" id="ragPrecisionProgress" style="width: 0%"></div>
                                     </div>
-                                    <div class="progress-label">Target: &gt; 75%</div>
+                                    <div class="progress-label" id="ragPrecisionTarget">Target: &gt; 75%</div>
                                 </div>
                             </div>
                         </div>
@@ -545,7 +545,7 @@
                                     <span class="status-indicator"></span>
                                     <span>No Data</span>
                                 </div>
-                                <div class="rag-card-target">Target: &lt; 5%</div>
+                                <div class="rag-card-target" id="ragIntrusionTarget">Target: &lt; 5%</div>
                                 <div class="rag-card-description">Measures verbatim copying from context</div>
                             </div>
                         </div>
@@ -564,7 +564,7 @@
                                     <span class="status-indicator"></span>
                                     <span>No Data</span>
                                 </div>
-                                <div class="rag-card-target">Target: &gt; 0.8</div>
+                                <div class="rag-card-target" id="ragRerankerTarget">Target: &gt; 0.8</div>
                                 <div class="rag-card-description">Query-document relevance score</div>
                             </div>
                         </div>
@@ -843,20 +843,40 @@
                         <div class="agent-category">
                             <h3 class="agent-category-title">Planning & Execution</h3>
                             <div class="agent-metric-item">
-                                <span class="agent-metric-name">Tool Usage Accuracy</span>
-                                <span class="agent-metric-value" id="agentToolUsage">N/A</span>
+                                <div class="agent-metric-header">
+                                    <span class="agent-metric-name">Tool Usage Accuracy</span>
+                                    <span class="agent-metric-value" id="agentToolUsage">N/A</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill purple" id="agentToolUsageProgress" style="width: 0%"></div>
+                                </div>
                             </div>
                             <div class="agent-metric-item">
-                                <span class="agent-metric-name">Planning Coherence</span>
-                                <span class="agent-metric-value" id="agentPlanning">N/A</span>
+                                <div class="agent-metric-header">
+                                    <span class="agent-metric-name">Planning Coherence</span>
+                                    <span class="agent-metric-value" id="agentPlanning">N/A</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill purple" id="agentPlanningProgress" style="width: 0%"></div>
+                                </div>
                             </div>
                             <div class="agent-metric-item">
-                                <span class="agent-metric-name">Action Hallucination</span>
-                                <span class="agent-metric-value" id="agentActionHall">N/A</span>
+                                <div class="agent-metric-header">
+                                    <span class="agent-metric-name">Action Hallucination</span>
+                                    <span class="agent-metric-value" id="agentActionHall">N/A</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill purple" id="agentActionHallProgress" style="width: 0%"></div>
+                                </div>
                             </div>
                             <div class="agent-metric-item">
-                                <span class="agent-metric-name">Goal Drift</span>
-                                <span class="agent-metric-value" id="agentGoalDrift">N/A</span>
+                                <div class="agent-metric-header">
+                                    <span class="agent-metric-name">Goal Drift</span>
+                                    <span class="agent-metric-value" id="agentGoalDrift">N/A</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill purple" id="agentGoalDriftProgress" style="width: 0%"></div>
+                                </div>
                             </div>
                         </div>
                     </div>

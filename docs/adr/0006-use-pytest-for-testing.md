@@ -40,9 +40,12 @@ Tests are organized in `tests/` directory:
 
 ### Test Execution Targets
 The framework provides separate Makefile targets for different test types:
-- **`make test`** - Runs integration/UI/security tests (excludes unit tests)
+- **`make test`** - Runs all e2e tests (AI, security, UI - excludes unit tests)
+- **`make test-ai`** - Runs AI validation tests only
+- **`make test-security`** - Runs security tests only
+- **`make test-ui`** - Runs UI tests only
 - **`make test-unit`** - Runs unit tests only
-- **`make test-all`** - Runs all tests (unit + integration + UI + security)
+- **`make test-all`** - Runs all tests (unit + e2e)
 - **`make test-cov`** - Runs all tests with coverage reporting
 
 ### Code Quality Checks

@@ -41,16 +41,20 @@ cp .env.example .env
 ### Run Tests
 
 ```bash
-# Run all tests
+# Run all e2e tests (AI, security, UI)
 make test
 
-# Run specific category
-make test-base-model
-make test-rag
-make test-safety
+# Run specific test categories
+make test-ai          # AI validation tests only
+make test-security   # Security tests only
+make test-ui         # UI tests only
+make test-unit       # Unit tests only
 
-# Run with dashboard
-make test-with-dashboard
+# Run all tests (unit + e2e)
+make test-all
+
+# Run with coverage
+make test-cov
 ```
 
 ### Launch Dashboard
@@ -106,6 +110,23 @@ Complete quality scores across Base Model, RAG, Safety, Performance, Reliability
 | **Security** | Injection attacks, prompt manipulation | Security vulnerabilities |
 | **Agent** | Multi-turn conversations, tool usage | Advanced capabilities |
 
+### 🎯 RAG Calibration
+
+Calibrate RAG metric targets based on your actual data distribution:
+
+```bash
+# Create your eval set (see docs/RAG_CALIBRATION_USAGE.md)
+cp data/examples/example_rag_eval_set.json data/rag_eval_set.json
+# Edit with your queries and labeled chunks
+
+# Run calibration
+python scripts/calibrate_rag_metrics.py
+
+# Dashboard automatically uses calibrated targets
+```
+
+See [RAG Calibration Guide](docs/RAG_CALIBRATION_USAGE.md) for detailed instructions.
+
 ## 📊 Reporting Features
 
 - **Real-Time Metrics** - Live test execution monitoring
@@ -120,9 +141,13 @@ Complete quality scores across Base Model, RAG, Safety, Performance, Reliability
 ```bash
 # Development
 make setup              # Install dependencies
-make test              # Run all tests
-make test-watch        # Run tests on file changes
-make dashboard         # Launch dashboard
+make test              # Run all e2e tests (AI, security, UI)
+make test-ai           # Run AI tests only
+make test-security    # Run security tests only
+make test-ui          # Run UI tests only
+make test-unit        # Run unit tests only
+make test-all         # Run all tests (unit + e2e)
+make dashboard        # Launch dashboard
 
 # Quality Checks
 make check             # Run linters
@@ -183,6 +208,36 @@ CHAT_URL=https://your-chatbot-url.example.com
 SEMANTIC_MODEL_NAME=intfloat/multilingual-e5-base
 ARABIC_SEMANTIC_MODEL_NAME=Omartificial-Intelligence-Space/mmbert-base-arabic-nli
 
+# Fact-Checker (Hallucination Detection)
+FACT_CHECKER_MODEL_NAME=  # Primary model (empty = use fallback list)
+FACT_CHECKER_FALLBACK_MODELS=microsoft/deberta-large-mnli,roberta-large-mnli,facebook/bart-large-mnli
+FACT_CHECKER_ENABLED=true
+FACT_CHECKER_USE_CUDA=true  # Use GPU if available
+FACT_CHECKER_CUDA_DEVICE=0  # CUDA device ID
+FACT_CHECKER_STRONG_CONTRADICTION_THRESHOLD=0.7  # Confidence for strong contradiction
+FACT_CHECKER_STRONG_ENTAILMENT_THRESHOLD=0.7  # Confidence for strong entailment
+FACT_CHECKER_WEAK_ENTAILMENT_THRESHOLD=0.5  # Confidence for weak entailment
+FACT_CHECKER_NEUTRAL_THRESHOLD=0.8  # Confidence for neutral classification
+FACT_CHECKER_NEUTRAL_RATIO_THRESHOLD=0.7  # Ratio of neutrals to mark as unknown
+
+# RAG Reranker (Improved Relevance Scoring)
+RAG_RERANKER_MODEL_NAME=  # Primary model (empty = use fallback list)
+RAG_RERANKER_FALLBACK_MODELS=BAAI/bge-reranker-base,BAAI/bge-reranker-large,ms-marco-MiniLM-L-12-v2
+RAG_RERANKER_ENABLED=true
+RAG_RERANKER_USE_CUDA=true  # Use GPU if available
+RAG_RERANKER_CUDA_DEVICE=0  # CUDA device ID
+
+# RAG Metric Targets (Optional - overrides calibration file if set)
+# Leave empty to use calibration recommendations from data/rag_calibration_recommendations.json
+# If any target is set, it will override the calibration file for that metric
+RAG_TARGET_RETRIEVAL_RECALL_5=  # Target for retrieval recall@5 (0-100)
+RAG_TARGET_RETRIEVAL_PRECISION_5=  # Target for retrieval precision@5 (0-100)
+RAG_TARGET_CONTEXT_RELEVANCE=  # Target for context relevance (0-100)
+RAG_TARGET_CONTEXT_COVERAGE=  # Target for context coverage (0-100)
+RAG_TARGET_CONTEXT_INTRUSION=  # Target for context intrusion (0-100, lower is better)
+RAG_TARGET_GOLD_CONTEXT_MATCH=  # Target for gold context match (0-100)
+RAG_TARGET_RERANKER_SCORE=  # Target for reranker score (0-1)
+
 # Dashboard
 PROMETHEUS_PORT=8000
 ENABLE_PROMETHEUS_METRICS=true
@@ -200,6 +255,7 @@ See [docs/getting_started.rst](docs/getting_started.rst) for complete configurat
 - [Dashboard Guide](docs/DASHBOARD.md) - Dashboard features & metrics
 - [Framework Architecture](docs/FRAMEWORK_ARCHITECTURE.md) - Design & patterns
 - [Metrics Calculations](docs/METRICS_CALCULATIONS.md) - How metrics are computed
+- [RAG Calibration Guide](docs/RAG_CALIBRATION_USAGE.md) - Calibrate RAG metrics with your data
 - [Docker Guide](docs/DOCKER.md) - Container usage
 - [Plugins Guide](docs/PLUGINS.md) - Extending the framework with plugins
 - [API Reference](docs/api_reference.rst) - Code documentation

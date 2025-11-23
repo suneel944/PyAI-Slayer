@@ -44,7 +44,7 @@ ifeq ($(UNAME_S),Darwin)
     PLATFORM := macos
 endif
 
-.PHONY: help check-python venv setup install install-dev clean clean-build clean-cache clean-test clean-venv clean-all test test-unit test-all test-integration test-cov lint format type-check check build ci activate playwright-install
+.PHONY: help check-python check-gpu venv setup install install-dev clean clean-build clean-cache clean-test clean-venv clean-all test test-unit test-all test-integration test-cov test-ai test-security test-ui lint format type-check check build ci activate playwright-install
 
 # Default target
 help:
@@ -52,9 +52,12 @@ help:
 	@echo ""
 	@echo "$(GREEN)Available targets:$(NC)"
 	@echo "  $(YELLOW)make setup$(NC)              - Complete project setup (check Python, create venv, install deps)"
-	@echo "  $(YELLOW)make install$(NC)            - Install package in production mode"
-	@echo "  $(YELLOW)make install-dev$(NC)       - Install package with dev dependencies"
+	@echo "  $(YELLOW)make install$(NC)            - Install package in production mode (auto-detects GPU)"
+	@echo "  $(YELLOW)make install-dev$(NC)       - Install package with dev dependencies (auto-detects GPU)"
 	@echo "  $(YELLOW)make test$(NC)               - Run e2e application tests (AI, security, UI - excludes unit tests)"
+	@echo "  $(YELLOW)make test-ai$(NC)           - Run AI tests only"
+	@echo "  $(YELLOW)make test-security$(NC)    - Run security tests only"
+	@echo "  $(YELLOW)make test-ui$(NC)            - Run UI tests only"
 	@echo "  $(YELLOW)make test-unit$(NC)         - Run unit tests only"
 	@echo "  $(YELLOW)make test-all$(NC)          - Run all tests (unit + e2e)"
 	@echo "  $(YELLOW)make test-cov$(NC)          - Run all tests with coverage report"
@@ -71,6 +74,16 @@ help:
 	@echo "  $(YELLOW)make metrics-summary$(NC)   - View test metrics summary (requires metrics enabled)"
 	@echo "  $(YELLOW)make metrics-export$(NC)     - Export metrics to JSON file"
 	@echo ""
+
+# Check if GPU is available
+check-gpu:
+	@if command -v nvidia-smi > /dev/null 2>&1; then \
+		echo "$(CYAN)GPU detected (nvidia-smi available)$(NC)"; \
+		echo "gpu" > /tmp/pyai-slayer-gpu-available; \
+	else \
+		echo "$(YELLOW)No GPU detected (nvidia-smi not found)$(NC)"; \
+		rm -f /tmp/pyai-slayer-gpu-available; \
+	fi
 
 # Check Python version
 check-python:
@@ -94,17 +107,29 @@ venv: check-python
 	fi
 
 # Install package in production mode
-install: venv
+install: venv check-gpu
 	@echo "$(CYAN)Installing package in production mode...$(NC)"
 	@$(VENV_BIN)/pip install --upgrade pip setuptools wheel
-	@$(VENV_BIN)/pip install -e .
+	@if [ -f /tmp/pyai-slayer-gpu-available ]; then \
+		echo "$(CYAN)Installing with GPU support (nvidia-ml-py)...$(NC)"; \
+		$(VENV_BIN)/pip install -e ".[gpu]"; \
+	else \
+		$(VENV_BIN)/pip install -e .; \
+		echo "$(YELLOW)Note: GPU dependencies not installed. To install later, run: pip install -e '.[gpu]'$(NC)"; \
+	fi
 	@echo "$(GREEN)✓ Package installed$(NC)"
 
 # Install package with dev dependencies
-install-dev: venv
+install-dev: venv check-gpu
 	@echo "$(CYAN)Installing package with dev dependencies...$(NC)"
 	@$(VENV_BIN)/pip install --upgrade pip setuptools wheel build twine
-	@$(VENV_BIN)/pip install -e ".[dev]"
+	@if [ -f /tmp/pyai-slayer-gpu-available ]; then \
+		echo "$(CYAN)Installing with GPU support (nvidia-ml-py)...$(NC)"; \
+		$(VENV_BIN)/pip install -e ".[dev,gpu]"; \
+	else \
+		$(VENV_BIN)/pip install -e ".[dev]"; \
+		echo "$(YELLOW)Note: GPU dependencies not installed. To install later, run: pip install -e '.[gpu]'$(NC)"; \
+	fi
 	@echo "$(GREEN)✓ Package installed with dev dependencies$(NC)"
 
 # Complete setup (main entry point)
@@ -138,6 +163,27 @@ test: venv
 	@echo "$(YELLOW)HEADLESS=$(HEADLESS)$(NC)"
 	@echo "$(YELLOW)PARALLEL_WORKERS=$(PARALLEL_WORKERS)$(NC)"
 	@$(VENV_BIN)/pytest tests/e2e/ai/ tests/e2e/security/ tests/e2e/ui/ -n $(PARALLEL_WORKERS) -vv -s --tb=short --log-cli-level=INFO --log-cli-format="%(asctime)s [%(levelname)8s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
+
+# Run AI tests only
+test-ai: venv
+	@echo "$(CYAN)Running AI tests in parallel ($(PARALLEL_WORKERS) workers) with verbose logs...$(NC)"
+	@echo "$(YELLOW)HEADLESS=$(HEADLESS)$(NC)"
+	@echo "$(YELLOW)PARALLEL_WORKERS=$(PARALLEL_WORKERS)$(NC)"
+	@$(VENV_BIN)/pytest tests/e2e/ai/ -n $(PARALLEL_WORKERS) -vv -s --tb=short --log-cli-level=INFO --log-cli-format="%(asctime)s [%(levelname)8s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
+
+# Run security tests only
+test-security: venv
+	@echo "$(CYAN)Running security tests in parallel ($(PARALLEL_WORKERS) workers) with verbose logs...$(NC)"
+	@echo "$(YELLOW)HEADLESS=$(HEADLESS)$(NC)"
+	@echo "$(YELLOW)PARALLEL_WORKERS=$(PARALLEL_WORKERS)$(NC)"
+	@$(VENV_BIN)/pytest tests/e2e/security/ -n $(PARALLEL_WORKERS) -vv -s --tb=short --log-cli-level=INFO --log-cli-format="%(asctime)s [%(levelname)8s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
+
+# Run UI tests only
+test-ui: venv
+	@echo "$(CYAN)Running UI tests in parallel ($(PARALLEL_WORKERS) workers) with verbose logs...$(NC)"
+	@echo "$(YELLOW)HEADLESS=$(HEADLESS)$(NC)"
+	@echo "$(YELLOW)PARALLEL_WORKERS=$(PARALLEL_WORKERS)$(NC)"
+	@$(VENV_BIN)/pytest tests/e2e/ui/ -n $(PARALLEL_WORKERS) -vv -s --tb=short --log-cli-level=INFO --log-cli-format="%(asctime)s [%(levelname)8s] %(name)s:%(funcName)s:%(lineno)d - %(message)s"
 
 # Run tests with specific markers
 test-integration: venv

@@ -22,7 +22,23 @@ class VirtualScroller {
         this.viewport.style.position = 'relative';
         this.container.appendChild(this.viewport);
 
-        this.container.addEventListener('scroll', this.onScroll.bind(this));
+        // Ultra-high-performance RAF for 120 FPS scrolling
+        this.rafId = null;
+        this.lastRenderTime = 0;
+        this.scrollHandler = () => {
+            const now = performance.now();
+            // Throttle to max 120 FPS (8.33ms per frame)
+            if (now - this.lastRenderTime >= 8.33) {
+                if (this.rafId === null) {
+                    this.rafId = requestAnimationFrame(() => {
+                        this.onScroll();
+                        this.lastRenderTime = performance.now();
+                        this.rafId = null;
+                    });
+                }
+            }
+        };
+        this.container.addEventListener('scroll', this.scrollHandler, { passive: true });
         this.updateContainerHeight();
     }
 
@@ -51,6 +67,13 @@ class VirtualScroller {
         const bufferSize = 5;
         const renderStart = Math.max(0, startIndex - bufferSize);
         const renderEnd = Math.min(this.data.length, endIndex + bufferSize);
+
+        // Only re-render if visible range changed
+        if (this.lastRenderStart === renderStart && this.lastRenderEnd === renderEnd) {
+            return;
+        }
+        this.lastRenderStart = renderStart;
+        this.lastRenderEnd = renderEnd;
 
         const fragment = document.createDocumentFragment();
 
@@ -466,6 +489,16 @@ const optimizedLoadTests = debounce(async function() {
         return [];
     }
 }, 300);
+
+// ===== LENIS INTEGRATION =====
+// Helper function to check if Lenis is available
+function isLenisAvailable() {
+    return typeof window !== 'undefined' && window.lenis;
+}
+
+// Integrate VirtualScroller with Lenis for optimal performance
+// Note: Lenis handles main window scrolling, VirtualScroller handles container scrolling
+// They work together seamlessly
 
 // ===== INITIALIZATION =====
 function initPerformanceOptimizations() {

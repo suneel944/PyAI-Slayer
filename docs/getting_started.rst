@@ -98,13 +98,16 @@ Using Makefile (recommended):
 
 .. code-block:: bash
 
-   # Run integration/UI/security tests (excludes unit tests)
+   # Run all e2e tests (AI, security, UI - excludes unit tests)
    make test
 
-   # Run unit tests only
-   make test-unit
+   # Run specific test categories
+   make test-ai          # AI validation tests only
+   make test-security    # Security tests only
+   make test-ui          # UI tests only
+   make test-unit        # Unit tests only
 
-   # Run all tests
+   # Run all tests (unit + e2e)
    make test-all
 
    # Run with coverage

@@ -115,6 +115,8 @@ class Cache:
         if not self._cache:
             return
 
+        # Use min() to find oldest entry - O(n) but acceptable for cache eviction
+        # For better performance with large caches, consider using OrderedDict
         oldest_key = min(self._cache.keys(), key=lambda k: self._cache[k].created_at)
         del self._cache[oldest_key]
 
@@ -260,22 +262,28 @@ class EmbeddingCache:
         return self._cache.get_stats()
 
 
-# Global cache instances
+# Global cache instances with thread-safe singleton pattern
 _model_cache: ModelCache | None = None
+_model_cache_lock = threading.Lock()
 _embedding_cache: EmbeddingCache | None = None
+_embedding_cache_lock = threading.Lock()
 
 
 def get_model_cache() -> ModelCache:
-    """Get global model cache instance."""
+    """Get global model cache instance (thread-safe)."""
     global _model_cache
     if _model_cache is None:
-        _model_cache = ModelCache()
+        with _model_cache_lock:
+            if _model_cache is None:  # Double-check pattern
+                _model_cache = ModelCache()
     return _model_cache
 
 
 def get_embedding_cache() -> EmbeddingCache:
-    """Get global embedding cache instance."""
+    """Get global embedding cache instance (thread-safe)."""
     global _embedding_cache
     if _embedding_cache is None:
-        _embedding_cache = EmbeddingCache()
+        with _embedding_cache_lock:
+            if _embedding_cache is None:  # Double-check pattern
+                _embedding_cache = EmbeddingCache()
     return _embedding_cache

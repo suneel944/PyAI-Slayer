@@ -235,8 +235,12 @@ class PrometheusMetrics:
 
         try:
             self.test_active.inc()
+        except AttributeError as e:
+            # Prometheus not initialized properly
+            logger.warning(f"Prometheus metrics not initialized: {e}")
         except Exception as e:
-            logger.debug(f"Failed to record test start: {e}")
+            # Metrics failures shouldn't break test execution, but log at warning level
+            logger.warning(f"Failed to record test start: {e}", exc_info=True)
 
     def record_test_end(self, _test_name: str, status: str, duration: float) -> None:
         """
@@ -264,8 +268,12 @@ class PrometheusMetrics:
                 elif status == "skipped":
                     self._metrics["test_skipped"] += 1
                 self._metrics["test_duration_seconds"].append(duration)
+        except AttributeError as e:
+            # Prometheus not initialized properly
+            logger.warning(f"Prometheus metrics not initialized: {e}")
         except Exception as e:
-            logger.debug(f"Failed to record test end: {e}")
+            # Metrics failures shouldn't break test execution, but log at warning level
+            logger.warning(f"Failed to record test end: {e}", exc_info=True)
 
     def record_validation(
         self,
@@ -656,19 +664,23 @@ class PrometheusMetrics:
             }
 
 
-# Global metrics instance
+# Global metrics instance with thread-safe singleton pattern
 _prometheus_metrics: PrometheusMetrics | None = None
+_prometheus_metrics_lock = threading.Lock()
 
 
 def get_prometheus_metrics() -> PrometheusMetrics:
-    """Get global Prometheus metrics instance."""
+    """Get global Prometheus metrics instance (thread-safe)."""
     global _prometheus_metrics
     if _prometheus_metrics is None:
-        _prometheus_metrics = PrometheusMetrics()
+        with _prometheus_metrics_lock:
+            if _prometheus_metrics is None:  # Double-check pattern
+                _prometheus_metrics = PrometheusMetrics()
     return _prometheus_metrics
 
 
 def reset_prometheus_metrics() -> None:
     """Reset global Prometheus metrics (useful for testing)."""
     global _prometheus_metrics
-    _prometheus_metrics = None
+    with _prometheus_metrics_lock:
+        _prometheus_metrics = None

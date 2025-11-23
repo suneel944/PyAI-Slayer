@@ -798,11 +798,17 @@ class TestMySecurity:
 
 The framework provides several test targets:
 
-- **`make test`** - Runs integration/UI/security tests (excludes unit tests)
+- **`make test`** - Runs all e2e tests (AI, security, UI - excludes unit tests)
   - Executes: `pytest tests/e2e/ai/ tests/e2e/security/ tests/e2e/ui/`
+- **`make test-ai`** - Runs AI validation tests only
+  - Executes: `pytest tests/e2e/ai/`
+- **`make test-security`** - Runs security tests only
+  - Executes: `pytest tests/e2e/security/`
+- **`make test-ui`** - Runs UI tests only
+  - Executes: `pytest tests/e2e/ui/`
 - **`make test-unit`** - Runs unit tests only
   - Executes: `pytest tests/unit/`
-- **`make test-all`** - Runs all tests (unit + integration + UI + security)
+- **`make test-all`** - Runs all tests (unit + e2e)
   - Executes: `pytest tests/`
 - **`make test-cov`** - Runs all tests with coverage reporting
 - **`make check`** - Runs linting and type checking only (no tests)
@@ -869,7 +875,19 @@ PyAI-Slayer/
 │   ├── dashboard/               # Dashboard application
 │   │   ├── api.py
 │   │   ├── collectors.py
-│   │   ├── metrics_calculator.py
+│   │   ├── metrics_calculator.py  # Backward-compatible wrapper
+│   │   ├── metrics_engine.py      # Central orchestration
+│   │   ├── metrics_spec.py        # Metric specifications
+│   │   ├── metric_validator.py    # Metric validation
+│   │   └── calculators/           # Modular metric calculators
+│   │       ├── base_model.py      # Base model metrics
+│   │       ├── rag.py             # RAG metrics
+│   │       ├── safety.py          # Safety metrics
+│   │       ├── performance.py     # Performance metrics
+│   │       ├── reliability.py     # Reliability metrics
+│   │       ├── agent.py           # Agent metrics
+│   │       ├── security.py        # Security metrics
+│   │       └── detectors.py      # Heavy dependencies (lazy-loaded)
 │   │   └── ...
 │   │
 │   └── utils/                    # Utilities

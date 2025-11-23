@@ -184,6 +184,27 @@ The dashboard will automatically:
 - Performance trends
 - Language-specific analysis
 
+### 5. RAG Metrics & Calibration
+
+**RAG Metric Targets:**
+- Targets are automatically loaded from calibration recommendations
+- Can be overridden via `.env` variables
+- Displayed in RAG metric cards with status indicators
+
+**Calibration Process:**
+1. Create your eval set: `cp data/examples/example_rag_eval_set.json data/rag_eval_set.json`
+2. Edit with your queries and labeled chunks (relevance 0-3)
+3. Run calibration: `python scripts/calibrate_rag_metrics.py`
+4. Dashboard automatically uses calibrated targets
+
+**Target Priority:**
+1. `.env` variables (highest priority)
+2. Calibration file (`data/rag_calibration_recommendations.json`)
+3. Code defaults (fallback)
+
+**See Also:**
+- [RAG Calibration Usage Guide](RAG_CALIBRATION_USAGE.md) - Complete guide on creating eval sets and calibrating metrics
+
 ## Architecture
 
 ```
@@ -214,6 +235,9 @@ The dashboard will automatically:
 ### Metrics
 - `GET /api/metrics/current` - Current Prometheus metrics
 - `GET /api/metrics/history/{metric_type}` - Historical metrics
+
+### RAG
+- `GET /api/rag/targets` - Get current RAG metric targets (from calibration or .env)
 
 ### Tests
 - `GET /api/tests` - All tests (with filters)

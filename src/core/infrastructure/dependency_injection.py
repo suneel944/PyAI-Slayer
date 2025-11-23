@@ -1,6 +1,7 @@
 """Dependency injection container for framework components."""
 
 import contextlib
+import threading
 from collections.abc import Callable
 from typing import Any, TypeVar, cast, get_type_hints
 
@@ -153,19 +154,23 @@ class DIContainer:
         )
 
 
-# Global DI container instance
+# Global DI container instance with thread-safe singleton pattern
 _container: DIContainer | None = None
+_container_lock = threading.Lock()
 
 
 def get_container() -> DIContainer:
-    """Get global DI container instance."""
+    """Get global DI container instance (thread-safe)."""
     global _container
     if _container is None:
-        _container = DIContainer()
+        with _container_lock:
+            if _container is None:  # Double-check pattern
+                _container = DIContainer()
     return _container
 
 
 def reset_container() -> None:
     """Reset global DI container (useful for testing)."""
     global _container
-    _container = None
+    with _container_lock:
+        _container = None

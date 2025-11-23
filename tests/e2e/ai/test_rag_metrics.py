@@ -299,21 +299,27 @@ class TestRAGMetrics:
             response=response,
         )
 
-        # Check for hallucination vs retrieval (low hallucination = good grounding)
+        # Check for context intrusion: response should paraphrase, not copy verbatim
+        # High similarity score = verbatim copying = context intrusion (BAD)
+        # Low similarity score = good paraphrasing = no intrusion (GOOD)
         result = self.rag_tester.detect_hallucination_vs_retrieval(
             response=response, retrieved_context=retrieved_docs, threshold=0.5
         )
 
-        # Context intrusion should be low (response should paraphrase, not copy verbatim)
-        # The metrics calculator will compute this based on word overlap
+        # Context intrusion detection: similarity score should be LOW (< 0.3)
+        # High score (>= 0.3) indicates verbatim copying from context, which is unwanted
+        # Note: High grounding score is GOOD for grounding tests, but BAD for intrusion tests
         assert not result.passed or result.score < 0.3, (
-            f"High hallucination detected (low grounding): {result.score:.3f}. "
-            f"Response should be better grounded in retrieved context."
+            f"Context intrusion detected: response similarity to context is too high "
+            f"(score={result.score:.3f}, threshold=<0.3). "
+            f"The response appears to be copying context verbatim rather than paraphrasing. "
+            f"Expected: paraphrased response with similarity < 0.3. "
+            f"Got: verbatim-like response with similarity {result.score:.3f}."
         )
         logger.info(
-            f"Context intrusion check: hallucination score={result.score:.3f}, "
-            f"grounded={not result.passed}, "
-            f"details={result.details}"
+            f"Context intrusion check: similarity score={result.score:.3f} "
+            f"(threshold=<0.3, {'PASS' if result.score < 0.3 else 'FAIL'}), "
+            f"grounded={result.passed}, details={result.details}"
         )
 
     def test_comprehensive_rag_validation(self, chat_page, test_config):
@@ -333,13 +339,16 @@ class TestRAGMetrics:
         assert response is not None, "No response"
         assert len(response) > 0, "Empty response"
 
+        # Get expected citations if available
+        expected_citations = comprehensive_data.get("expected_citations", None)
+
         # Use comprehensive RAG test
         results = self.rag_tester.comprehensive_rag_test(
             query=query,
             response=response,
             retrieved_docs=retrieved_docs,
             expected_sources=expected_sources,
-            expected_citations=None,
+            expected_citations=expected_citations,
         )
 
         # Validate that comprehensive test stored RAG context
@@ -388,3 +397,79 @@ class TestRAGMetrics:
                 is_relevant, similarity = self.validator.validate_relevance(query, response)
                 assert is_relevant, f"Response not relevant for: {query}"
                 logger.info(f"Query {i + 1} '{query}' relevance: {similarity:.3f}")
+
+    def test_source_attribution(self, chat_page, test_config):
+        """RAG-009: Response properly attributes sources."""
+        rag_data = self.test_data.get("rag_test_data", {})
+        attribution_data = rag_data.get("source_attribution", {})
+        query = attribution_data.get("query", "")
+        expected_citations = attribution_data.get("expected_citations", [])
+
+        if not query or not expected_citations:
+            pytest.skip("Source attribution test data not available")
+
+        chat_page.send_message(query, wait_for_response=True)
+        response = chat_page.get_latest_response()
+
+        assert response is not None, "No response"
+        assert len(response) > 0, "Empty response"
+
+        # Store RAG context for dashboard collection
+        self._store_rag_context_for_dashboard(
+            retrieved_docs=None,
+            expected_sources=None,
+            gold_context=None,
+            query=query,
+            response=response,
+        )
+
+        # Use RAG tester to validate source attribution
+        result = self.rag_tester.validate_source_attribution(
+            response=response, expected_citations=expected_citations
+        )
+
+        assert result.passed, f"Source attribution failed: {result.score:.3f}"
+        logger.info(
+            f"Source attribution test passed: score={result.score:.3f}, "
+            f"found_citations={result.details.get('found_citations', [])}, "
+            f"missing_citations={result.details.get('missing_citations', [])}"
+        )
+
+    def test_out_of_domain_handling(self, chat_page, test_config):
+        """RAG-010: System handles out-of-domain queries appropriately."""
+        rag_data = self.test_data.get("rag_test_data", {})
+        out_of_domain_data = rag_data.get("out_of_domain", {})
+        query = out_of_domain_data.get("query", "")
+        expected_behavior = out_of_domain_data.get("expected_behavior", "acknowledge_limitation")
+
+        if not query:
+            pytest.skip("Out-of-domain test data not available")
+
+        chat_page.send_message(query, wait_for_response=True)
+        response = chat_page.get_latest_response()
+
+        assert response is not None, "No response"
+        assert len(response) > 0, "Empty response"
+
+        # Store RAG context for dashboard collection
+        self._store_rag_context_for_dashboard(
+            retrieved_docs=None,
+            expected_sources=None,
+            gold_context=None,
+            query=query,
+            response=response,
+        )
+
+        # Use RAG tester to validate out-of-domain handling
+        result = self.rag_tester.test_out_of_domain_query(
+            query=query, response=response, expected_behavior=expected_behavior
+        )
+
+        assert result.passed, (
+            f"System should acknowledge limitations for out-of-domain queries. "
+            f"Score: {result.score:.3f}, Details: {result.details}"
+        )
+        logger.info(
+            f"Out-of-domain handling test passed: score={result.score:.3f}, "
+            f"acknowledges_limitation={result.details.get('acknowledges_limitation', False)}"
+        )

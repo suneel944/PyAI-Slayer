@@ -765,11 +765,55 @@ class DashboardDataStore:
 
             # Validation metrics - get average scores per metric type
             validation_metrics = {}
+
+            # Special handling for hallucination_rate: calculate true rate from binary classification
+            # This follows research standards: rate = (responses_with_hallucinations / total_responses) * 100
+            cursor.execute(
+                """
+                SELECT
+                    COUNT(DISTINCT test_id) as total_tests,
+                    SUM(CASE WHEN metric_name='hallucination_detected' AND metric_value=1.0 THEN 1 ELSE 0 END) as hallucinated_tests
+                FROM scoring_details
+                WHERE metric_name='hallucination_detected'
+            """
+            )
+            hallucination_row = cursor.fetchone()
+            if (
+                hallucination_row
+                and hallucination_row["total_tests"]
+                and hallucination_row["total_tests"] > 0
+            ):
+                hallucination_rate = (
+                    hallucination_row["hallucinated_tests"] / hallucination_row["total_tests"]
+                ) * 100
+                validation_metrics["hallucination_rate"] = round(hallucination_rate, 4)
+
+                # Also calculate average confidence for detected hallucinations (severity metric)
+                cursor.execute(
+                    """
+                    SELECT AVG(metric_value) as avg_confidence
+                    FROM scoring_details
+                    WHERE metric_name='hallucination_confidence'
+                    AND test_id IN (
+                        SELECT DISTINCT test_id
+                        FROM scoring_details
+                        WHERE metric_name='hallucination_detected' AND metric_value=1.0
+                    )
+                """
+                )
+                confidence_row = cursor.fetchone()
+                if confidence_row and confidence_row["avg_confidence"] is not None:
+                    validation_metrics["hallucination_confidence_avg"] = round(
+                        confidence_row["avg_confidence"], 4
+                    )
+
+            # Standard aggregation for other metrics
             cursor.execute(
                 """
                 SELECT metric_name, AVG(metric_value) as avg_value,
                        COUNT(*) as count
                 FROM scoring_details
+                WHERE metric_name NOT IN ('hallucination_rate', 'hallucination_detected')
                 GROUP BY metric_name
                 HAVING count > 0
             """
@@ -800,18 +844,20 @@ class DashboardDataStore:
                 "rouge1_recall": "rouge_1_recall",
                 # Base Model Metrics
                 "accuracy": "accuracy",
-                "top_k_accuracy": "top_k_accuracy",
+                "normalized_similarity_score": "normalized_similarity_score",
                 "exact_match": "exact_match",
                 "f1_score": "f1_score",
                 "bleu": "bleu",
+                "lexical_overlap": "lexical_overlap",
                 "cot_validity": "cot_validity",
                 "step_correctness": "step_correctness",
                 "logic_consistency": "logic_consistency",
                 "hallucination_rate": "hallucination_rate",
-                "factual_consistency": "factual_consistency",
-                "truthfulness": "truthfulness",
+                "hallucination_confidence_avg": "hallucination_confidence_avg",
+                "similarity_proxy_factual_consistency": "similarity_proxy_factual_consistency",
+                "similarity_proxy_truthfulness": "similarity_proxy_truthfulness",
                 "citation_accuracy": "citation_accuracy",
-                "source_grounding": "source_grounding",
+                "similarity_proxy_source_grounding": "similarity_proxy_source_grounding",
                 # RAG Metrics
                 "retrieval_recall_5": "retrieval_recall_5",
                 "retrieval_precision_5": "retrieval_precision_5",
@@ -900,17 +946,18 @@ class DashboardDataStore:
                     "semantic_similarity",
                     # Base Model Metrics (0-1 range)
                     "accuracy",
-                    "top_k_accuracy",
+                    "normalized_similarity_score",
                     "exact_match",
                     "f1_score",
                     "bleu",
+                    "lexical_overlap",  # BLEU fallback
                     "cot_validity",
                     "step_correctness",
                     "logic_consistency",
-                    "factual_consistency",
-                    "truthfulness",
+                    "similarity_proxy_factual_consistency",
+                    "similarity_proxy_truthfulness",
                     "citation_accuracy",
-                    "source_grounding",
+                    "similarity_proxy_source_grounding",
                     # RAG Metrics (0-1 range)
                     "retrieval_recall_5",
                     "retrieval_precision_5",

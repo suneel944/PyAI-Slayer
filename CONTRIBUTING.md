@@ -282,13 +282,17 @@ Tests should be organized by type:
 ### Running Tests
 
 ```bash
-# Run all tests
-make test-all
+# Run all e2e tests (AI, security, UI)
+make test
 
 # Run specific test categories
-pytest -m unit -v
-pytest -m functional -v
-pytest -m ui -v
+make test-ai          # AI validation tests only
+make test-security    # Security tests only
+make test-ui          # UI tests only
+make test-unit        # Unit tests only
+
+# Run all tests (unit + e2e)
+make test-all
 
 # Run with coverage
 make test-cov

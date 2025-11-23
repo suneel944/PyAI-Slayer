@@ -43,7 +43,7 @@ class LocalizationHelper:
             container_direction = page.evaluate(
                 """
                 () => {
-                    const containers = document.querySelectorAll('.chat-container, .main-content,
+                    const containers = document.querySelectorAll('.chat-container, .main-content');
                     for (let container of containers) {
                         const dir = window.getComputedStyle(container).direction;
                         if (dir === 'rtl') return 'rtl';

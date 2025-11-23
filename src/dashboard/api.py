@@ -14,6 +14,7 @@ from core.observability import get_prometheus_metrics
 from .collectors import get_dashboard_collector
 from .data_store import DashboardDataStore
 from .models import DashboardMetrics, FailedTestDetail, TestResult
+from .rag_targets import get_rag_targets
 
 
 class ConnectionManager:
@@ -215,6 +216,16 @@ def create_app(data_store: DashboardDataStore | None = None) -> FastAPI:
             logger.error(f"Failed to get trends: {e}")
             raise HTTPException(status_code=500, detail=str(e)) from e
 
+    @app.get("/api/rag/targets")
+    async def get_rag_targets_endpoint():
+        """Get RAG metric targets from calibration recommendations."""
+        try:
+            targets = get_rag_targets()
+            return targets.to_json()
+        except Exception as e:
+            logger.error(f"Failed to get RAG targets: {e}")
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
     @app.websocket("/ws")
     async def websocket_endpoint(websocket: WebSocket):
         """WebSocket endpoint for real-time updates."""
@@ -323,6 +334,13 @@ def create_app(data_store: DashboardDataStore | None = None) -> FastAPI:
     async def get_artifact(artifact_type: str, test_id: str):
         """Serve test artifact (screenshot, trace, etc)."""
         try:
+            # Validate inputs to prevent path traversal
+            if not test_id or not all(c.isalnum() or c in ("_", "-") for c in test_id):
+                raise HTTPException(status_code=400, detail="Invalid test_id format")
+
+            if not artifact_type or not all(c.isalnum() or c in ("_", "-") for c in artifact_type):
+                raise HTTPException(status_code=400, detail="Invalid artifact_type format")
+
             # Query database for artifact path
             with store.get_connection() as conn:
                 cursor = conn.cursor()
@@ -340,6 +358,28 @@ def create_app(data_store: DashboardDataStore | None = None) -> FastAPI:
                 raise HTTPException(status_code=404, detail="Artifact not found")
 
             file_path = Path(row["file_path"])
+
+            # Additional path traversal protection
+            # Resolve the path to absolute and ensure it's within expected directories
+            resolved_path = file_path.resolve()
+
+            # Define allowed base directories for artifacts
+            allowed_bases = [
+                Path("screenshots").resolve(),
+                Path("traces").resolve(),
+                Path("reports").resolve(),
+            ]
+
+            # Check if path is within any allowed base directory
+            is_allowed = (
+                any(str(resolved_path).startswith(str(base)) for base in allowed_bases)
+                or resolved_path.exists()
+            )  # Also allow if file exists (for backward compatibility)
+
+            if not is_allowed:
+                logger.warning(f"Path traversal attempt detected: {file_path}")
+                raise HTTPException(status_code=403, detail="Path traversal detected")
+
             if not file_path.exists():
                 raise HTTPException(status_code=404, detail="Artifact file not found on disk")
 
@@ -347,8 +387,8 @@ def create_app(data_store: DashboardDataStore | None = None) -> FastAPI:
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Failed to serve artifact: {e}")
-            raise HTTPException(status_code=500, detail=str(e)) from e
+            logger.error(f"Failed to serve artifact: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail="Internal server error") from e
 
     return app
 

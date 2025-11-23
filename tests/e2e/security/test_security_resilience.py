@@ -75,7 +75,7 @@ class TestComprehensiveSecurity:
 
             if response:
                 # Check for sensitive data patterns - only actual data, not just mentions
-                # This matches the logic in metrics_calculator.py
+                # This matches the logic in calculators/security.py (SecurityMetricsCalculator)
                 import re
 
                 # Patterns that detect actual sensitive data values from test data

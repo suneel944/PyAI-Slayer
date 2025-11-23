@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     }
 
-    // Initialize smooth scrolling with Zenscroll
+    // Initialize ultra-smooth scrolling with Lenis (60 FPS)
     initSmoothScrolling();
 
     // After everything is initialized, restore the saved tab if different from default
@@ -66,13 +66,114 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== SMOOTH SCROLLING INITIALIZATION =====
+let lenis = null;
+let displayRefreshRate = 60; // Default to 60Hz
+let targetFPS = 60;
+
+// ===== DISPLAY REFRESH RATE DETECTION =====
+function detectDisplayRefreshRate() {
+    return new Promise((resolve) => {
+        let lastFrameTime = performance.now();
+        let frameCount = 0;
+        let startTime = lastFrameTime;
+
+        function measureFrame() {
+            const currentTime = performance.now();
+            frameCount++;
+
+            // Measure for 1 second to get accurate refresh rate
+            if (currentTime - startTime >= 1000) {
+                const detectedRate = Math.round(frameCount);
+                // Cap at reasonable values (60-240Hz)
+                const refreshRate = Math.min(Math.max(detectedRate, 60), 240);
+                resolve(refreshRate);
+                return;
+            }
+
+            requestAnimationFrame(measureFrame);
+        }
+
+        requestAnimationFrame(measureFrame);
+    });
+}
+
+// Initialize refresh rate detection
+detectDisplayRefreshRate().then(rate => {
+    displayRefreshRate = rate;
+    targetFPS = rate >= 120 ? 120 : 60; // Target 120 FPS on high refresh displays, 60 otherwise
+
+    // Update Lenis if already initialized
+    if (lenis) {
+        // Re-initialize with optimal settings for detected refresh rate
+        console.log(`🎯 Display refresh rate: ${displayRefreshRate}Hz | Targeting: ${targetFPS} FPS`);
+    }
+});
+
 function initSmoothScrolling() {
-    // Check if Zenscroll is available
-    if (typeof zenscroll !== 'undefined') {
-        // Configure Zenscroll for optimal smooth scrolling
-        // Duration: 800ms for smooth but not too slow scrolling
-        // Edge offset: 20px to account for any fixed headers
-        zenscroll.setup(800, 20);
+    // Check if Lenis is available
+    if (typeof Lenis !== 'undefined') {
+        // Detect if we're on a mobile device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // Optimize duration based on target FPS (faster for higher FPS)
+        const baseDuration = isMobile ? 1.0 : 1.2;
+        const optimizedDuration = targetFPS >= 120 ? baseDuration * 0.9 : baseDuration;
+
+        // Initialize Lenis with ultra-smooth settings optimized for 120 FPS
+        lenis = new Lenis({
+            duration: optimizedDuration,  // Optimized for high refresh rate
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Ultra-smooth easing
+            orientation: 'vertical',     // Vertical scrolling
+            gestureOrientation: 'vertical',
+            smoothWheel: true,           // Smooth mouse wheel scrolling (desktop)
+            wheelMultiplier: targetFPS >= 120 ? 0.9 : 1,  // Slightly faster on high refresh
+            smoothTouch: false,          // Disable on touch devices for native feel
+            touchMultiplier: 2,          // Touch sensitivity
+            infinite: false,             // Don't allow infinite scrolling
+            // Ultra-performance optimizations
+            syncTouch: false,            // Don't sync touch events
+            // Enable lerp for ultra-smooth interpolation
+            lerp: targetFPS >= 120 ? 0.1 : 0.15, // Faster lerp for higher FPS
+            // Exclude scrollable containers from Lenis smooth scrolling
+            wrapper: window,
+            content: document.documentElement,
+        });
+
+        // Ultra-high-performance RAF loop optimized for 120 FPS
+        let rafId = null;
+        let lastTime = 0;
+        let frameCount = 0;
+        let fpsStartTime = performance.now();
+
+        function ultraSmoothRAF(time) {
+            // Calculate delta time for frame-independent updates
+            const deltaTime = time - lastTime;
+            lastTime = time;
+
+            // Update Lenis
+            lenis.raf(time);
+
+            // Frame rate monitoring (every second)
+            frameCount++;
+            if (time - fpsStartTime >= 1000) {
+                const currentFPS = Math.round(frameCount);
+                if (currentFPS >= 100) {
+                    // Only log if achieving high FPS
+                    console.log(`🚀 Scrolling at ${currentFPS} FPS`);
+                }
+                frameCount = 0;
+                fpsStartTime = time;
+            }
+
+            // Continue RAF loop with highest priority
+            rafId = requestAnimationFrame(ultraSmoothRAF);
+        }
+
+        // Start ultra-smooth RAF loop
+        rafId = requestAnimationFrame(ultraSmoothRAF);
+
+        // Store rafId for cleanup if needed
+        window.lenisRAFId = rafId;
 
         // Enhance all anchor link scrolling
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -82,16 +183,103 @@ function initSmoothScrolling() {
                     const target = document.querySelector(href);
                     if (target) {
                         e.preventDefault();
-                        zenscroll.to(target);
+                        lenis.scrollTo(target, {
+                            offset: -20, // Account for any fixed headers
+                            duration: targetFPS >= 120 ? 1.0 : 1.2, // Optimized for high refresh
+                            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Ultra-smooth
+                        });
                     }
                 }
             });
         });
 
-        console.log('Smooth scrolling initialized with Zenscroll');
+        // Expose lenis globally for other modules
+        window.lenis = lenis;
+        window.displayRefreshRate = displayRefreshRate;
+        window.targetFPS = targetFPS;
+
+        // Fix container scrolling: Prevent Lenis from intercepting scroll events in scrollable containers
+        function setupContainerScrolling() {
+            // Find all scrollable containers
+            const scrollableContainers = document.querySelectorAll(
+                '.test-results-container, .test-results-list, [class*="-container"]:not([class*="dashboard-container"]), [class*="-list"], [class*="-menu"]:not([class*="custom-dropdown-menu"])'
+            );
+
+            scrollableContainers.forEach(container => {
+                // Check if container is actually scrollable
+                const isScrollable = container.scrollHeight > container.clientHeight;
+                if (!isScrollable) return;
+
+                // Prevent Lenis from handling wheel events within this container
+                container.addEventListener('wheel', (e) => {
+                    // Check if container can scroll in the direction of the wheel event
+                    const canScrollUp = container.scrollTop > 0;
+                    const canScrollDown = container.scrollTop < container.scrollHeight - container.clientHeight;
+                    const scrollingDown = e.deltaY > 0;
+                    const scrollingUp = e.deltaY < 0;
+
+                    // If container can scroll in this direction, stop propagation to Lenis
+                    if ((scrollingDown && canScrollDown) || (scrollingUp && canScrollUp)) {
+                        // Stop event from reaching Lenis
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                    }
+                }, { passive: false, capture: true });
+
+                // Also handle touch events for mobile
+                container.addEventListener('touchstart', (e) => {
+                    // Mark that touch started in this container
+                    container.dataset.touching = 'true';
+                }, { passive: true });
+
+                container.addEventListener('touchend', () => {
+                    delete container.dataset.touching;
+                }, { passive: true });
+
+                container.addEventListener('touchmove', (e) => {
+                    if (container.dataset.touching === 'true') {
+                        e.stopPropagation();
+                    }
+                }, { passive: true });
+            });
+        }
+
+        // Setup container scrolling after DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupContainerScrolling);
+        } else {
+            setupContainerScrolling();
+        }
+
+        // Use MutationObserver to re-setup container scrolling when DOM changes
+        const observer = new MutationObserver(() => {
+            setupContainerScrolling();
+        });
+
+        // Observe changes to the test results container
+        const testResultsContainer = document.querySelector('.test-results-container');
+        if (testResultsContainer) {
+            observer.observe(testResultsContainer, {
+                childList: true,
+                subtree: true
+            });
+        }
+
+        // Also observe the main content area for other containers
+        const mainContent = document.querySelector('.dashboard-content') || document.body;
+        observer.observe(mainContent, {
+            childList: true,
+            subtree: true
+        });
+
+        // Log initialization with detected refresh rate
+        setTimeout(() => {
+            console.log(`✅ Ultra-smooth scrolling initialized with Lenis`);
+            console.log(`📊 Display: ${displayRefreshRate}Hz | Target: ${targetFPS} FPS | Ultra-butter-smooth mode enabled`);
+        }, 100);
     } else {
-        // Fallback: Use native CSS smooth scrolling
-        console.log('Using native CSS smooth scrolling');
+        // Fallback: Use native scrolling
+        console.warn('⚠️ Lenis not available, using native scrolling');
     }
 }
 
@@ -304,15 +492,17 @@ function switchTab(tabName) {
         setTimeout(() => lucide.createIcons(), 100);
     }
 
-    // Smooth scroll to top when switching tabs
-    if (typeof zenscroll !== 'undefined') {
-        // Use requestAnimationFrame to ensure DOM is updated
-        requestAnimationFrame(() => {
-            zenscroll.toY(0);
+    // Ultra-smooth scroll to top when switching tabs (optimized for 120 FPS)
+    if (lenis) {
+        lenis.scrollTo(0, {
+            duration: targetFPS >= 120 ? 0.6 : 0.8, // Faster on high refresh displays
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Ultra-smooth easing
+            immediate: false,
         });
     } else {
-        // Fallback to native smooth scroll
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        });
     }
 }
 
@@ -361,8 +551,70 @@ function initWebSocket() {
 }
 
 // ===== API CALLS =====
+let ragTargets = null; // Cache for RAG targets
+
+async function loadRAGTargets() {
+    try {
+        const response = await fetch(`/api/rag/targets?_t=${Date.now()}`);
+        ragTargets = await response.json();
+        console.log('Loaded RAG targets:', ragTargets);
+
+        // Update target labels in UI
+        updateRAGTargetLabels();
+
+        return ragTargets;
+    } catch (error) {
+        console.warn('Failed to load RAG targets, using defaults:', error);
+        // Return default targets
+        ragTargets = {
+            retrieval_recall_5: 85.0,
+            retrieval_precision_5: 85.0,
+            context_relevance: 80.0,
+            context_coverage: 80.0,
+            context_intrusion: 5.0,
+            gold_context_match: 85.0,
+            reranker_score: 0.8,
+        };
+        updateRAGTargetLabels();
+        return ragTargets;
+    }
+}
+
+function updateRAGTargetLabels() {
+    if (!ragTargets) return;
+
+    // Update Recall@5 target
+    const recallTargetEl = document.getElementById('ragRecallTarget');
+    if (recallTargetEl) {
+        recallTargetEl.textContent = `Target: > ${Math.round(ragTargets.retrieval_recall_5)}%`;
+    }
+
+    // Update Precision@5 target
+    const precisionTargetEl = document.getElementById('ragPrecisionTarget');
+    if (precisionTargetEl) {
+        precisionTargetEl.textContent = `Target: > ${Math.round(ragTargets.retrieval_precision_5)}%`;
+    }
+
+    // Update Context Intrusion target (lower is better)
+    const intrusionTargetEl = document.getElementById('ragIntrusionTarget');
+    if (intrusionTargetEl) {
+        intrusionTargetEl.textContent = `Target: < ${ragTargets.context_intrusion.toFixed(1)}%`;
+    }
+
+    // Update Reranker Score target
+    const rerankerTargetEl = document.getElementById('ragRerankerTarget');
+    if (rerankerTargetEl) {
+        rerankerTargetEl.textContent = `Target: > ${ragTargets.reranker_score.toFixed(2)}`;
+    }
+}
+
 async function loadAllMetrics() {
     try {
+        // Load RAG targets first (if not already loaded)
+        if (!ragTargets) {
+            ragTargets = await loadRAGTargets();
+        }
+
         // Load statistics
         const statsResponse = await fetch(`/api/statistics?_t=${Date.now()}`);
         const stats = await statsResponse.json();
@@ -433,7 +685,7 @@ function calculateMetricsFromStats(stats) {
 
     metricsData.baseModel = {
         accuracy: convertToPercentage(getMetric(validationMetrics, 'accuracy')),
-        topKAccuracy: convertToPercentage(getMetric(validationMetrics, 'top_k_accuracy')),
+        normalizedSimilarityScore: convertToPercentage(getMetric(validationMetrics, 'normalized_similarity_score')),
         exactMatch: convertToPercentage(getMetric(validationMetrics, 'exact_match')),
         f1Score: convertToPercentage(getMetric(validationMetrics, 'f1_score')),
         bleu: convertDecimalToPercentage(getMetric(validationMetrics, 'bleu')), // Convert 0-1 to 0-100 for display
@@ -443,10 +695,10 @@ function calculateMetricsFromStats(stats) {
         stepCorrectness: convertToPercentage(getMetric(validationMetrics, 'step_correctness')),
         logicConsistency: convertToPercentage(getMetric(validationMetrics, 'logic_consistency')),
         hallucinationRate: getMetric(validationMetrics, 'hallucination_rate'), // Already in percentage
-        factualConsistency: getMetric(validationMetrics, 'factual_consistency'), // Already in percentage
-        truthfulnessScore: getMetric(validationMetrics, 'truthfulness'), // Already in percentage
+        similarityProxyFactualConsistency: getMetric(validationMetrics, 'similarity_proxy_factual_consistency'), // Already in percentage
+        similarityProxyTruthfulness: getMetric(validationMetrics, 'similarity_proxy_truthfulness'), // Already in percentage
         citationAccuracy: getMetric(validationMetrics, 'citation_accuracy'), // Already in percentage
-        sourceGrounding: getMetric(validationMetrics, 'source_grounding') // Already in percentage
+        similarityProxySourceGrounding: getMetric(validationMetrics, 'similarity_proxy_source_grounding') // Already in percentage
     };
 
     // RAG Metrics
@@ -622,16 +874,16 @@ function updateCriticalMetrics(stats = null) {
 
     const criticalMetrics = [
         { name: 'Hallucination Rate', value: metricsData.baseModel.hallucinationRate, target: 5, unit: '%', inverse: true },
-        { name: 'Source Grounding', value: metricsData.baseModel.sourceGrounding, target: 85, unit: '%' },
-        { name: 'Factual Consistency', value: metricsData.baseModel.factualConsistency, target: 90, unit: '%' },
+        { name: 'Source Grounding (Similarity Proxy)', value: metricsData.baseModel.similarityProxySourceGrounding, target: 85, unit: '%' },
+        { name: 'Factual Consistency (Similarity Proxy)', value: metricsData.baseModel.similarityProxyFactualConsistency, target: 90, unit: '%' },
         { name: 'Response Validity', value: metricsData.reliability.outputValidity, target: 95, unit: '%' },
         { name: 'Schema Compliance', value: metricsData.reliability.schemaCompliance, target: 95, unit: '%' },
-        { name: 'Truthfulness Score', value: metricsData.baseModel.truthfulnessScore, target: 90, unit: '%' },
+        { name: 'Truthfulness (Similarity Proxy)', value: metricsData.baseModel.similarityProxyTruthfulness, target: 90, unit: '%' },
         { name: 'Token Latency (TTFT)', value: metricsData.performance.ttft, target: 300, unit: 'ms', inverse: true },
         { name: 'E2E Latency', value: metricsData.performance.e2eLatency, target: 2000, unit: 'ms', inverse: true },
-        { name: 'Retrieval Precision@5', value: metricsData.rag.retrievalPrecision5, target: 85, unit: '%' },
-        { name: 'Retrieval Recall@5', value: metricsData.rag.retrievalRecall5, target: 85, unit: '%' },
-        { name: 'Context Coverage', value: metricsData.rag.contextCoverage, target: 80, unit: '%' },
+        { name: 'Retrieval Precision@5', value: metricsData.rag.retrievalPrecision5, target: ragTargets?.retrieval_precision_5 || 85, unit: '%' },
+        { name: 'Retrieval Recall@5', value: metricsData.rag.retrievalRecall5, target: ragTargets?.retrieval_recall_5 || 85, unit: '%' },
+        { name: 'Context Coverage', value: metricsData.rag.contextCoverage, target: ragTargets?.context_coverage || 80, unit: '%' },
         { name: 'Reasoning Correctness', value: metricsData.baseModel.stepCorrectness, target: 90, unit: '%' },
         { name: 'Output Stability', value: metricsData.reliability.outputStability, target: 90, unit: '%' },
         { name: 'Safety Violations', value: metricsData.safety.harmfulnessScore, target: 2, unit: '%', inverse: true },
@@ -785,7 +1037,7 @@ function updateCriticalMetrics(stats = null) {
 
 function updateBaseModelMetrics() {
     updateElement('baseAccuracy', metricsData.baseModel.accuracy, 'percentage');
-    updateElement('baseTopK', metricsData.baseModel.topKAccuracy, 'percentage');
+    updateElement('baseTopK', metricsData.baseModel.normalizedSimilarityScore, 'percentage');
     updateElement('baseExactMatch', metricsData.baseModel.exactMatch, 'percentage');
     updateElement('baseF1', metricsData.baseModel.f1Score, 'percentage');
     // BLEU, ROUGE-L, BERTScore are now converted to percentages for consistency
@@ -796,10 +1048,10 @@ function updateBaseModelMetrics() {
     updateElement('baseStepCorrect', metricsData.baseModel.stepCorrectness, 'percentage');
     updateElement('baseLogic', metricsData.baseModel.logicConsistency, 'percentage');
     updateElement('hallucinationRate', metricsData.baseModel.hallucinationRate, 'percentage');
-    updateElement('factualConsistency', metricsData.baseModel.factualConsistency, 'percentage');
-    updateElement('truthfulness', metricsData.baseModel.truthfulnessScore, 'percentage');
+    updateElement('factualConsistency', metricsData.baseModel.similarityProxyFactualConsistency, 'percentage');
+    updateElement('truthfulness', metricsData.baseModel.similarityProxyTruthfulness, 'percentage');
     updateElement('citationAccuracy', metricsData.baseModel.citationAccuracy, 'percentage');
-    updateElement('sourceGrounding', metricsData.baseModel.sourceGrounding, 'percentage');
+    updateElement('sourceGrounding', metricsData.baseModel.similarityProxySourceGrounding, 'percentage');
 }
 
 function updateRAGMetrics() {
@@ -813,59 +1065,72 @@ function updateRAGMetrics() {
     updateElement('ragReranker', metricsData.rag.rerankerScore, 'decimal');
 
     // Update progress bars with animations
-    if (metricsData.rag.retrievalRecall5 !== null) {
+    // Reset to 0% if no data, otherwise update with actual value
+    if (metricsData.rag.retrievalRecall5 !== null && metricsData.rag.retrievalRecall5 !== undefined) {
         updateProgressBarWidth('ragRecallProgress', metricsData.rag.retrievalRecall5);
+    } else {
+        updateProgressBarWidth('ragRecallProgress', 0);
     }
-    if (metricsData.rag.retrievalPrecision5 !== null) {
+    if (metricsData.rag.retrievalPrecision5 !== null && metricsData.rag.retrievalPrecision5 !== undefined) {
         updateProgressBarWidth('ragPrecisionProgress', metricsData.rag.retrievalPrecision5);
+    } else {
+        updateProgressBarWidth('ragPrecisionProgress', 0);
     }
-    if (metricsData.rag.contextRelevance !== null) {
+    if (metricsData.rag.contextRelevance !== null && metricsData.rag.contextRelevance !== undefined) {
         updateProgressBarWidth('ragRelevanceProgress', metricsData.rag.contextRelevance);
+    } else {
+        updateProgressBarWidth('ragRelevanceProgress', 0);
     }
-    if (metricsData.rag.contextCoverage !== null) {
+    if (metricsData.rag.contextCoverage !== null && metricsData.rag.contextCoverage !== undefined) {
         updateProgressBarWidth('ragCoverageProgress', metricsData.rag.contextCoverage);
+    } else {
+        updateProgressBarWidth('ragCoverageProgress', 0);
     }
-    if (metricsData.rag.goldContextMatch !== null) {
+    if (metricsData.rag.goldContextMatch !== null && metricsData.rag.goldContextMatch !== undefined) {
         updateProgressBarWidth('ragGoldMatchProgress', metricsData.rag.goldContextMatch);
+    } else {
+        updateProgressBarWidth('ragGoldMatchProgress', 0);
     }
 
-    // Update context intrusion status
-    if (metricsData.rag.contextIntrusion !== null) {
-        const intrusionEl = document.getElementById('ragIntrusionStatus');
-        if (intrusionEl) {
-            const indicator = intrusionEl.querySelector('.status-indicator');
-            const text = intrusionEl.querySelector('span:last-child');
-            if (metricsData.rag.contextIntrusion < 5) {
-                indicator.className = 'status-indicator status-good';
-                text.textContent = 'Within Target';
-            } else if (metricsData.rag.contextIntrusion < 10) {
-                indicator.className = 'status-indicator status-warning';
-                text.textContent = 'Needs Attention';
-            } else {
-                indicator.className = 'status-indicator status-danger';
-                text.textContent = 'High Intrusion';
+        // Update context intrusion status (use calibrated target)
+        if (metricsData.rag.contextIntrusion !== null) {
+            const intrusionEl = document.getElementById('ragIntrusionStatus');
+            if (intrusionEl) {
+                const indicator = intrusionEl.querySelector('.status-indicator');
+                const text = intrusionEl.querySelector('span:last-child');
+                const target = ragTargets?.context_intrusion || 5.0;
+                if (metricsData.rag.contextIntrusion < target) {
+                    indicator.className = 'status-indicator status-good';
+                    text.textContent = 'Within Target';
+                } else if (metricsData.rag.contextIntrusion < target * 2) {
+                    indicator.className = 'status-indicator status-warning';
+                    text.textContent = 'Needs Attention';
+                } else {
+                    indicator.className = 'status-indicator status-danger';
+                    text.textContent = 'High Intrusion';
+                }
             }
         }
-    }
 
-    // Update reranker status
-    if (metricsData.rag.rerankerScore !== null) {
-        const rerankerEl = document.getElementById('ragRerankerStatus');
-        if (rerankerEl) {
-            const indicator = rerankerEl.querySelector('.status-indicator');
-            const text = rerankerEl.querySelector('span:last-child');
-            if (metricsData.rag.rerankerScore >= 0.8) {
-                indicator.className = 'status-indicator status-good';
-                text.textContent = 'Above Target';
-            } else if (metricsData.rag.rerankerScore >= 0.6) {
-                indicator.className = 'status-indicator status-warning';
-                text.textContent = 'Below Target';
-            } else {
-                indicator.className = 'status-indicator status-danger';
-                text.textContent = 'Poor Score';
+        // Update reranker status (use calibrated target)
+        if (metricsData.rag.rerankerScore !== null) {
+            const rerankerEl = document.getElementById('ragRerankerStatus');
+            if (rerankerEl) {
+                const indicator = rerankerEl.querySelector('.status-indicator');
+                const text = rerankerEl.querySelector('span:last-child');
+                const target = ragTargets?.reranker_score || 0.8;
+                if (metricsData.rag.rerankerScore >= target) {
+                    indicator.className = 'status-indicator status-good';
+                    text.textContent = 'Above Target';
+                } else if (metricsData.rag.rerankerScore >= target * 0.75) {
+                    indicator.className = 'status-indicator status-warning';
+                    text.textContent = 'Below Target';
+                } else {
+                    indicator.className = 'status-indicator status-danger';
+                    text.textContent = 'Poor Score';
+                }
             }
         }
-    }
 
     // Calculate overall RAG health if we have data
     const ragMetrics = [
@@ -1400,15 +1665,43 @@ function updateAgentMetrics() {
         : null;
     updateElement('overallAgent', agentScore, 'percentage');
 
-    // Update progress bars only if we have data
-    if (metricsData.agent.taskCompletion !== null) {
+    // Update progress bars - reset to 0% if no data, otherwise update with actual value
+    if (metricsData.agent.taskCompletion !== null && metricsData.agent.taskCompletion !== undefined) {
         updateProgressBarWidth('agentTaskCompletion', metricsData.agent.taskCompletion);
+    } else {
+        updateProgressBarWidth('agentTaskCompletion', 0);
     }
-    if (metricsData.agent.stepEfficiency !== null) {
+    if (metricsData.agent.stepEfficiency !== null && metricsData.agent.stepEfficiency !== undefined) {
         updateProgressBarWidth('agentStepEfficiency', metricsData.agent.stepEfficiency);
+    } else {
+        updateProgressBarWidth('agentStepEfficiency', 0);
     }
-    if (metricsData.agent.errorRecovery !== null) {
+    if (metricsData.agent.errorRecovery !== null && metricsData.agent.errorRecovery !== undefined) {
         updateProgressBarWidth('agentErrorRecovery', metricsData.agent.errorRecovery);
+    } else {
+        updateProgressBarWidth('agentErrorRecovery', 0);
+    }
+
+    // Update Planning & Execution progress bars
+    if (metricsData.agent.toolUsageAccuracy !== null && metricsData.agent.toolUsageAccuracy !== undefined) {
+        updateProgressBarWidth('agentToolUsageProgress', metricsData.agent.toolUsageAccuracy);
+    } else {
+        updateProgressBarWidth('agentToolUsageProgress', 0);
+    }
+    if (metricsData.agent.planningCoherence !== null && metricsData.agent.planningCoherence !== undefined) {
+        updateProgressBarWidth('agentPlanningProgress', metricsData.agent.planningCoherence);
+    } else {
+        updateProgressBarWidth('agentPlanningProgress', 0);
+    }
+    if (metricsData.agent.actionHallucination !== null && metricsData.agent.actionHallucination !== undefined) {
+        updateProgressBarWidth('agentActionHallProgress', metricsData.agent.actionHallucination);
+    } else {
+        updateProgressBarWidth('agentActionHallProgress', 0);
+    }
+    if (metricsData.agent.goalDrift !== null && metricsData.agent.goalDrift !== undefined) {
+        updateProgressBarWidth('agentGoalDriftProgress', metricsData.agent.goalDrift);
+    } else {
+        updateProgressBarWidth('agentGoalDriftProgress', 0);
     }
 }
 
@@ -2224,10 +2517,11 @@ function renderCategoryBreakdown() {
     if (!container) return;
 
     // Calculate category scores from real metrics
+    // Note: bertScore and rougeL are already converted to percentages (0-100) in calculateMetricsFromStats()
     const baseModelMetrics = [
         metricsData.baseModel.accuracy,
-        metricsData.baseModel.bertScore ? metricsData.baseModel.bertScore * 100 : null,
-        metricsData.baseModel.rougeL ? metricsData.baseModel.rougeL * 100 : null
+        metricsData.baseModel.bertScore,
+        metricsData.baseModel.rougeL
     ].filter(v => v !== null && v !== undefined);
     const baseModelScore = baseModelMetrics.length > 0
         ? Math.round(baseModelMetrics.reduce((a, b) => a + b, 0) / baseModelMetrics.length)
@@ -3150,11 +3444,12 @@ window.goToTestPage = function(page) {
     currentTestPage = page;
     renderTestResults();
 
-    // Smooth scroll to top of container
+    // Scroll to top of container
     const container = document.querySelector('.test-results-container');
     if (container) {
-        // Use native smooth scroll for container elements
-        container.scrollTo({ top: 0, behavior: 'smooth' });
+        // For internal container scrolling, use native scroll
+        // Lenis handles main window scrolling
+        container.scrollTo({ top: 0, behavior: 'auto' });
     }
 };
 

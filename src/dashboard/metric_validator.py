@@ -14,10 +14,13 @@ class MetricValidator:
         "f1_score": (0.0, 1.0),
         "bleu": (0.0, 1.0),
         "hallucination_rate": (0.0, 100.0),
-        "factual_consistency": (0.0, 100.0),
-        "truthfulness": (0.0, 100.0),
-        "source_grounding": (0.0, 100.0),
         "citation_accuracy": (0.0, 100.0),
+        # Honest metric names
+        "normalized_similarity_score": (0.0, 1.0),
+        "similarity_proxy_factual_consistency": (0.0, 100.0),
+        "similarity_proxy_truthfulness": (0.0, 100.0),
+        "similarity_proxy_source_grounding": (0.0, 100.0),
+        "lexical_overlap": (0.0, 1.0),  # BLEU fallback
         # RAG metrics (0-100 for percentages)
         "retrieval_recall_5": (0.0, 100.0),
         "retrieval_precision_5": (0.0, 100.0),

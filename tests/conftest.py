@@ -127,6 +127,22 @@ def mobile_page(browser_manager):
 
 
 @pytest.fixture
+def mobile_chat_page(mobile_page, test_config):
+    """
+    Create chat page object for mobile with auto-navigation.
+
+    Page is pre-navigated to chat_url and ready for interaction.
+    """
+    logger.info(f"Navigating to chat (mobile): {test_config.chat_url}")
+    mobile_page.goto(test_config.chat_url, wait_until="networkidle")
+
+    chat = ChatPage(mobile_page, test_config)
+    chat.wait_for_chat_loaded()
+    logger.info("✓ Mobile chat page ready")
+    return chat
+
+
+@pytest.fixture
 def chat_page(page, test_config):
     """
     Create chat page object with auto-navigation.
@@ -143,9 +159,9 @@ def chat_page(page, test_config):
 
 
 @pytest.fixture
-def login_page(page, test_config):
+def login_page(page, test_config, browser_manager):
     """Create login page object."""
-    return LoginPage(page, test_config)
+    return LoginPage(page, test_config, browser_manager)
 
 
 @pytest.fixture(scope="session")
@@ -261,22 +277,29 @@ def screenshot_manager():
 def setup_test(request, test_config):
     """Setup before each test - handles login if needed."""
 
-    needs_login = "chat_page" in request.fixturenames or "mobile_page" in request.fixturenames
-    is_mobile = "mobile_page" in request.fixturenames
+    needs_login = (
+        "chat_page" in request.fixturenames
+        or "mobile_page" in request.fixturenames
+        or "mobile_chat_page" in request.fixturenames
+    )
+    is_mobile = "mobile_page" in request.fixturenames or "mobile_chat_page" in request.fixturenames
 
     if needs_login and test_config.email and test_config.password:
         try:
             if is_mobile:
                 try:
-                    test_page = request.getfixturevalue("mobile_page")
+                    # Try mobile_chat_page first, fallback to mobile_page
+                    try:
+                        test_page = request.getfixturevalue("mobile_chat_page").page
+                    except Exception:
+                        test_page = request.getfixturevalue("mobile_page")
                 except Exception as e:
-                    logger.warning(f"Could not get mobile_page fixture: {e}, skipping mobile login")
+                    logger.warning(f"Could not get mobile page fixture: {e}, skipping mobile login")
                     yield
                     return
 
-                from tests.pages.login_page import LoginPage
-
-                test_login_page = LoginPage(test_page, test_config)
+                browser_manager_instance = request.getfixturevalue("browser_manager")
+                test_login_page = LoginPage(test_page, test_config, browser_manager_instance)
             else:
                 test_page = request.getfixturevalue("page")
                 test_login_page = request.getfixturevalue("login_page")
@@ -304,7 +327,6 @@ def setup_test(request, test_config):
                     logger.error(f"Current URL: {test_page.url}")
                 else:
                     logger.info("✓ Login successful")
-
                     test_page.wait_for_load_state("networkidle", timeout=15000)
                     logger.info(f"✓ Post-login URL: {test_page.url}")
             else:
@@ -324,7 +346,11 @@ def setup_test(request, test_config):
     if hasattr(request.node, "rep_call") and request.node.rep_call.failed:
         try:
             if is_mobile:
-                test_page = request.getfixturevalue("mobile_page")
+                # Try mobile_chat_page first, fallback to mobile_page
+                try:
+                    test_page = request.getfixturevalue("mobile_chat_page").page
+                except Exception:
+                    test_page = request.getfixturevalue("mobile_page")
             else:
                 test_page = request.getfixturevalue("page")
 
@@ -333,7 +359,7 @@ def setup_test(request, test_config):
             test_page.screenshot(path=screenshot_path, full_page=True)
             logger.info(f"Failure screenshot saved: {screenshot_path}")
 
-            # Screenshot saved (Allure reporting removed)
+            # Screenshot saved
         except Exception as e:
             logger.debug(f"Suppressed exception: {e}")
 
@@ -488,8 +514,6 @@ def pytest_runtest_makereport(item, call):
         except Exception as e:
             logger.debug(f"Suppressed exception: {e}")
 
-    # Failure artifacts handling (Allure reporting removed)
-
 
 def pytest_configure(config):
     """Prevent plugins that create asyncio loops from conflicting with Playwright sync API."""
@@ -514,11 +538,20 @@ def pytest_configure(config):
         logger.debug(f"Suppressed exception: {e}")
 
     # Start Prometheus metrics server if enabled
+    # Only start in main process, not in worker processes (pytest-xdist)
     if settings.enable_prometheus_metrics:
         try:
-            metrics = get_prometheus_metrics()
-            if metrics.enabled:
-                metrics.start_server(port=settings.prometheus_port)
+            # Check if we're in a worker process (pytest-xdist)
+            # Worker processes have 'workerinput' attribute
+            if hasattr(config, "workerinput"):
+                # We're in a worker process - skip server startup
+                # The main process will handle the Prometheus server
+                logger.debug("Skipping Prometheus server startup in worker process")
+            else:
+                # Main process - start the server
+                metrics = get_prometheus_metrics()
+                if metrics.enabled:
+                    metrics.start_server(port=settings.prometheus_port)
         except Exception as e:
             logger.warning(f"Failed to start Prometheus server: {e}")
 

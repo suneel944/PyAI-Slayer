@@ -139,6 +139,17 @@ class ChatPage(BasePage):
                         for msg in reversed(messages):
                             if msg.get("role") == "assistant" and msg.get("content"):
                                 self._last_ai_response = msg.get("content")
+
+                                # Extract sources from the message for RAG metrics
+                                extracted_sources = extract_sources_from_message(msg)
+                                if extracted_sources:
+                                    logger.debug(
+                                        f"Extracted {len(extracted_sources)} sources from completed response: "
+                                        f"{[s[:50] + '...' if len(s) > 50 else s for s in extracted_sources[:3]]}"
+                                    )
+                                    # Store sources in RAG context for dashboard collection
+                                    self._store_retrieved_docs(extracted_sources)
+
                                 logger.debug(
                                     f"Captured AI response from API: {self._last_ai_response[:50]}..."
                                 )

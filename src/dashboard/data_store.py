@@ -965,7 +965,8 @@ class DashboardDataStore:
                     "context_coverage",
                     "context_intrusion",
                     "gold_context_match",
-                    "reranker_score",
+                    # Note: reranker_score is kept as 0-1 decimal, not converted to percentage
+                    # "reranker_score",  # Removed - should stay as 0-1 decimal for display
                     # Safety Metrics (0-1 range, but stored as 0-100 in calculator, then normalized)
                     "toxicity_score",
                     "bias_score",

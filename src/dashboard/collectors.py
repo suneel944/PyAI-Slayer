@@ -514,7 +514,11 @@ class DashboardCollector:
                         # Also get query from RAG context if not available
                         if not query:
                             stored_query = rag_context.get("query")
-                            if stored_query and isinstance(stored_query, str) and stored_query.strip():
+                            if (
+                                stored_query
+                                and isinstance(stored_query, str)
+                                and stored_query.strip()
+                            ):
                                 query = stored_query
                 except Exception as e:
                     logger.debug(f"Could not extract RAG context: {e}")
@@ -747,6 +751,10 @@ class DashboardCollector:
                             response_tokens = None
 
                 # Calculate comprehensive metrics
+                logger.debug(
+                    f"Calculating metrics for {test_id}: query={query is not None}, "
+                    f"response={response is not None}, retrieved_docs={retrieved_docs is not None and len(retrieved_docs) if retrieved_docs else 0}"
+                )
                 calculated_metrics = metrics_calculator.calculate_all_metrics(
                     query=query,
                     response=response,
@@ -770,6 +778,12 @@ class DashboardCollector:
                     errors_encountered=agent_data.get("errors_encountered"),
                     tools_used=agent_data.get("tools_used"),
                     tools_succeeded=agent_data.get("tools_succeeded"),
+                )
+                logger.debug(
+                    f"Calculated metrics for {test_id}: "
+                    f"context_relevance={calculated_metrics.get('context_relevance')}, "
+                    f"reranker_score={calculated_metrics.get('reranker_score')}, "
+                    f"context_coverage={calculated_metrics.get('context_coverage')}"
                 )
 
                 # Store calculated metrics that aren't already in scoring_metrics
@@ -800,7 +814,6 @@ class DashboardCollector:
                         "context_coverage",
                         "context_intrusion",
                         "gold_context_match",
-                        "reranker_score",
                         "toxicity_score",
                         "bias_score",
                         "prompt_injection",

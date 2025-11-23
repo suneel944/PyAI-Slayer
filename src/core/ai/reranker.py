@@ -41,7 +41,9 @@ class HuggingFaceReranker:
         """Lazy load the reranker model."""
         if self._loaded:
             # Return True if either pipeline (FlagReranker) or model/tokenizer (transformers) is available
-            return (self._pipeline is not None) or (self._model is not None and self._tokenizer is not None)
+            return (self._pipeline is not None) or (
+                self._model is not None and self._tokenizer is not None
+            )
 
         if not self.enabled:
             return False
@@ -180,7 +182,11 @@ class HuggingFaceReranker:
 
                 # BGE rerankers use the tokenizer's sep_token (usually </s>) or just concatenate
                 # Check if tokenizer has sep_token and use it, otherwise use space
-                sep_token = self._tokenizer.sep_token if hasattr(self._tokenizer, 'sep_token') and self._tokenizer.sep_token else " "
+                sep_token = (
+                    self._tokenizer.sep_token
+                    if hasattr(self._tokenizer, "sep_token") and self._tokenizer.sep_token
+                    else " "
+                )
                 # Format: query + sep_token + document
                 text = f"{query}{sep_token}{document}"
 
@@ -199,7 +205,9 @@ class HuggingFaceReranker:
                     outputs = self._model(**inputs)
                     # Get logits
                     logits = outputs.logits
-                    logger.debug(f"Reranker logits shape: {logits.shape}, value: {logits[0][0].item() if logits.numel() > 0 else 'N/A'}")
+                    logger.debug(
+                        f"Reranker logits shape: {logits.shape}, value: {logits[0][0].item() if logits.numel() > 0 else 'N/A'}"
+                    )
 
                     # BGE rerankers are typically regression models (single output)
                     # or binary classification models
@@ -227,12 +235,15 @@ class HuggingFaceReranker:
                 logger.debug(f"Reranker final score: {final_score}")
                 return final_score
             else:
-                logger.debug(f"Reranker: model={self._model is not None}, tokenizer={self._tokenizer is not None}")
+                logger.debug(
+                    f"Reranker: model={self._model is not None}, tokenizer={self._tokenizer is not None}"
+                )
                 return 0.0
 
         except Exception as e:
             logger.warning(f"Reranker scoring failed: {e}, falling back to 0.0")
             import traceback
+
             logger.debug(f"Reranker error traceback: {traceback.format_exc()}")
             return 0.0
 
@@ -254,12 +265,44 @@ class HuggingFaceReranker:
             if self._use_flag_reranker and self._pipeline:
                 # FlagReranker supports batch scoring
                 pairs = [[query, doc] for doc in documents]
-                scores = self._pipeline.compute_score(pairs)
-                # Normalize scores
+                raw_scores = self._pipeline.compute_score(pairs)
+
+                # Handle different return types from FlagReranker
                 import math
 
-                normalized_scores = [1 / (1 + math.exp(-s)) for s in scores]
-                return [max(0.0, min(1.0, float(s))) for s in normalized_scores]
+                import numpy as np
+
+                # Convert to list if numpy array
+                if isinstance(raw_scores, np.ndarray):
+                    scores_list = raw_scores.tolist()
+                elif isinstance(raw_scores, list):
+                    scores_list = raw_scores
+                else:
+                    # Single value - shouldn't happen for batch, but handle it
+                    scores_list = [raw_scores]
+
+                # Normalize scores using sigmoid
+                # FlagReranker typically returns raw similarity scores that can be negative or > 1
+                normalized_scores = []
+                for s in scores_list:
+                    # Convert to float
+                    score_val = float(s)
+
+                    # Apply sigmoid normalization to ensure [0, 1] range
+                    # Sigmoid: 1 / (1 + exp(-x)) maps any real number to (0, 1)
+                    normalized = 1 / (1 + math.exp(-score_val))
+
+                    # Clamp to [0, 1] to ensure no edge cases
+                    normalized = max(0.0, min(1.0, normalized))
+                    normalized_scores.append(normalized)
+
+                    # Log if score seems unusual (for debugging)
+                    if score_val > 5.0 or score_val < -5.0:
+                        logger.debug(
+                            f"Reranker unusual raw score: {score_val:.4f}, normalized: {normalized:.4f}"
+                        )
+
+                return normalized_scores
             else:
                 # Fallback to individual scoring
                 scores = []

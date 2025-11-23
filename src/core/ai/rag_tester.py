@@ -23,10 +23,12 @@ def _store_rag_context(
     if not _rag_context:
         _rag_context = {}
 
-    # Only update retrieved_docs if not already set (preserve test data)
+    # Update retrieved_docs: prefer test data over ChatPage URLs
+    # If test explicitly provides retrieved_docs, use them (they're more accurate)
+    # Only use ChatPage URLs if test doesn't provide retrieved_docs
     if retrieved_docs is not None:
-        if "retrieved_docs" not in _rag_context or not _rag_context.get("retrieved_docs"):
-            _rag_context["retrieved_docs"] = retrieved_docs
+        # If test provides retrieved_docs, always use them (they override ChatPage data)
+        _rag_context["retrieved_docs"] = retrieved_docs
     elif "retrieved_docs" not in _rag_context:
         _rag_context["retrieved_docs"] = []
 

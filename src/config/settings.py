@@ -246,8 +246,8 @@ class Settings(BaseSettings):
                     else:
                         # Only set if not already set from .env (check current value vs default)
                         current_value = getattr(self, key, None)
-                        # Get default value from field definition
-                        field_info = self.model_fields.get(key)
+                        # Get default value from field definition (access from class, not instance)
+                        field_info = Settings.model_fields.get(key)
                         default_value = field_info.default if field_info else None
                         # Only override if current value is the default (meaning .env didn't set it)
                         if current_value == default_value:

@@ -226,6 +226,12 @@ RAG_RERANKER_FALLBACK_MODELS=BAAI/bge-reranker-base,BAAI/bge-reranker-large,ms-m
 RAG_RERANKER_ENABLED=true
 RAG_RERANKER_USE_CUDA=true  # Use GPU if available
 RAG_RERANKER_CUDA_DEVICE=0  # CUDA device ID
+RAG_FETCH_URL_CONTENT=true  # Fetch content from URLs for reranker scoring (improves accuracy)
+RAG_URL_FETCH_TIMEOUT=10  # Timeout in seconds for URL content fetching
+RAG_URL_MAX_CONTENT_LENGTH=10000  # Maximum content length per URL (characters)
+RAG_URL_MAX_RETRIES=3  # Maximum retry attempts per URL
+RAG_URL_RETRY_DELAY=1.0  # Delay between retries in seconds
+RAG_URL_MAX_WORKERS=5  # Maximum parallel workers for URL fetching
 
 # RAG Metric Targets (Optional - overrides calibration file if set)
 # Leave empty to use calibration recommendations from data/rag_calibration_recommendations.json

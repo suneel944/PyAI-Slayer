@@ -143,6 +143,14 @@ class Settings(BaseSettings):
     rag_reranker_enabled: bool = True
     rag_reranker_use_cuda: bool = True  # Use GPU if available
     rag_reranker_cuda_device: int = 0  # CUDA device ID
+    rag_fetch_url_content: bool = (
+        True  # Fetch content from URLs for reranker scoring (improves accuracy)
+    )
+    rag_url_fetch_timeout: int = 10  # Timeout in seconds for URL content fetching
+    rag_url_max_content_length: int = 10000  # Maximum content length to fetch per URL (chars)
+    rag_url_max_retries: int = 3  # Maximum retry attempts per URL
+    rag_url_retry_delay: float = 1.0  # Delay between retries in seconds
+    rag_url_max_workers: int = 5  # Maximum parallel workers for URL fetching
 
     # RAG Metric Targets (optional - overrides calibration file if set)
     # Leave empty to use calibration recommendations from data/rag_calibration_recommendations.json

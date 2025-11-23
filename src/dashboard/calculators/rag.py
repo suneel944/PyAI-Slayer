@@ -61,6 +61,10 @@ class RAGMetricsCalculator:
         metrics: dict[str, float] = {}
 
         if not response or not query:
+            logger.debug(
+                f"RAG metrics: missing response or query. response={response is not None}, "
+                f"query={query is not None}, retrieved_docs={retrieved_docs is not None and len(retrieved_docs) if retrieved_docs else 0}"
+            )
             return metrics
 
         # Retrieval Precision@5 and Recall@5
@@ -158,25 +162,91 @@ class RAGMetricsCalculator:
 
         # Reranker Score - use actual reranker if available, fallback to embeddings
         if retrieved_docs and query:
+            logger.debug(
+                f"Calculating reranker_score: query={query[:50] if query else None}, "
+                f"retrieved_docs count={len(retrieved_docs) if retrieved_docs else 0}"
+            )
+
+            # Check if retrieved_docs are URLs and fetch content if needed
+            documents_to_score = retrieved_docs.copy()
+            urls_to_fetch = []
+            url_indices = []
+
+            for i, doc in enumerate(retrieved_docs):
+                # Check if it's a URL (starts with http:// or https://)
+                if isinstance(doc, str) and doc.strip().startswith(("http://", "https://")):
+                    urls_to_fetch.append((i, doc))
+                    url_indices.append(i)
+
+            # Fetch content from URLs if any found and enabled
+            if urls_to_fetch:
+                from config.settings import settings
+
+                if settings.rag_fetch_url_content:
+                    try:
+                        from utils.url_fetcher import fetch_urls_content
+
+                        logger.debug(
+                            f"Fetching content from {len(urls_to_fetch)} URLs in parallel for reranker scoring"
+                        )
+
+                        # Fetch all URLs in parallel
+                        url_list = [url for _, url in urls_to_fetch]
+                        fetched_contents = fetch_urls_content(
+                            url_list,
+                            timeout=settings.rag_url_fetch_timeout,
+                            max_length=settings.rag_url_max_content_length,
+                            max_retries=settings.rag_url_max_retries,
+                            retry_delay=settings.rag_url_retry_delay,
+                            max_workers=settings.rag_url_max_workers,
+                        )
+
+                        # Map fetched content back to documents_to_score by index
+                        successful_fetches = 0
+                        url_to_content = dict(zip(url_list, fetched_contents, strict=False))
+                        for idx, url in urls_to_fetch:
+                            content = url_to_content.get(url)
+                            if content:
+                                documents_to_score[idx] = content
+                                successful_fetches += 1
+                                logger.debug(f"Fetched {len(content)} chars from {url[:50]}...")
+                            else:
+                                # Keep URL if fetch failed after all retries (reranker will score URL as-is)
+                                logger.warning(
+                                    f"Failed to fetch content from {url} after {settings.rag_url_max_retries} retries, using URL for scoring"
+                                )
+
+                        logger.info(
+                            f"URL content fetching: {successful_fetches}/{len(urls_to_fetch)} URLs successfully fetched (parallel)"
+                        )
+                    except ImportError:
+                        logger.debug("URL fetcher not available, using URLs as-is")
+                    except Exception as e:
+                        logger.debug(f"Error fetching URL content: {e}, using URLs as-is")
+                else:
+                    logger.debug(
+                        "URL content fetching disabled (RAG_FETCH_URL_CONTENT=false), using URLs as-is"
+                    )
+
             relevance_scores = []
             if self.reranker:
                 # Use actual reranker
                 try:
-                    scores = self.reranker.score_batch(query=query, documents=retrieved_docs)
+                    scores = self.reranker.score_batch(query=query, documents=documents_to_score)
                     relevance_scores = scores
                 except Exception as e:
                     logger.debug(
                         f"Reranker failed for reranker_score: {e}, falling back to embeddings"
                     )
                     # Fallback to embeddings
-                    for doc in retrieved_docs:
+                    for doc in documents_to_score:
                         is_relevant, similarity = self.validator.validate_relevance(
                             query, doc, threshold=0.0
                         )
                         relevance_scores.append(similarity)
             else:
                 # Fallback to embeddings
-                for doc in retrieved_docs:
+                for doc in documents_to_score:
                     is_relevant, similarity = self.validator.validate_relevance(
                         query, doc, threshold=0.0
                     )

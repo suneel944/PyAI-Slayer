@@ -20,10 +20,13 @@ def _extract_text_from_html(html_content: str) -> str:
         Extracted text content
     """
     # Remove script and style tags and their content
+    # Use \s* to handle whitespace in closing tags (e.g., </script >)
     content = re.sub(
-        r"<script[^>]*>.*?</script>", "", html_content, flags=re.DOTALL | re.IGNORECASE
+        r"<script[^>]*>.*?</script\s*>", "", html_content, flags=re.DOTALL | re.IGNORECASE
     )
-    content = re.sub(r"<style[^>]*>.*?</style>", "", content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(
+        r"<style[^>]*>.*?</style\s*>", "", content, flags=re.DOTALL | re.IGNORECASE
+    )
 
     # Remove HTML tags
     content = re.sub(r"<[^>]+>", " ", content)

@@ -105,7 +105,6 @@ detectDisplayRefreshRate().then(rate => {
     // Update Lenis if already initialized
     if (lenis) {
         // Re-initialize with optimal settings for detected refresh rate
-        console.log(`🎯 Display refresh rate: ${displayRefreshRate}Hz | Targeting: ${targetFPS} FPS`);
     }
 });
 
@@ -158,8 +157,7 @@ function initSmoothScrolling() {
             if (time - fpsStartTime >= 1000) {
                 const currentFPS = Math.round(frameCount);
                 if (currentFPS >= 100) {
-                    // Only log if achieving high FPS
-                    console.log(`🚀 Scrolling at ${currentFPS} FPS`);
+                    // High FPS achieved
                 }
                 frameCount = 0;
                 fpsStartTime = time;
@@ -272,11 +270,7 @@ function initSmoothScrolling() {
             subtree: true
         });
 
-        // Log initialization with detected refresh rate
-        setTimeout(() => {
-            console.log(`✅ Ultra-smooth scrolling initialized with Lenis`);
-            console.log(`📊 Display: ${displayRefreshRate}Hz | Target: ${targetFPS} FPS | Ultra-butter-smooth mode enabled`);
-        }, 100);
+        // Initialization complete
     } else {
         // Fallback: Use native scrolling
         console.warn('⚠️ Lenis not available, using native scrolling');
@@ -557,7 +551,6 @@ async function loadRAGTargets() {
     try {
         const response = await fetch(`/api/rag/targets?_t=${Date.now()}`);
         ragTargets = await response.json();
-        console.log('Loaded RAG targets:', ragTargets);
 
         // Update target labels in UI
         updateRAGTargetLabels();
@@ -2967,7 +2960,7 @@ async function renderLatencyDistributionChart() {
             }],
             chart: {
                 type: 'line',
-                height: 320,
+                height: 400,
                 background: 'transparent',
                 toolbar: { show: false },
                 zoom: { enabled: false },

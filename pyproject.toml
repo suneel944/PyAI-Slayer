@@ -46,7 +46,7 @@ dependencies = [
 
     # Data & Validation
     "pydantic>=2.12.4",
-    "pydantic-settings>=2.12.0",
+    "pydantic-settings>=2.13.1",
 
     # Reporting & Observability
     "loguru>=0.7.3",
